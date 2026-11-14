@@ -37,3 +37,9 @@ Opening artwork correction (2026-11-15):
 Phase 4 environment art (2026-11-15):
 - forest-cinematic-v1.png and lab-cinematic-v1.png: generated with the built-in image_gen tool for this project, environment-only illustrations without Pokemon/characters. Original generated PNGs are preserved in the workspace.
 - Complete prompts and paths: docs/ART-PROMPTS.md. Pokemon characters remain the unchanged API-sourced artwork above.
+
+Cinematic revision 2: lab-intact-v2.png, capture-operative-v2.png,
+researcher-v2.png, containment-v2.png, fleeing-researcher-v2.png were
+created with OpenAI's built-in image_gen tool using the earlier generated
+laboratory as style reference. Exact prompts: docs/cinematic-v2-generation.json.
+Pokémon art is unchanged; no Pokémon were generated for this revision.

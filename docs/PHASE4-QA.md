@@ -27,3 +27,12 @@ Saves are local browser checkpoints, not a frame-perfect simulation snapshot or 
 - Added two generated, character-free ink/watercolor background plates (forest and abandoned lab); original Pokémon artwork remains separate and unchanged.
 - All assets are local and included in the offline cache. Code backgrounds remain a fallback while images load.
 - Production offline test: after cache-ready indicator, stopped both local servers and confirmed port 4174 unreachable; reload/continue still restored the pending reward and accepted a move with no console errors. This functional test preceded the background-only pass; the final precache list is checked to contain both additional images.
+
+## Cinematic revision 2 — 2026-11-15
+
+- Added five generated illustrated assets: intact lab, field operative, observing scientist, fleeing scientist, transparent containment pod. PNG transparency inspected; pod center alpha is 1/255 and permits the original Mew art behind glass.
+- Re-staged capture approach/launch/constriction, observation, Mewtwo reveal with irregular psychic contours, intact-to-damaged collapse with fleeing researchers/debris/sparks, and pod release followed by Mew moving toward the exit.
+- Browser inspected capture, experiment, awakening, collapse and freedom; existing forest artwork retained. Corrected duplicated pod halves during escape and bounded tall sprites for short landscape panels. Checked the real intro at 844×390 and desktop; browser error log was empty. Saved visual evidence locally (ignored by Git).
+- Original Pokémon artwork, game balance, checkpoints and deferred Phase 2 feedback were not changed.
+- `npm test`: 33 passed. `npm run build`: TypeScript/Vite passed; 27 offline-cache entries include all five new assets. The existing large Phaser bundle warning remains.
+- Assets and exact built-in generation prompts are recorded in ART-PROMPTS.md and cinematic-v2-generation.json. Animation is layered Canvas motion-comic compositing, not frame-by-frame character animation.
