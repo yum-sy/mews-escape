@@ -1,11 +1,11 @@
 {
   "name": "mews-escape",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/build-sw.mjs",
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {

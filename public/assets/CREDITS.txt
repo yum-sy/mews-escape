@@ -14,3 +14,16 @@ See Kenney-LICENSE.txt.
 
 Audio: short Web Audio synthesized tones; no external recordings.
 Assets downloaded and file signatures verified 2026-11-14.
+
+Phase 3 additions (2026-11-14): Koffing 109, Grimer 88, Houndour 228,
+Shuppet 353, Gengar 94, Mewtwo 150. Same PokéAPI Gen V black-white path:
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/{id}.png
+PNG alpha bounds are measured and used as runtime texture frames; original files retained.
+Species heights (decimeters) and weights (hectograms) copied from PokéAPI's source data:
+https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/pokemon.csv
+REST access returned HTTP 403 in the development environment; the project's public CSV source was used instead.
+Data snapshot: src/species.json. Rendering height = 32 * sqrt(height_m / 0.4).
+
+App icon: project-owned vector arrow/exit symbol, public/icons/app.svg.
+Intro: CSS animation using existing Pokémon PNGs; background shapes and human silhouettes are code-based staging.
+Audio: synthesized Web Audio notes and tones, no external recordings.

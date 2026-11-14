@@ -1,0 +1,101 @@
+{
+  "mew": {
+    "id": 151,
+    "heightDm": 4,
+    "weightHg": 40,
+    "bounds": [
+      26,
+      27,
+      76,
+      69
+    ]
+  },
+  "gastly": {
+    "id": 92,
+    "heightDm": 13,
+    "weightHg": 1,
+    "bounds": [
+      16,
+      21,
+      81,
+      76
+    ]
+  },
+  "zubat": {
+    "id": 41,
+    "heightDm": 8,
+    "weightHg": 75,
+    "bounds": [
+      22,
+      28,
+      73,
+      65
+    ]
+  },
+  "koffing": {
+    "id": 109,
+    "heightDm": 6,
+    "weightHg": 10,
+    "bounds": [
+      15,
+      21,
+      80,
+      74
+    ]
+  },
+  "grimer": {
+    "id": 88,
+    "heightDm": 9,
+    "weightHg": 300,
+    "bounds": [
+      19,
+      29,
+      72,
+      66
+    ]
+  },
+  "houndour": {
+    "id": 228,
+    "heightDm": 6,
+    "weightHg": 108,
+    "bounds": [
+      29,
+      25,
+      66,
+      69
+    ]
+  },
+  "shuppet": {
+    "id": 353,
+    "heightDm": 6,
+    "weightHg": 23,
+    "bounds": [
+      31,
+      28,
+      66,
+      67
+    ]
+  },
+  "gengar": {
+    "id": 94,
+    "heightDm": 15,
+    "weightHg": 405,
+    "bounds": [
+      17,
+      20,
+      75,
+      76
+    ]
+  },
+  "mewtwo": {
+    "id": 150,
+    "heightDm": 20,
+    "weightHg": 1220,
+    "bounds": [
+      17,
+      18,
+      85,
+      83
+    ]
+  }
+}

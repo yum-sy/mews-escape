@@ -13,7 +13,7 @@ test('1000 seeds produce connected, reciprocal nine-room layouts with reachable 
    const d=dir as keyof typeof DELTA,r=rooms[target];assert.equal(r.doors[OPPOSITE[d]],id);assert.equal(r.x,rooms[id].x+DELTA[d][0]);assert.equal(r.y,rooms[id].y+DELTA[d][1]);
    if(!seen.has(target)){seen.add(target);queue.push(target)}
   }
-  assert.equal(seen.size,9);assert.equal(rooms[0].kind,'start');assert.equal(enemyLayout(rooms[0]).length,0);assert.ok(seen.has(rooms.find(r=>r.kind==='exit')!.id));
+  assert.equal(seen.size,9);assert.equal(rooms[0].kind,'start');assert.equal(enemyLayout(rooms[0]).length,0);assert.ok(seen.has(rooms.find(r=>r.kind==='boss')!.id));
  }
 });
 test('same seed reproduces rooms, enemies and reward options, other seeds vary',()=>{
@@ -26,15 +26,22 @@ test('combat locks travel; cleared rooms and claimed rewards persist on revisit'
  assert.equal(run.travel(dir),false);run.clear();const reward=run.choices[0];assert.equal(run.choose(reward.id),true);assert.equal(run.choose(reward.id),false);assert.equal(run.choose('invalid'),false);
  assert.equal(run.travel(dir),true);assert.equal(run.travel(OPPOSITE[dir]),true);assert.equal(run.current,id);assert.equal(run.rewardPending,false);assert.equal(enemyLayout(run.room).length,0);assert.deepEqual(run.moves,[reward.id]);
 });
-test('full seeded run can claim rewards, revisit rooms and unlock exit without duplicates',()=>{
- const run=new Run(2718);assert.equal(run.canExit,false);
- const visit=()=>{const room=run.room;if(room.kind==='combat')run.clear();if(run.rewardPending)assert.ok(run.choose(run.choices[0].id));for(const [d,id] of Object.entries(room.doors)){if(run.rooms[id].visited)continue;assert.ok(run.travel(d as keyof typeof DELTA));visit();assert.ok(run.travel(OPPOSITE[d as keyof typeof DELTA]))}};
- visit();assert.equal(run.canExit,true);assert.equal(run.moves.length,7);assert.equal(run.rooms.filter(r=>r.visited).length,9);
- const fresh=new Run(2719);assert.deepEqual(fresh.moves,[]);assert.equal(fresh.canExit,false);assert.equal(fresh.rooms.filter(r=>r.visited).length,1);
+function clearFloor(run:Run){
+ const visited=new Set<number>();
+ const visit=()=>{const room=run.room;visited.add(room.id);if(room.kind==='combat')run.clear();if(run.rewardPending)assert.ok(run.choose(run.choices[0].id));for(const [d,id] of Object.entries(room.doors)){if(visited.has(id)||run.rooms[id].kind==='boss')continue;assert.ok(run.travel(d as keyof typeof DELTA));visit();assert.ok(run.travel(OPPOSITE[d as keyof typeof DELTA]))}};
+ visit();assert.equal(visited.size,run.rooms.length-1);assert.equal(run.canExit,false);
+ const target=run.rooms.find(r=>r.kind==='boss')!.id,queue:[number,(keyof typeof DELTA)[]][]=[[run.current,[]]],seen=new Set([run.current]);
+ for(const [id,path] of queue){if(id===target){for(const d of path)assert.ok(run.travel(d));break}for(const [d,next] of Object.entries(run.rooms[id].doors))if(!seen.has(next)){seen.add(next);queue.push([next,[...path,d as keyof typeof DELTA]])}}
+ assert.equal(run.room.kind,'boss');assert.equal(run.canExit,false);run.clear();assert.equal(run.canExit,true);
+}
+test('five escalating floors preserve builds and require the boss before ascent',()=>{
+ const run=new Run(2718);let previous=0;
+ for(let floor=6;floor>=2;floor--){assert.equal(run.floor,floor);assert.equal(run.ascend(),false);clearFloor(run);assert.ok(run.moves.length>=previous);previous=run.moves.length;if(floor>2){assert.equal(run.ascend(),true);assert.equal(run.current,0);assert.equal(run.canExit,false)}else assert.equal(run.ascend(),false)}
+ const fresh=new Run(2719);assert.deepEqual(fresh.moves,[]);assert.equal(fresh.floor,6);assert.equal(fresh.canExit,false);
 });
 test('independent modifiers compose and remain bounded under repeated upgrades',()=>{
  const a=composeAttack(['shadow','swift','tri','flame','ice','spark','split']);
  assert.equal(a.count,3);assert.equal(a.pierce,2);assert.ok(a.homing>0&&a.burn>0&&a.slow>0);assert.equal(a.chain,1);assert.equal(a.split,2);assert.equal(a.damage,1.35);
  const b=composeAttack(Array.from({length:100},()=>MOVES.map(m=>m.id)).flat());assert.equal(b.count,5);assert.equal(b.interval,.09);assert.equal(b.pierce,6);assert.equal(b.chain,3);assert.equal(b.split,2);assert.equal(b.slow,.65);assert.equal(b.size,11);
- const owned=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.equal(rewardOptions(12,owned).length,0);
+ const owned=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.equal(rewardOptions(12,owned)[0].id,'recover');
 });

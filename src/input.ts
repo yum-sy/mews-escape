@@ -1,8 +1,8 @@
 import {normalize,type Vec} from './combat';
 export class Controls{
- keys=new Set<string>();move:Vec={x:0,y:0};aim:Vec={x:0,y:0};onPause=()=>{};
+ keys=new Set<string>();move:Vec={x:0,y:0};aim:Vec={x:0,y:0};onPause=()=>{};onInteract=()=>{};
  constructor(){
- window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();this.keys.add(e.code);if(e.code==='Escape'&&!e.repeat)this.onPause()});
+ window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();this.keys.add(e.code);if(e.code==='Escape'&&!e.repeat)this.onPause();if(e.code==='KeyE'&&!e.repeat)this.onInteract()});
  window.addEventListener('keyup',e=>this.keys.delete(e.code));
  window.addEventListener('blur',()=>this.reset());
  this.stick('move-stick',v=>this.move=v);this.stick('attack-stick',v=>this.aim=v);
