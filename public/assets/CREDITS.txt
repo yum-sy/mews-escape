@@ -27,3 +27,9 @@ Data snapshot: src/species.json. Rendering height = 32 * sqrt(height_m / 0.4).
 App icon: project-owned vector arrow/exit symbol, public/icons/app.svg.
 Intro: CSS animation using existing Pokémon PNGs; background shapes and human silhouettes are code-based staging.
 Audio: synthesized Web Audio notes and tones, no external recordings.
+
+Opening artwork correction (2026-11-15):
+- mew-artwork.png and mewtwo-artwork.png are unmodified PNGs downloaded from the URLs returned by PokéAPI's sprites.other.official-artwork.front_default.
+- Exact API endpoints, image URLs and SHA-256 checksums: artwork-sources.json.
+- Pokémon artwork belongs to its respective Pokémon rights holders. PokéAPI is the data provider, not the rights holder.
+- Opening camera, lighting, net, glass, particles and backgrounds are code-generated; Pokémon characters are no longer redrawn.

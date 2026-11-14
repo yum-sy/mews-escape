@@ -31,3 +31,11 @@
 - Projectile effects use one batched Graphics renderer, at most 9 trail samples per shot and 360 impact particles. Damage and status modifiers drive size, shape, multicolor trails/orbits, critical/ricochet outlines and enemy status visuals. Gameplay damage/collision rules unchanged.
 - Local browser fixture verified flame, ice piercing and multi-element homing shots against Gengar; console errors absent. The fixture grants builds and temporary invulnerability only for visual checks and is excluded from production.
 - This is procedural 2D animation, not frame-by-frame anime footage. Physical mobile performance remains unmeasured.
+
+
+## 2026-11-15 artwork and balance correction
+
+- Supersedes the articulated character drawing above: both Pokémon now use unmodified official-artwork PNGs resolved from successful PokéAPI responses. Source URLs and hashes are recorded. The environment remains code-drawn.
+- Browser: verified Mew forest shot, containment scene, Mewtwo awakening; started a normal seed-3 run without QA bonuses, selected Psybeam, entered combat, confirmed enemies surviving/attacking and player taking damage. No console errors.
+- 27 passing tests include multi-projectile damage budgets, enumeration of seven-upgrade direct-DPS combinations, full legal build bound, secondary child restrictions and early enemy pressure. These mathematical limits are not proof of final gameplay difficulty.
+- Build precaches 20 files including artwork and provenance. Full-run balance and physical mobile performance remain unverified.

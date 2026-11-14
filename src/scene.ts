@@ -6,7 +6,7 @@ import {Controls} from './input';
 import {AudioFX} from './audio';
 import {Run} from './run';
 import {DIRECTIONS,OPPOSITE,enemyLayout,type Direction} from './dungeon';
-import {MOVES,type Attack} from './moves';
+import {MOVES,splitAttack,CHAIN_DAMAGE,BLAST_DAMAGE,PIERCE_RETAIN,CRITICAL_MULTIPLIER,type Attack} from './moves';
 import {setupShell} from './shell';
 import {LAB_RECORDS} from './story';
 import {obstacles,debris,moveWithWalls,overlapsBlock,type Block} from './lab';
@@ -14,7 +14,7 @@ import {stepBrain} from './ai';
 import {SPECIES,speciesSize,hazardPhase} from './scaling';
 
 type Enemy={id:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;bar:Phaser.GameObjects.Rectangle;kind:Kind;hp:number;cooldown:number;charge:number;dir:Vec;flash:number;burn:number;slow:number;statusTime:number;poison:number;phase:number;maxHp:number;radius:number};
-type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number;trail:Vec[];critical:boolean};
+type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number;trail:Vec[];critical:boolean;procAvailable:boolean};
 type State='ready'|'playing'|'paused'|'reward'|'record'|'won'|'lost';
 const DOOR_POS:Record<Direction,Vec>={up:{x:560,y:112},right:{x:1055,y:364},down:{x:560,y:614},left:{x:65,y:364}};
 function nextSeed(){const raw=new URLSearchParams(location.search).get('seed');const value=Number(raw);return raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(value)&&value>=0&&value<=0xffffffff?value:crypto.getRandomValues(new Uint32Array(1))[0]}
@@ -104,8 +104,8 @@ export class LabScene extends Phaser.Scene{
   this.roomClock=0;this.toxic=0;this.toxicTick=0;this.hazardSlow=0;this.decorateRoom();
   const layout=enemyLayout(this.run.room);
   if(this.run.room.kind==='combat'&&this.run.tuning.level>=2)layout.push({kind:this.run.tuning.level>=3?'koffing':'houndour',x:560,y:365});
-  layout.forEach((spawn,i)=>{const size=speciesSize(spawn.kind),maxHp=ENEMIES[spawn.kind].hp*this.run.tuning.hp*(spawn.kind==='gengar'?1+this.run.tuning.level*.35:1);
-   this.enemies.push({id:i,kind:spawn.kind,hp:maxHp,maxHp,radius:size.radius,sprite:this.add.image(spawn.x,spawn.y,spawn.kind,'body').setDisplaySize(size.width,size.height).setDepth(9),shadow:this.add.ellipse(spawn.x,spawn.y+size.height*.4,size.width*.6,12,0x000000,.3),bar:this.add.rectangle(spawn.x,spawn.y-size.height*.6,30,3,0xca8eb3).setDepth(12),cooldown:1.4+i*.35,charge:0,dir:{x:0,y:0},flash:0,burn:0,slow:0,statusTime:0,poison:0,phase:1});
+  layout.forEach((spawn,i)=>{const size=speciesSize(spawn.kind),maxHp=ENEMIES[spawn.kind].hp*this.run.tuning.hp*(spawn.kind==='gengar'?1+this.run.tuning.level*.15:1);
+   this.enemies.push({id:i,kind:spawn.kind,hp:maxHp,maxHp,radius:size.radius,sprite:this.add.image(spawn.x,spawn.y,spawn.kind,'body').setDisplaySize(size.width,size.height).setDepth(9),shadow:this.add.ellipse(spawn.x,spawn.y+size.height*.4,size.width*.6,12,0x000000,.3),bar:this.add.rectangle(spawn.x,spawn.y-size.height*.6,30,3,0xca8eb3).setDepth(12),cooldown:.5+i*.15,charge:0,dir:{x:0,y:0},flash:0,burn:0,slow:0,statusTime:0,poison:0,phase:1});
   });
   this.audioFX.mode=this.run.room.kind==='boss'&&!this.run.room.cleared?'boss':this.run.room.cleared?'ambient':'combat';
 
@@ -183,11 +183,11 @@ export class LabScene extends Phaser.Scene{
     const dealt=Math.min(e.hp,s.attack.damage);this.drain+=dealt*s.attack.lifesteal;if(this.drain>=1){const heal=Math.floor(this.drain);this.hp=Math.min(STATS.hp,this.hp+heal);this.drain-=heal}
     this.effects.impact(point.x,point.y,s.attack,s.critical);this.hitEnemy(e,s.attack.damage);
     if(e.hp>0&&s.attack.knockback){const v=normalize(s.v.x,s.v.y),power=s.attack.knockback*(e.kind==='gengar'?.25:1),p=moveWithWalls(e.sprite,{x:v.x*power,y:v.y*power},ENEMIES[e.kind].flying?[]:this.blocks,e.radius);e.sprite.setPosition(Phaser.Math.Clamp(p.x,R.left+e.radius,R.right-e.radius),Phaser.Math.Clamp(p.y,R.top+e.radius,R.bottom-e.radius))}
-    if(s.attack.blast){this.burst(point.x,point.y,0xb991cf,10);const ring=this.add.circle(point.x,point.y,s.attack.blast,0xb991cf,.06).setStrokeStyle(2,0xb991cf,.45);this.tweens.add({targets:ring,alpha:0,duration:220,onComplete:()=>ring.destroy()});for(const other of this.enemies)if(other.id!==e.id&&other.hp>0&&intersects(point,other.sprite,s.attack.blast))this.hitEnemy(other,s.attack.damage*.45)}this.burst(s.sprite.x,s.sprite.y,s.attack.color,5);this.audioFX.play('hit');
-    const chained=this.enemies.filter(other=>other.hp>0&&other.id!==e.id&&intersects(point,other.sprite,175)).sort((a,b)=>Phaser.Math.Distance.Between(point.x,point.y,a.sprite.x,a.sprite.y)-Phaser.Math.Distance.Between(point.x,point.y,b.sprite.x,b.sprite.y)).slice(0,s.attack.chain);
-    for(const other of chained){this.effects.bolt(point,other.sprite);const line=this.add.line(0,0,point.x,point.y,other.sprite.x,other.sprite.y,0xfff0a0).setOrigin(0).setDepth(14);this.tweens.add({targets:line,alpha:0,duration:140,onComplete:()=>line.destroy()});this.hitEnemy(other,s.attack.damage*.55)}
-    if(!s.child&&s.attack.split){const angle=Math.atan2(s.v.y,s.v.x);for(const offset of [-.7,.7]){const dir={x:Math.cos(angle+offset),y:Math.sin(angle+offset)};this.shoot(s.sprite.x,s.sprite.y,dir,false,{...s.attack,damage:s.attack.damage*.55,size:Math.max(3,s.attack.size*.7),range:360,split:0},true,e.id)}s.child=true}
-    if(s.remaining--<=0){s.life=0;break}
+    if(s.procAvailable&&s.attack.blast){this.burst(point.x,point.y,0xb991cf,10);const ring=this.add.circle(point.x,point.y,s.attack.blast,0xb991cf,.06).setStrokeStyle(2,0xb991cf,.45);this.tweens.add({targets:ring,alpha:0,duration:220,onComplete:()=>ring.destroy()});for(const other of this.enemies)if(other.id!==e.id&&other.hp>0&&intersects(point,other.sprite,s.attack.blast))this.hitEnemy(other,s.attack.damage*BLAST_DAMAGE)}this.burst(s.sprite.x,s.sprite.y,s.attack.color,5);this.audioFX.play('hit');
+    const chained=this.enemies.filter(other=>other.hp>0&&other.id!==e.id&&intersects(point,other.sprite,175)).sort((a,b)=>Phaser.Math.Distance.Between(point.x,point.y,a.sprite.x,a.sprite.y)-Phaser.Math.Distance.Between(point.x,point.y,b.sprite.x,b.sprite.y)).slice(0,s.procAvailable?s.attack.chain:0);
+    for(const other of chained){this.effects.bolt(point,other.sprite);const line=this.add.line(0,0,point.x,point.y,other.sprite.x,other.sprite.y,0xfff0a0).setOrigin(0).setDepth(14);this.tweens.add({targets:line,alpha:0,duration:140,onComplete:()=>line.destroy()});this.hitEnemy(other,s.attack.damage*CHAIN_DAMAGE)}
+    if(!s.child&&s.attack.split){const angle=Math.atan2(s.v.y,s.v.x);for(const offset of [-.7,.7]){const dir={x:Math.cos(angle+offset),y:Math.sin(angle+offset)};this.shoot(s.sprite.x,s.sprite.y,dir,false,splitAttack(s.attack),true,e.id)}s.child=true}
+    s.procAvailable=false;if(s.remaining--<=0){s.life=0;break}s.attack={...s.attack,damage:s.attack.damage*PIERCE_RETAIN};
    }
   }
   this.shots=this.shots.filter(s=>{if(s.life<=0){s.sprite.destroy();s.glow.destroy();return false}return true});
@@ -195,9 +195,9 @@ export class LabScene extends Phaser.Scene{
  shoot(x:number,y:number,dir:Vec,hostile:boolean,attack=this.run.attack,child=false,ignore?:number){
   if(!canSpawnProjectile(this.shots,hostile))return;
   const critical=!hostile&&!child&&Math.random()<attack.crit;
-  if(critical)attack={...attack,damage:attack.damage*1.8,size:Math.min(13,attack.size+1)};
-  const color=hostile?0xff9c64:attack.color,r=hostile?7:attack.size,speed=hostile?180*this.run.tuning.shotSpeed:attack.speed;
-  this.shots.push({sprite:this.add.circle(x,y,r,color).setStrokeStyle(2,hostile?0xffe0b6:0xffeaff).setDepth(13).setVisible(hostile),glow:this.add.circle(x,y,r*2.5,color,.09).setDepth(12).setVisible(hostile),v:{x:dir.x*speed,y:dir.y*speed},life:hostile?5:attack.range/speed,hostile,attack,hit:new Set(ignore===undefined?[]:[ignore]),remaining:attack.pierce,child,bounces:attack.bounce,trail:[],critical});
+  if(critical)attack={...attack,damage:attack.damage*CRITICAL_MULTIPLIER,size:Math.min(13,attack.size+1)};
+  const color=hostile?0xff9c64:attack.color,r=hostile?7:attack.size,speed=hostile?220*this.run.tuning.shotSpeed:attack.speed;
+  this.shots.push({sprite:this.add.circle(x,y,r,color).setStrokeStyle(2,hostile?0xffe0b6:0xffeaff).setDepth(13).setVisible(hostile),glow:this.add.circle(x,y,r*2.5,color,.09).setDepth(12).setVisible(hostile),v:{x:dir.x*speed,y:dir.y*speed},life:hostile?5:attack.range/speed,hostile,attack,hit:new Set(ignore===undefined?[]:[ignore]),remaining:attack.pierce,child,bounces:attack.bounce,trail:[],critical,procAvailable:!child});
  }
  hitEnemy(e:Enemy,amount:number){if(e.hp<=0)return;e.hp=Math.max(0,e.hp-amount);e.flash=.1;if(e.hp===0){this.kills++;this.burst(e.sprite.x,e.sprite.y,0xc29fed,10);e.sprite.destroy();e.bar.destroy();e.shadow.destroy()}}
  hurt(dir:Vec){const result=damage(this.hp,this.inv);if(!result.hit)return;this.hp=result.hp;this.inv=result.invulnerable;this.player.x=Phaser.Math.Clamp(this.player.x+dir.x*22,R.left+18,R.right-18);this.player.y=Phaser.Math.Clamp(this.player.y+dir.y*22,R.top+22,R.bottom-22);this.cameras.main.shake(100,.004);this.audioFX.play('hurt');this.burst(this.player.x,this.player.y,0xf9a1b7,8);this.updateHud();if(this.hp<=0)this.finish(false)}

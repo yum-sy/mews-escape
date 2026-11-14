@@ -1,13 +1,13 @@
 export const ROOM={width:1120,height:700,left:78,right:1042,top:136,bottom:590};
 export const STATS={hp:6,speed:240,damage:1,shotInterval:.19,projectileSpeed:600,range:720,invulnerability:1.1,projectileCap:120};
 export const ENEMIES={
- gastly:{name:'고오스',hp:5,speed:66,radius:21,flying:true},
- zubat:{name:'주뱃',hp:3,speed:100,radius:19,flying:true},
- koffing:{name:'또가스',hp:7,speed:38,radius:22,flying:true},
- grimer:{name:'질퍽이',hp:8,speed:58,radius:23,flying:false},
- houndour:{name:'델빌',hp:6,speed:82,radius:21,flying:false},
- shuppet:{name:'어둠대신',hp:4,speed:85,radius:19,flying:true},
- gengar:{name:'팬텀',hp:180,speed:60,radius:32,flying:true},
+ gastly:{name:'고오스',hp:8,speed:76,radius:21,flying:true},
+ zubat:{name:'주뱃',hp:5,speed:112,radius:19,flying:true},
+ koffing:{name:'또가스',hp:10,speed:44,radius:22,flying:true},
+ grimer:{name:'질퍽이',hp:12,speed:68,radius:23,flying:false},
+ houndour:{name:'델빌',hp:9,speed:94,radius:21,flying:false},
+ shuppet:{name:'어둠대신',hp:7,speed:98,radius:19,flying:true},
+ gengar:{name:'팬텀',hp:220,speed:60,radius:32,flying:true},
 };
 export type Kind=keyof typeof ENEMIES;
 export const NORMAL_KINDS:Kind[]=['gastly','zubat','koffing','grimer','houndour','shuppet'];
