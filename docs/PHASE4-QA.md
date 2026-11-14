@@ -36,3 +36,7 @@ Saves are local browser checkpoints, not a frame-perfect simulation snapshot or 
 - Original Pokémon artwork, game balance, checkpoints and deferred Phase 2 feedback were not changed.
 - `npm test`: 33 passed. `npm run build`: TypeScript/Vite passed; 27 offline-cache entries include all five new assets. The existing large Phaser bundle warning remains.
 - Assets and exact built-in generation prompts are recorded in ART-PROMPTS.md and cinematic-v2-generation.json. Animation is layered Canvas motion-comic compositing, not frame-by-frame character animation.
+
+## Motion and staging revision — 2026-11-15
+
+See `CINEMATIC-MOTION.md` for choreography, ground contact, object interaction and viewport review. All 37 tests passed. Original images were preserved; gameplay and save code were unchanged. Capture/containment/escape were inspected at controlled timestamps; rubble settling and actual intro rendering were also reviewed. Visual evidence is local and ignored by Git.
