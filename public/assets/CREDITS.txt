@@ -1,0 +1,16 @@
+Pokémon sprites: PokeAPI/sprites, generation-v/black-white (static PNG).
+https://github.com/PokeAPI/sprites
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/151.png
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/92.png
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/41.png
+Pokémon character names and artwork belong to their respective rights holders (Nintendo / Creatures / GAME FREAK). Fan prototype; no affiliation or endorsement. Public availability does not transfer character/artwork rights.
+
+Environment: Topdown Shooter by Kenney. CC0.
+https://opengameart.org/content/topdown-shooter
+Downloaded https://opengameart.org/sites/default/files/topdown-shooter.zip
+File: Tilesheet/tilesheet_complete.png; copied as lab-tiles.png.
+Runtime changes: frame regions selected, scaled and color-tinted to match the lab.
+See Kenney-LICENSE.txt.
+
+Audio: short Web Audio synthesized tones; no external recordings.
+Assets downloaded and file signatures verified 2026-11-14.
