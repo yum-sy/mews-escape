@@ -36,7 +36,7 @@ function clearFloor(run:Run){
 }
 test('five escalating floors preserve builds and require the boss before ascent',()=>{
  const run=new Run(2718);let previous=0;
- for(let floor=6;floor>=2;floor--){assert.equal(run.floor,floor);assert.equal(run.ascend(),false);clearFloor(run);assert.ok(run.moves.length>=previous);previous=run.moves.length;if(floor>2){assert.equal(run.ascend(),true);assert.equal(run.current,0);assert.equal(run.canExit,false)}else assert.equal(run.ascend(),false)}
+ for(let floor=6;floor>=2;floor--){assert.equal(run.floor,floor);assert.equal(run.ascend(),false);clearFloor(run);assert.ok(run.moves.length>=previous);previous=run.moves.length;if(floor>2){assert.equal(run.ascend(),true);assert.equal(run.current,0);assert.equal(run.canExit,false)}else{assert.equal(run.ascend(),true);assert.equal(run.floor,1);assert.equal(run.rooms.length,1);assert.equal(run.room.kind,'boss');assert.equal(run.canExit,false);assert.equal(run.ascend(),false);run.clear();assert.equal(run.ascend(),false)}}
  const fresh=new Run(2719);assert.deepEqual(fresh.moves,[]);assert.equal(fresh.floor,6);assert.equal(fresh.canExit,false);
 });
 test('independent modifiers compose and remain bounded under repeated upgrades',()=>{

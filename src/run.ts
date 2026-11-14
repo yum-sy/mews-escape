@@ -1,11 +1,11 @@
-import {generateDungeon,exitReady,type Direction} from './dungeon';
+import {generateDungeon,exitReady,type DungeonRoom,type Direction} from './dungeon';
 import {composeAttack,rewardOptions} from './moves';
 import {difficulty} from './scaling';
 export class Run{
  rooms;current=0;moves:string[]=[];floor=6;
  constructor(public seed:number){this.rooms=generateDungeon(seed)}
  get tuning(){return difficulty(this.floor)}
- ascend(){if(!this.canExit||this.floor<=2)return false;this.floor--;this.current=0;this.rooms=generateDungeon((this.seed+Math.imul(6-this.floor,0x9e3779b1))>>>0,this.tuning.combatCount);return true}
+ ascend(){if(!this.canExit||this.floor<=1)return false;this.floor--;this.current=0;this.rooms=roomsForFloor(this.seed,this.floor);return true}
  get room(){return this.rooms[this.current]}
  get attack(){return composeAttack(this.moves)}
  get canExit(){return exitReady(this.rooms)}
@@ -14,4 +14,9 @@ export class Run{
  get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&(this.room.kind==='combat'||this.room.kind==='reward')}
  get choices(){return rewardOptions(this.room.seed,this.moves)}
  choose(id:string){if(!this.rewardPending||!this.choices.some(m=>m.id===id))return false;if(id!=='recover')this.moves.push(id);this.room.rewardTaken=true;return true}
+}
+
+export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{
+ if(floor===1)return[{id:0,x:0,y:0,kind:'boss',doors:{},visited:true,cleared:false,rewardTaken:false,seed}];
+ return generateDungeon((seed+Math.imul(6-floor,0x9e3779b1))>>>0,difficulty(floor).combatCount);
 }

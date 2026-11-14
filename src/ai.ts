@@ -1,7 +1,7 @@
 import {ENEMIES,type Kind} from './data';
 import {normalize,type Vec} from './combat';
 export interface Brain extends Vec{hp:number;cooldown:number;charge:number;dir:Vec;phase:number}
-export type Action={type:'shot';dir:Vec}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number};
+export type Action={type:'shot';dir:Vec;homing?:number;speed?:number}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number};
 export function bossPhase(hp:number){return hp>ENEMIES.gengar.hp*.5?1:2}
 export function stepBrain(kind:Kind,e:Brain,player:Vec,dt:number):{v:Vec;actions:Action[]}{
  const actions:Action[]=[],n=normalize(player.x-e.x,player.y-e.y),distance=Math.hypot(player.x-e.x,player.y-e.y);let v={x:0,y:0};e.cooldown-=dt;

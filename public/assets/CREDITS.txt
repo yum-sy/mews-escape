@@ -33,3 +33,7 @@ Opening artwork correction (2026-11-15):
 - Exact API endpoints, image URLs and SHA-256 checksums: artwork-sources.json.
 - Pokémon artwork belongs to its respective Pokémon rights holders. PokéAPI is the data provider, not the rights holder.
 - Opening camera, lighting, net, glass, particles and backgrounds are code-generated; Pokémon characters are no longer redrawn.
+
+Phase 4 environment art (2026-11-15):
+- forest-cinematic-v1.png and lab-cinematic-v1.png: generated with the built-in image_gen tool for this project, environment-only illustrations without Pokemon/characters. Original generated PNGs are preserved in the workspace.
+- Complete prompts and paths: docs/ART-PROMPTS.md. Pokemon characters remain the unchanged API-sourced artwork above.

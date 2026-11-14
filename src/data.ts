@@ -7,6 +7,7 @@ export const ENEMIES={
  grimer:{name:'질퍽이',hp:12,speed:68,radius:23,flying:false},
  houndour:{name:'델빌',hp:9,speed:94,radius:21,flying:false},
  shuppet:{name:'어둠대신',hp:7,speed:98,radius:19,flying:true},
+ mewtwo:{name:'뮤츠',hp:600,speed:48,radius:36,flying:true},
  gengar:{name:'팬텀',hp:220,speed:60,radius:32,flying:true},
 };
 export type Kind=keyof typeof ENEMIES;
