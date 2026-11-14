@@ -24,3 +24,10 @@
 - No claim of final difficulty calibration. Increasing room count, HP, speed, shot speed, environmental hazard frequency and boss health are implemented; balancing needs play feedback.
 - B1 Mewtwo's three-phase fight is scripted, not yet playable.
 - Run persistence across refresh/relaunch remains Phase 4 work. Offline installation does not imply save/resume support.
+
+## Animation / effects revision
+
+- Replaced the intro's static sprite stage with Canvas 2D articulated character animation, layered forest/lab sets, camera motion, capture/experiment/collapse/escape staging. Approximately 49 seconds; skip/manual advance and reduced-motion still supported.
+- Projectile effects use one batched Graphics renderer, at most 9 trail samples per shot and 360 impact particles. Damage and status modifiers drive size, shape, multicolor trails/orbits, critical/ricochet outlines and enemy status visuals. Gameplay damage/collision rules unchanged.
+- Local browser fixture verified flame, ice piercing and multi-element homing shots against Gengar; console errors absent. The fixture grants builds and temporary invulnerability only for visual checks and is excluded from production.
+- This is procedural 2D animation, not frame-by-frame anime footage. Physical mobile performance remains unmeasured.

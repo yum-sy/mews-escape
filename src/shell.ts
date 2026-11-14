@@ -1,3 +1,4 @@
+import {playCinematic} from './cinematic';
 import {INTRO} from './story';
 import './shell.css';
 interface InstallEvent extends Event{prompt:()=>Promise<void>;userChoice:Promise<{outcome:string}>}
@@ -6,8 +7,8 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEven
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||Boolean((navigator as Navigator&{standalone?:boolean}).standalone);
 export function setupShell(start:()=>void){
  const shell=document.getElementById('shell')!;
- let sceneIndex=0,timer:number|undefined;
- const clear=()=>{window.clearTimeout(timer);shell.replaceChildren()};
+ let sceneIndex=0,timer:number|undefined;let stopFilm=()=>{};
+ const clear=()=>{stopFilm();window.clearTimeout(timer);shell.replaceChildren()};
  const menu=()=>{
   clear();document.body.dataset.screen='menu';shell.hidden=false;
   shell.innerHTML=`<section class="menu-screen"><div class="menu-mark">PROJECT 151 / THE ASCENT</div><img class="menu-mew" src="./assets/mew.png" alt="뮤"><h2>MEW’S<br><em>ESCAPE</em></h2><p>가장 깊은 곳에서, 다시 하늘로.</p><div class="menu-actions"><button id="start-game">게임 시작 <span>↗</span></button><button id="show-help">게임 설명 <small>이야기 · 조작법</small></button><button id="show-install">게임 설치 <small>${standalone()?'앱으로 실행 중':'권장 · 더 넓은 화면'}</small></button></div><footer>B6 원본 격리 구역 · PHASE 03</footer></section>`;
@@ -25,9 +26,10 @@ export function setupShell(start:()=>void){
  };
  const intro=()=>{
   clear();document.body.dataset.screen='intro';shell.hidden=false;const shot=INTRO[sceneIndex];
-  shell.innerHTML=`<section class="intro-screen ${shot.id}"><div class="intro-top"><span>${shot.tag}</span><button id="skip-intro">건너뛰기 →</button></div><div class="story-stage" aria-hidden="true"><div class="story-orb"></div><div class="story-floor"></div><div class="story-beam"></div><div class="story-grid"></div><div class="story-bars"></div><img class="story-mew" src="./assets/mew.png" alt=""><img class="story-mewtwo" src="./assets/mewtwo.png" alt=""><div class="human h1"></div><div class="human h2"></div><div class="story-crack"></div><span class="day-counter"></span><div class="story-debris"></div></div><div class="intro-caption" aria-live="polite"><span>0${sceneIndex+1} / 06</span><h2>${shot.title}</h2><p>${shot.text}</p><button id="next-intro">${sceneIndex===INTRO.length-1?'시작 화면으로':'다음 장면 →'}</button></div><div class="intro-progress"><i style="width:${(sceneIndex+1)/INTRO.length*100}%"></i></div></section>`;
+  shell.innerHTML=`<section class="intro-screen ${shot.id}"><div class="intro-top"><span>${shot.tag}</span><button id="skip-intro">건너뛰기 →</button></div><div class="story-stage" aria-hidden="true"></div><div class="intro-caption" aria-live="polite"><span>0${sceneIndex+1} / 06</span><h2>${shot.title}</h2><p>${shot.text}</p><button id="next-intro">${sceneIndex===INTRO.length-1?'시작 화면으로':'다음 장면 →'}</button></div><div class="intro-progress"><i style="width:${(sceneIndex+1)/INTRO.length*100}%"></i></div></section>`;
+  stopFilm=playCinematic(shell.querySelector('.story-stage')!,shot.id);
   const next=()=>{sceneIndex++;if(sceneIndex>=INTRO.length)menu();else intro()};document.getElementById('next-intro')!.onclick=next;document.getElementById('skip-intro')!.onclick=menu;
-  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)timer=window.setTimeout(next,6200);
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)timer=window.setTimeout(next,8200);
  };
  document.addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.dataset.screen==='intro')menu()});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)window.clearTimeout(timer)});

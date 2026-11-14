@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {CombatEffects} from './effects';
 import {ROOM as R,STATS,ENEMIES,type Kind} from './data';
 import {damage,intersects,normalize,canSpawnProjectile,type Vec} from './combat';
 import {Controls} from './input';
@@ -13,13 +14,13 @@ import {stepBrain} from './ai';
 import {SPECIES,speciesSize,hazardPhase} from './scaling';
 
 type Enemy={id:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;bar:Phaser.GameObjects.Rectangle;kind:Kind;hp:number;cooldown:number;charge:number;dir:Vec;flash:number;burn:number;slow:number;statusTime:number;poison:number;phase:number;maxHp:number;radius:number};
-type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number};
+type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number;trail:Vec[];critical:boolean};
 type State='ready'|'playing'|'paused'|'reward'|'record'|'won'|'lost';
 const DOOR_POS:Record<Direction,Vec>={up:{x:560,y:112},right:{x:1055,y:364},down:{x:560,y:614},left:{x:65,y:364}};
 function nextSeed(){const raw=new URLSearchParams(location.search).get('seed');const value=Number(raw);return raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(value)&&value>=0&&value<=0xffffffff?value:crypto.getRandomValues(new Uint32Array(1))[0]}
 const ROOM_NAME={start:'격리실',combat:'실험실',reward:'기술 보관실',boss:'승강기 제어실'};
 export class LabScene extends Phaser.Scene{
- controls=new Controls();audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
+ effects!:CombatEffects;controls=new Controls();audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
  doors:Partial<Record<Direction,{shape:Phaser.GameObjects.Rectangle;label:Phaser.GameObjects.Text}>>={};terminal!:Phaser.GameObjects.Text;
  enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;
  run=new Run(nextSeed());
@@ -29,7 +30,7 @@ export class LabScene extends Phaser.Scene{
  preload(){Object.keys(SPECIES).forEach(key=>this.load.image(key,`./assets/${key}.png`));this.load.image('tiles','./assets/lab-tiles.png');this.load.on('loaderror',()=>{document.getElementById('modal-copy')!.textContent='리소스를 불러오지 못했습니다. 페이지를 새로고침해 주세요.'})}
  create(){
   for(const [key,data] of Object.entries(SPECIES)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
-  this.buildRoom();this.roomDecor=this.add.container(0,0).setDepth(3);
+  this.buildRoom();this.effects=new CombatEffects(this);this.roomDecor=this.add.container(0,0).setDepth(3);
   for(const dir of DIRECTIONS){const p=DOOR_POS[dir],vertical=dir==='left'||dir==='right';this.doors[dir]={shape:this.add.rectangle(p.x,p.y,vertical?30:108,vertical?100:42,0x397a70).setDepth(5),label:this.add.text(p.x,p.y,'',{fontFamily:'monospace',fontSize:'10px',color:'#d0f5e7'}).setOrigin(.5).setDepth(6)}}
   this.terminal=this.add.text(560,410,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#a6dfd5',align:'center'}).setOrigin(.5).setDepth(6);
   this.shadow=this.add.ellipse(560,385,40,14,0x000000,.4);this.player=this.add.image(560,360,'mew','body').setDisplaySize(speciesSize('mew').width,speciesSize('mew').height).setDepth(10);
@@ -91,6 +92,7 @@ export class LabScene extends Phaser.Scene{
   }
  }
  clearActors(){
+  this.effects?.clear();
   this.enemies.forEach(e=>{e.sprite.destroy();e.shadow.destroy();e.bar.destroy()});this.enemies=[];
   this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];
  }
@@ -129,7 +131,7 @@ export class LabScene extends Phaser.Scene{
  showReward(){
   this.state='reward';this.controls.reset();this.clearShots();this.showModal('기술 선택','하나를 선택하세요. 기존 효과에 누적되며 체력을 1 회복합니다.','');document.getElementById('primary')!.hidden=true;document.querySelector('.panel')!.classList.add('reward-panel');
   const container=document.getElementById('rewards')!;
-  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.innerHTML=`<small>${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em>`;button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.hp=Math.min(STATS.hp,this.hp+1);this.audioFX.play('win');this.resume();this.refreshRoom();this.updateHud()};container.append(button)}
+  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.innerHTML=`<small>${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em>`;button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.hp=Math.min(STATS.hp,this.hp+1);this.audioFX.play('win');this.resume();this.effects.upgrade(this.player.x,this.player.y,this.run.attack);this.note(`${move.name} · ${this.run.moves.filter(id=>id===move.id).length}단계`);this.refreshRoom();this.updateHud()};container.append(button)}
  }
  tryTravel(move:Vec){
   if(!this.run.room.cleared||this.transitionDelay>0)return false;
@@ -149,6 +151,7 @@ export class LabScene extends Phaser.Scene{
   const aim=this.controls.attack();if((aim.x||aim.y)&&this.fire<=0){const attack=this.run.attack;this.fire=attack.interval;const angle=Math.atan2(aim.y,aim.x);for(let i=0;i<attack.count;i++){const a=angle+(i-(attack.count-1)/2)*.15,dir={x:Math.cos(a),y:Math.sin(a)};this.shoot(this.player.x+dir.x*22,this.player.y+dir.y*22,dir,false,attack)}this.audioFX.play('shoot',attack.color)}
   this.updateEnemies(dt);if(this.state!=='playing')return;
   this.updateShots(dt);if(this.state!=='playing')return;
+  this.effects.render(dt,this.shots,this.enemies);
   this.enemies=this.enemies.filter(e=>e.hp>0);
   if((this.run.room.kind==='combat'||this.run.room.kind==='boss')&&!this.run.room.cleared&&this.enemies.length===0){this.run.clear();this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];this.audioFX.play('clear');this.audioFX.mode='ambient';this.refreshRoom();this.updateHud();if(this.run.room.kind==='combat')this.showReward();else this.note(`팬텀의 발작이 멎었다. B${this.run.floor-1}행 승강기가 움직인다.`);return}
   this.hudTime-=dt;if(this.hudTime<=0){this.updateHud();this.hudTime=.15}
@@ -178,11 +181,11 @@ export class LabScene extends Phaser.Scene{
     if(e.hp<=0||s.hit.has(e.id)||!intersects(s.sprite,e.sprite,e.radius+s.attack.size))continue;
     const point={x:e.sprite.x,y:e.sprite.y};s.hit.add(e.id);e.burn=Math.max(e.burn,s.attack.burn);e.slow=Math.max(e.slow,s.attack.slow);e.poison=Math.max(e.poison,s.attack.poison);e.statusTime=2;
     const dealt=Math.min(e.hp,s.attack.damage);this.drain+=dealt*s.attack.lifesteal;if(this.drain>=1){const heal=Math.floor(this.drain);this.hp=Math.min(STATS.hp,this.hp+heal);this.drain-=heal}
-    this.hitEnemy(e,s.attack.damage);
+    this.effects.impact(point.x,point.y,s.attack,s.critical);this.hitEnemy(e,s.attack.damage);
     if(e.hp>0&&s.attack.knockback){const v=normalize(s.v.x,s.v.y),power=s.attack.knockback*(e.kind==='gengar'?.25:1),p=moveWithWalls(e.sprite,{x:v.x*power,y:v.y*power},ENEMIES[e.kind].flying?[]:this.blocks,e.radius);e.sprite.setPosition(Phaser.Math.Clamp(p.x,R.left+e.radius,R.right-e.radius),Phaser.Math.Clamp(p.y,R.top+e.radius,R.bottom-e.radius))}
     if(s.attack.blast){this.burst(point.x,point.y,0xb991cf,10);const ring=this.add.circle(point.x,point.y,s.attack.blast,0xb991cf,.06).setStrokeStyle(2,0xb991cf,.45);this.tweens.add({targets:ring,alpha:0,duration:220,onComplete:()=>ring.destroy()});for(const other of this.enemies)if(other.id!==e.id&&other.hp>0&&intersects(point,other.sprite,s.attack.blast))this.hitEnemy(other,s.attack.damage*.45)}this.burst(s.sprite.x,s.sprite.y,s.attack.color,5);this.audioFX.play('hit');
     const chained=this.enemies.filter(other=>other.hp>0&&other.id!==e.id&&intersects(point,other.sprite,175)).sort((a,b)=>Phaser.Math.Distance.Between(point.x,point.y,a.sprite.x,a.sprite.y)-Phaser.Math.Distance.Between(point.x,point.y,b.sprite.x,b.sprite.y)).slice(0,s.attack.chain);
-    for(const other of chained){const line=this.add.line(0,0,point.x,point.y,other.sprite.x,other.sprite.y,0xfff0a0).setOrigin(0).setDepth(14);this.tweens.add({targets:line,alpha:0,duration:140,onComplete:()=>line.destroy()});this.hitEnemy(other,s.attack.damage*.55)}
+    for(const other of chained){this.effects.bolt(point,other.sprite);const line=this.add.line(0,0,point.x,point.y,other.sprite.x,other.sprite.y,0xfff0a0).setOrigin(0).setDepth(14);this.tweens.add({targets:line,alpha:0,duration:140,onComplete:()=>line.destroy()});this.hitEnemy(other,s.attack.damage*.55)}
     if(!s.child&&s.attack.split){const angle=Math.atan2(s.v.y,s.v.x);for(const offset of [-.7,.7]){const dir={x:Math.cos(angle+offset),y:Math.sin(angle+offset)};this.shoot(s.sprite.x,s.sprite.y,dir,false,{...s.attack,damage:s.attack.damage*.55,size:Math.max(3,s.attack.size*.7),range:360,split:0},true,e.id)}s.child=true}
     if(s.remaining--<=0){s.life=0;break}
    }
@@ -191,9 +194,10 @@ export class LabScene extends Phaser.Scene{
  }
  shoot(x:number,y:number,dir:Vec,hostile:boolean,attack=this.run.attack,child=false,ignore?:number){
   if(!canSpawnProjectile(this.shots,hostile))return;
-  if(!hostile&&!child&&Math.random()<attack.crit)attack={...attack,damage:attack.damage*1.8,size:Math.min(13,attack.size+1)};
+  const critical=!hostile&&!child&&Math.random()<attack.crit;
+  if(critical)attack={...attack,damage:attack.damage*1.8,size:Math.min(13,attack.size+1)};
   const color=hostile?0xff9c64:attack.color,r=hostile?7:attack.size,speed=hostile?180*this.run.tuning.shotSpeed:attack.speed;
-  this.shots.push({sprite:this.add.circle(x,y,r,color).setStrokeStyle(2,hostile?0xffe0b6:0xffeaff).setDepth(13),glow:this.add.circle(x,y,r*2.5,color,.09).setDepth(12),v:{x:dir.x*speed,y:dir.y*speed},life:hostile?5:attack.range/speed,hostile,attack,hit:new Set(ignore===undefined?[]:[ignore]),remaining:attack.pierce,child,bounces:attack.bounce});
+  this.shots.push({sprite:this.add.circle(x,y,r,color).setStrokeStyle(2,hostile?0xffe0b6:0xffeaff).setDepth(13).setVisible(hostile),glow:this.add.circle(x,y,r*2.5,color,.09).setDepth(12).setVisible(hostile),v:{x:dir.x*speed,y:dir.y*speed},life:hostile?5:attack.range/speed,hostile,attack,hit:new Set(ignore===undefined?[]:[ignore]),remaining:attack.pierce,child,bounces:attack.bounce,trail:[],critical});
  }
  hitEnemy(e:Enemy,amount:number){if(e.hp<=0)return;e.hp=Math.max(0,e.hp-amount);e.flash=.1;if(e.hp===0){this.kills++;this.burst(e.sprite.x,e.sprite.y,0xc29fed,10);e.sprite.destroy();e.bar.destroy();e.shadow.destroy()}}
  hurt(dir:Vec){const result=damage(this.hp,this.inv);if(!result.hit)return;this.hp=result.hp;this.inv=result.invulnerable;this.player.x=Phaser.Math.Clamp(this.player.x+dir.x*22,R.left+18,R.right-18);this.player.y=Phaser.Math.Clamp(this.player.y+dir.y*22,R.top+22,R.bottom-22);this.cameras.main.shake(100,.004);this.audioFX.play('hurt');this.burst(this.player.x,this.player.y,0xf9a1b7,8);this.updateHud();if(this.hp<=0)this.finish(false)}

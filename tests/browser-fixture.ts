@@ -9,5 +9,9 @@ export function installFixture(scene:LabScene){
   scene.run.current=scene.run.rooms.find(r=>r.kind==='boss')!.id;scene.run.room.visited=true;
   scene.run.moves=['swift','shadow','tri','poison','flame','ice','drain','spark','split','ricochet','sludge'];
   scene.enterRoom('down');scene.resume();button.hidden=true;
+  const panel=document.createElement('div');panel.style.cssText='position:fixed;left:12px;bottom:70px;z-index:100;display:flex;gap:5px';
+  for(const [label,moves] of Object.entries({'기본':[],'화염 2단계':['flame','flame','flamethrower'],'얼음 관통':['icebeam','icebeam','psybeam'],'복합 강화':['swift','tri','shadow','flame','ice','spark','poison','ricochet']})){
+   const choice=document.createElement('button');choice.textContent=label;choice.onclick=()=>{scene.clearShots();scene.run.moves=moves;scene.hp=6;scene.inv=60;scene.effects.upgrade(scene.player.x,scene.player.y,scene.run.attack);scene.updateHud()};panel.append(choice);
+  }document.body.append(panel);
  };
 }
