@@ -1,3 +1,4 @@
+import {openingAudio} from './cinematic-audio';
 import {readCheckpoint,browserStorage} from './save';
 import {playCinematic} from './cinematic';
 import {INTRO} from './story';
@@ -8,6 +9,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEven
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||Boolean((navigator as Navigator&{standalone?:boolean}).standalone);
 export function setupShell(start:(resume:boolean)=>void){
  const shell=document.getElementById('shell')!;
+ let heardOpening=false;
  let sceneIndex=0,timer:number|undefined;let nextShot:(()=>void)|null=null,deadline=0,remaining=8200;let stopFilm=()=>{};
  const clear=()=>{nextShot=null;stopFilm();window.clearTimeout(timer);shell.replaceChildren()};
  const menu=()=>{
@@ -30,8 +32,15 @@ export function setupShell(start:(resume:boolean)=>void){
  };
  const intro=()=>{
   clear();document.body.dataset.screen='intro';shell.hidden=false;const shot=INTRO[sceneIndex];
-  shell.innerHTML=`<section class="intro-screen ${shot.id}"><div class="intro-top"><span>${shot.tag}</span><button id="skip-intro">건너뛰기 →</button></div><div class="story-stage" aria-hidden="true"></div><div class="intro-caption" aria-live="polite"><span>0${sceneIndex+1} / 06</span><h2>${shot.title}</h2><p>${shot.text}</p><button id="next-intro">${sceneIndex===INTRO.length-1?'시작 화면으로':'다음 장면 →'}</button></div><div class="intro-progress"><i style="width:${(sceneIndex+1)/INTRO.length*100}%"></i></div></section>`;
+  shell.innerHTML=`<section class="intro-screen ${shot.id}"><div class="intro-top"><span>${shot.tag}</span><div class="intro-audio-actions"><button id="intro-sound" aria-pressed="${openingAudio.enabled}" title="${heardOpening?'오프닝 소리 켜기 또는 끄기':'소리를 켜고 오프닝을 처음부터 재생'}">${openingAudio.enabled?'소리 끄기':heardOpening?'소리 켜기':'소리 켜고 보기'}</button><button id="skip-intro">건너뛰기 →</button></div></div><div class="story-stage" aria-hidden="true"></div><div class="intro-caption" aria-live="polite"><span>0${sceneIndex+1} / 06</span><h2>${shot.title}</h2><p>${shot.text}</p><button id="next-intro">${sceneIndex===INTRO.length-1?'시작 화면으로':'다음 장면 →'}</button></div><div class="intro-progress"><i style="width:${(sceneIndex+1)/INTRO.length*100}%"></i></div></section>`;
   stopFilm=playCinematic(shell.querySelector('.story-stage')!,shot.id);
+  const sound=document.getElementById('intro-sound') as HTMLButtonElement;
+  sound.onclick=async()=>{sound.disabled=true;const enabled=await openingAudio.toggle();sound.disabled=false;
+   const liveSound=document.getElementById('intro-sound') as HTMLButtonElement|null;if(!liveSound)return;
+   if(enabled&&!heardOpening){heardOpening=true;sceneIndex=0;intro();return}
+   liveSound.setAttribute('aria-pressed',String(enabled));liveSound.textContent=enabled?'소리 끄기':'소리 켜기';
+   if(!enabled&&!heardOpening){liveSound.textContent='소리 다시 켜기';liveSound.title='오디오를 시작하지 못했습니다. 다시 눌러 주세요.'}
+  };
   const next=()=>{sceneIndex++;if(sceneIndex>=INTRO.length)menu();else intro()};document.getElementById('next-intro')!.onclick=next;document.getElementById('skip-intro')!.onclick=menu;
   if(!matchMedia('(prefers-reduced-motion: reduce)').matches){nextShot=next;remaining=8200;deadline=Date.now()+remaining;timer=window.setTimeout(next,remaining)}
  };

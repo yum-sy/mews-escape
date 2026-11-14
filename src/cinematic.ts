@@ -1,3 +1,4 @@
+import {openingAudio} from './cinematic-audio';
 import {rubblePose,LAB_EXIT} from './cinematic-stage';
 import {createIllustrationRig} from './cinematic-rig';
 import {captureMew,escapeMew,chamberOpening,operatorPose,deformOperator,deformMew,CAPTURE_FIRE,CAPTURE_CONTACT,type MewPose} from './cinematic-motion';
@@ -12,8 +13,10 @@ export function playCinematic(host:HTMLElement,shot:string,hold=false,previewTim
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  let stageHeight=1,frame=0,start=performance.now(),hiddenAt=0,disposed=false,repaint=()=>{};
  const size=()=>{const box=host.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);canvas.width=Math.max(1,box.width*dpr);canvas.height=Math.max(1,box.height*dpr);stageHeight=Math.min(canvas.height,canvas.width/2);repaint()};
+ const soundtrack=document.body.dataset.screen==='intro'?openingAudio.track(shot):null;
+ const audioTimer=soundtrack?window.setInterval(()=>{if(!document.hidden)soundtrack.update(Math.min(8,(performance.now()-start)/1000))},40):undefined;
  const observer=new ResizeObserver(size);observer.observe(host);size();
- const vis=()=>{if(document.hidden)hiddenAt=performance.now();else if(hiddenAt){start+=performance.now()-hiddenAt;hiddenAt=0}};document.addEventListener('visibilitychange',vis);
+ const vis=()=>{if(document.hidden){hiddenAt=performance.now();soundtrack?.pause(Math.min(8,(hiddenAt-start)/1000))}else if(hiddenAt){start+=performance.now()-hiddenAt;hiddenAt=0;soundtrack?.resume(Math.min(8,(performance.now()-start)/1000))}};document.addEventListener('visibilitychange',vis);
  const ellipse=(x:number,y:number,rx:number,ry:number,color:string)=>{c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()};
  const path=(points:number[],color:string,width=1)=>{c.strokeStyle=color;c.lineWidth=width;c.lineJoin='round';c.lineCap='round';c.beginPath();c.moveTo(points[0],points[1]);for(let i=2;i<points.length;i+=2)c.lineTo(points[i],points[i+1]);c.stroke()};
  const glow=(x:number,y:number,r:number,color:string)=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,color.slice(0,7)+'00');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)};
@@ -103,5 +106,5 @@ export function playCinematic(host:HTMLElement,shot:string,hold=false,previewTim
   c.font='9px monospace';c.fillStyle='#cbbda766';c.fillText('ARCHIVE / 151 — '+shot.toUpperCase(),38,480);
   c.fillStyle=`rgba(4,8,15,${reduced?0:Math.max(0,1-t*2,hold?0:(t-7.5)*2)})`;c.fillRect(0,0,1000,500);c.restore();if(!reduced)frame=requestAnimationFrame(draw);
  };repaint=()=>{if(reduced&&!disposed)draw(performance.now())};for(const img of Object.values(art))img.onload=repaint;frame=requestAnimationFrame(draw);
- return()=>{disposed=true;cancelAnimationFrame(frame);observer.disconnect();rig.dispose();masks.clear();document.removeEventListener('visibilitychange',vis)};
+ return()=>{disposed=true;window.clearInterval(audioTimer);soundtrack?.dispose();cancelAnimationFrame(frame);observer.disconnect();rig.dispose();masks.clear();document.removeEventListener('visibilitychange',vis)};
 }
