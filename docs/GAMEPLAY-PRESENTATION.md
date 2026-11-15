@@ -1,3 +1,5 @@
+> Historical record: the firing and reward rules below are superseded by [FUSION-ECONOMY.md](FUSION-ECONOMY.md).
+
 # Gameplay presentation update
 
 The Phaser runtime now gives the 15 offensive rewards and baseline Confusion separate animated projectile silhouettes, impact particles and synthesized attack/impact sounds. The most recently acquired offensive move owns the silhouette; support upgrades preserve it. Earlier homing, burn, freeze, poison, chain, drain, split and ricochet effects remain cumulative. Rank adds visible accents. Chain hits draw jagged links and drain hits send green motes toward Mew. Reward cards preview the resulting primary silhouette and the HUD names its rank.

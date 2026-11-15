@@ -1,4 +1,3 @@
-import {FORMS,type Form} from './techniques';
 import type {Attack} from './moves';
 import type {Vec} from './combat';
 import type {Block} from './lab';
@@ -32,10 +31,5 @@ export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],bl
  return{points,hits,kind:p.kind,color:a.color,attack:a,reflections};
 }
 
-// Keep the first attack body. Different mechanical families coexist; same-family moves
-// contribute their modifiers to every layer rather than replacing the body.
-export function fusionLayers(a:Attack):Attack[]{
- const forms:Form[]=[a.visual.form],seen=new Set([weaponProfile(a).kind]);
- for(const id of Object.keys(a.visual.levels)){if(!(id in FORMS))continue;const form=id as Form,candidate={...a,visual:{...a.visual,form}},kind=weaponProfile(candidate).kind;if(!seen.has(kind)){seen.add(kind);forms.push(form)}}
- return forms.map((form,index)=>{const weight=forms.length===1?1:index===0?.55:.45/(forms.length-1),count=index===0?a.count:1;return{...a,count,damage:a.damage*a.count*weight/count,knockback:a.knockback*weight,color:FORMS[form].color,visual:{...a.visual,form,rank:Math.min(3,a.visual.levels[form]??1)}}});
-}
+// A single resolved carrier owns targeting, damage and collision. Modifiers decorate it.
+export function fusionLayers(a:Attack):Attack[]{return[a]}

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {Run,roomsForFloor} from '../src/run';
 import {decodeSave,restoreRun,readCheckpoint,writeCheckpoint,removeCheckpoint,SAVE_KEY,type Checkpoint,type StoragePort} from '../src/save';
 import {stepMewtwo,nextFinalPhase,FINAL_HP,beamPhase,beamHits,type FinalPhase} from '../src/finale';
-const snapshot=(run=new Run(151)):Checkpoint=>({version:1,seed:run.seed,floor:run.floor,current:run.current,moves:run.moves,rooms:run.rooms.map(({visited,cleared,rewardTaken})=>({visited,cleared,rewardTaken})),hp:4,kills:12,elapsed:71.3,drain:.4,entry:'down',phase:1,ending:false,savedAt:1});
+const snapshot=(run=new Run(151)):Checkpoint=>({version:1,keys:run.keys,seed:run.seed,floor:run.floor,current:run.current,moves:run.moves,rooms:run.rooms.map(({visited,cleared,rewardTaken,opened,offer})=>({visited,cleared,rewardTaken,opened,offer})),hp:4,kills:12,elapsed:71.3,drain:.4,entry:'down',phase:1,ending:false,savedAt:1});
 const storage=()=>{const items=new Map<string,string>();return{getItem:(k:string)=>items.get(k)??null,setItem:(k:string,v:string)=>{items.set(k,v)},removeItem:(k:string)=>{items.delete(k)}}};
 test('checkpoint restores deterministic map, build, health and reward without duplicate acquisition',()=>{
- const r=new Run(151);r.current=r.rooms.find(x=>x.kind==='combat')!.id;r.room.visited=true;r.clear();const before=decodeSave(JSON.stringify(snapshot(r)))!;assert.ok(restoreRun(before).rewardPending);
- assert.ok(r.choose(r.choices[0].id));const s=decodeSave(JSON.stringify(snapshot(r)))!;assert.ok(s);const restored=restoreRun(s);assert.deepEqual(restored,r);assert.equal(restored.rewardPending,false);assert.equal(restored.choose(restored.choices[0].id),false);assert.equal(s.hp,4);assert.equal(s.elapsed,71.3);
+ const r=new Run(151);r.current=r.rooms.find(x=>x.kind==='reward')!.id;r.room.visited=true;r.clear();const before=decodeSave(JSON.stringify(snapshot(r)))!;assert.ok(restoreRun(before).rewardPending);
+ assert.ok(r.openReward());assert.ok(r.choose(r.choices[0].id));const s=decodeSave(JSON.stringify(snapshot(r)))!;assert.ok(s);const restored=restoreRun(s);assert.deepEqual(restored,r);assert.equal(restored.rewardPending,false);assert.equal(restored.choose(restored.choices[0].id),false);assert.equal(s.hp,4);assert.equal(s.elapsed,71.3);
 });
 test('B1 phase checkpoints and pending ending survive reload but only phase three can finish',()=>{
  const r=new Run(42);r.floor=1;r.rooms=roomsForFloor(r.seed,1);
@@ -21,7 +21,7 @@ test('invalid versions, impossible health, missing rooms and unknown moves are r
  const extra=snapshot();Object.assign(extra.rooms[0],{id:999,doors:{left:999},kind:'combat'});assert.equal(restoreRun(extra).room.id,0);assert.equal(restoreRun(extra).room.kind,'start');
 });
 test('storage failures stay recoverable; ending/death deletion removes the continuation',()=>{
- const s=storage(),value=snapshot();assert.ok(writeCheckpoint(s,value));assert.deepEqual(readCheckpoint(s).save,value);assert.ok(removeCheckpoint(s));assert.equal(s.getItem(SAVE_KEY),null);
+ const s=storage(),value=snapshot();assert.ok(writeCheckpoint(s,value));assert.deepEqual(readCheckpoint(s).save,JSON.parse(JSON.stringify(value)));assert.ok(removeCheckpoint(s));assert.equal(s.getItem(SAVE_KEY),null);
  s.setItem(SAVE_KEY,'broken');assert.ok(readCheckpoint(s).status);assert.equal(readCheckpoint(s).save,null);
  const blocked:StoragePort={getItem(){throw Error()},setItem(){throw Error()},removeItem(){throw Error()}};assert.equal(writeCheckpoint(blocked,value),false);assert.equal(removeCheckpoint(blocked),false);assert.ok(readCheckpoint(blocked).status);
 });

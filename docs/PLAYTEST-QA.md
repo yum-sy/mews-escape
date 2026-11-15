@@ -1,3 +1,5 @@
+> Historical record: the firing and reward rules below are superseded by [FUSION-ECONOMY.md](FUSION-ECONOMY.md).
+
 # Runtime balance, interaction and mobile pass — 2026-11-15
 
 ## Method and boundaries

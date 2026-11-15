@@ -1,5 +1,7 @@
 // Development-only automated player. It supplies normal movement/aim/interact/reward
 // input, never health, invulnerability, enemy damage, room-clear flags or a starting build.
+import {roomReward} from '../src/rewards';
+import type {DungeonRoom} from '../src/dungeon';
 import type {LabScene} from '../src/scene';
 import {normalize,type Vec} from '../src/combat';
 import {overlapsBlock,moveWithWalls} from '../src/lab';
@@ -12,7 +14,7 @@ export function installCampaign(scene:LabScene){
  const box=document.createElement('aside');box.style.cssText='position:fixed;left:8px;top:8px;z-index:100;background:#08121ee8;color:white;padding:8px;font:11px monospace;max-width:480px';box.innerHTML='<select aria-label="자동 플레이 정책"><option value="focused">집중 화력</option><option value="coverage">다중·유도 우선</option></select> <button id="pilot-start">정상 규칙 자동 플레이 시작</button> <button id="pilot-resume">저장부터 정상 규칙 재개</button> <button id="pilot-stop">중단</button><div id="pilot-status"></div><details><summary>실행 기록</summary><pre id="pilot-report" style="max-height:240px;overflow:auto"></pre></details>';document.body.append(box);
  let enabled=false,policy:keyof typeof order='focused',last='',roomStart=0,hpStart=6,damage=0,hits=0,lastStory=0,nav:Vec[]=[],navGoal='',navAt=0;const frames:number[]=[],rooms:any[]=[];
  let begun=0,progressDamage=0,progressAt=0;const performanceSummary=()=>{const a=[...frames].sort((a,b)=>a-b);return{samples:a.length,medianMs:a[Math.floor(a.length*.5)]??0,p95Ms:a[Math.floor(a.length*.95)]??0,p99Ms:a[Math.floor(a.length*.99)]??0,over33ms:a.filter(x=>x>33.34).length}};
- const report=()=>({policy,seed:scene.run.seed,status:scene.state,floor:scene.run.floor,room:scene.run.current,phase:scene.finalPhase,gameSeconds:+scene.elapsed.toFixed(1),wallSeconds:+((performance.now()-begun)/1000).toFixed(1),hp:scene.hp,hitsTaken:hits,damageApplied:+damage.toFixed(1),moves:scene.run.moves,rooms,performance:performanceSummary(),rules:'Normal engine. No health/invulnerability/damage/room-clear cheats. Automated controller sees runtime enemy/projectile positions; not human or physical-device testing.'});
+ const report=()=>({policy,seed:scene.run.seed,status:scene.state,floor:scene.run.floor,keys:scene.run.keys,room:scene.run.current,phase:scene.finalPhase,gameSeconds:+scene.elapsed.toFixed(1),wallSeconds:+((performance.now()-begun)/1000).toFixed(1),hp:scene.hp,hitsTaken:hits,damageApplied:+damage.toFixed(1),moves:scene.run.moves,rooms,performance:performanceSummary(),rules:'Normal engine. No health/invulnerability/damage/room-clear cheats. Automated controller sees runtime enemy/projectile positions; not human or physical-device testing.'});
  let lastPublish=0;const publish=()=>{if(enabled&&performance.now()-lastPublish<1000)return;lastPublish=performance.now();document.getElementById('pilot-status')!.textContent=`${enabled?'RUNNING':'STOPPED'} · B${scene.run.floor} / ${scene.run.current} · HP ${scene.hp} · ${Math.floor(scene.elapsed)}s · hits ${hits} · ${scene.run.moves.length} upgrades`;document.getElementById('pilot-report')!.textContent=JSON.stringify(report(),null,2)};
  const originalHit=scene.hitEnemy.bind(scene);scene.hitEnemy=(e,amount)=>{if(enabled)damage+=Math.min(e.hp,amount);originalHit(e,amount)};
  const originalHurt=scene.hurt.bind(scene);scene.hurt=dir=>{const before=scene.hp;originalHurt(dir);if(enabled&&scene.hp<before)hits++};
@@ -27,9 +29,10 @@ export function installCampaign(scene:LabScene){
   nav=[];if(previous.has(end)){let n:Vec|null=end;while(n){nav.unshift(n);n=previous.get(n)??null}}
  }
  while(nav.length&&Math.hypot(nav[0].x-p.x,nav[0].y-p.y)<25)nav.shift();const next=nav[0]??goal;return normalize(next.x-p.x,next.y-p.y)}
+ function available(r:DungeonRoom){const kind=roomReward(r,scene.run.floor);return r.cleared&&!r.rewardTaken&&kind!=='none'&&(kind!=='heart'||scene.hp<6)&&(kind!=='treasure'||r.opened||scene.run.keys>0)}
  function nextDoor():Direction|undefined{
   const allClear=scene.run.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared),queue=[scene.run.current],previous=new Map<number,{id:number;dir:Direction}>(),seen=new Set(queue);let destination:number|undefined;
-  for(const id of queue){const r=scene.run.rooms[id];if(id!==scene.run.current&&(!r.cleared||['combat','reward'].includes(r.kind)&&!r.rewardTaken)){destination=id;break}for(const dir of DIRECTIONS){const next=r.doors[dir];if(next!==undefined&&!seen.has(next)&&(scene.run.rooms[next].kind!=='boss'||allClear)){seen.add(next);previous.set(next,{id,dir});queue.push(next)}}}
+  for(const id of queue){const r=scene.run.rooms[id];if(id!==scene.run.current&&(!r.cleared||available(r))){destination=id;break}for(const dir of DIRECTIONS){const next=r.doors[dir];if(next!==undefined&&!seen.has(next)&&(scene.run.rooms[next].kind!=='boss'||allClear)){seen.add(next);previous.set(next,{id,dir});queue.push(next)}}}
   if(destination===undefined)return;let step=previous.get(destination)!;while(step.id!==scene.run.current)step=previous.get(step.id)!;return step.dir;
  }
  scene.time.addEvent({delay:50,loop:true,callback:()=>{
@@ -38,7 +41,7 @@ export function installCampaign(scene:LabScene){
   if(scene.state==='won'||scene.state==='lost'){rooms.push({key:last,seconds:+(scene.elapsed-roomStart).toFixed(1),hpStart,hpEnd:scene.hp,moves:scene.run.moves.length});enabled=false;scene.controls.reset();publish();return}
   if(scene.state==='paused'){scene.resume();return}
   if(scene.state==='story'){if(performance.now()-lastStory>800){document.getElementById('story-next')?.click();lastStory=performance.now()}publish();return}
-  if(scene.state==='reward'){const choices=scene.run.choices,rank=order[policy];const best=[...choices].sort((a,b)=>rank.indexOf(a.id)-rank.indexOf(b.id))[0];if(policy==='focused'&&['swift','tri'].includes(best.id))document.querySelector<HTMLButtonElement>('.reward-skip')?.click();else(document.querySelectorAll<HTMLButtonElement>('.reward-card')[choices.findIndex(c=>c.id===best.id)])?.click();return}
+  if(scene.state==='reward'){const choices=scene.run.choices,rank=order[policy];const best=[...choices].sort((a,b)=>rank.indexOf(a.id)-rank.indexOf(b.id))[0];if(!best||policy==='focused'&&['swift','tri'].includes(best.id))document.querySelector<HTMLButtonElement>('.reward-skip')?.click();else(document.querySelectorAll<HTMLButtonElement>('.reward-card')[choices.findIndex(c=>c.id===best.id)])?.click();return}
   if(scene.state!=='playing')return;
   const p=scene.player;scene.controls.keys.clear();
   if(!scene.run.room.cleared){
@@ -62,7 +65,7 @@ export function installCampaign(scene:LabScene){
    if(damage!==progressDamage){progressDamage=damage;progressAt=scene.elapsed}if(scene.elapsed-progressAt>2.5&&scene.blocks.some(block=>distanceToSegment(block,p,target.sprite)<Math.max(block.w,block.h)/2+12))best=navigate(target.sprite);
    scene.controls.move=best;if(scene.interaction()?.kind==='power')scene.interact();
   }else{
-   scene.controls.aim={x:0,y:0};if(scene.run.rewardPending||scene.run.room.kind==='boss'&&scene.run.canExit){scene.controls.move=navigate({x:560,y:365});if(scene.interaction()?.kind==='reward'||scene.interaction()?.kind==='lift')scene.interact()}
+   scene.controls.aim={x:0,y:0};if(available(scene.run.room)||scene.run.room.kind==='boss'&&scene.run.canExit){scene.controls.move=navigate({x:560,y:365});if(scene.interaction()?.kind==='reward'||scene.interaction()?.kind==='lift')scene.interact()}
    else{const dir=nextDoor();if(dir){const goal={up:{x:560,y:130},down:{x:560,y:595},left:{x:70,y:364},right:{x:1050,y:364}}[dir];const close=Math.hypot(p.x-goal.x,p.y-goal.y)<80;scene.controls.move=close?normalize(goal.x-p.x,goal.y-p.y):navigate(goal)}else scene.controls.move={x:0,y:0}}
   }
   if(scene.elapsed>1500){enabled=false;scene.controls.reset()}

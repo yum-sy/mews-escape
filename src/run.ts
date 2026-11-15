@@ -1,8 +1,9 @@
 import {generateDungeon,exitReady,enemyLayout,type DungeonRoom,type Direction} from './dungeon';
-import {composeAttack,rewardOptions} from './moves';
+import {composeAttack,MOVES} from './moves';
+import {roomReward,itemOffers} from './rewards';
 import {difficulty} from './scaling';
 export class Run{
- rooms;current=0;moves:string[]=[];floor=6;
+ keys=1;rooms;current=0;moves:string[]=[];floor=6;
  constructor(public seed:number){this.rooms=generateDungeon(seed)}
  get tuning(){return difficulty(this.floor)}
  ascend(){if(!this.canExit||this.floor<=1)return false;this.floor--;this.current=0;this.rooms=roomsForFloor(this.seed,this.floor);return true}
@@ -11,10 +12,13 @@ export class Run{
  get canExit(){return exitReady(this.rooms)}
  travel(direction:Direction){const id=this.room.doors[direction];if(!this.room.cleared||id===undefined)return false;if(this.rooms[id].kind==='boss'&&!this.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared))return false;this.current=id;this.room.visited=true;return true}
  clear(){this.room.cleared=true}
- get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&(this.room.kind==='combat'||this.room.kind==='reward')}
- get choices(){return rewardOptions(this.room.seed,this.moves)}
- skipReward(){if(!this.rewardPending)return false;this.room.rewardTaken=true;return true}
- choose(id:string){if(!this.rewardPending||!this.choices.some(m=>m.id===id))return false;if(id!=='recover')this.moves.push(id);this.room.rewardTaken=true;return true}
+ get rewardKind(){return roomReward(this.room,this.floor)}
+ get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&this.rewardKind!=='none'}
+ get choices(){return this.room.offer?this.room.offer.map(id=>MOVES.find(m=>m.id===id)!).filter(m=>this.moves.filter(id=>id===m.id).length<m.max):['treasure','boss'].includes(this.rewardKind)?itemOffers(this.room.seed,this.moves,this.floor,this.rewardKind as 'treasure'|'boss'):[]}
+ openReward(){if(!this.rewardPending)return false;if(this.room.opened)return true;if(this.rewardKind==='treasure'){if(this.keys<1||this.choices.length===0)return false;this.keys--}this.room.offer=this.choices.map(m=>m.id);this.room.opened=true;return true}
+ claimSupply(){if(!this.rewardPending||!['heart','key'].includes(this.rewardKind))return null;const kind=this.rewardKind;this.room.rewardTaken=true;if(kind==='key')this.keys++;return kind}
+ skipReward(){if(!this.rewardPending)return false;if(this.rewardKind==='boss')this.keys++;this.room.rewardTaken=true;return true}
+ choose(id:string){if(!this.rewardPending||!this.room.opened||!this.choices.some(m=>m.id===id))return false;this.moves.push(id);if(this.rewardKind==='boss')this.keys++;this.room.rewardTaken=true;return true}
 }
 
 export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{

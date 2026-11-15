@@ -21,14 +21,27 @@ export interface Presentation{form:Form;rank:number;levels:Record<string,number>
 export function presentation(ids:readonly string[]):Presentation{
  const levels:Record<string,number>={};let form:Form='psychic';
  for(const id of ids){levels[id]=(levels[id]??0)+1;if(form==='psychic'&&id in FORMS)form=id as Form}
+ // Carrier precedence is order-independent: the other techniques fuse into its core/edge.
+ for(const channel of ['icebeam','flamethrower','water','drain','psybeam','thunderbolt','spark'] as Form[])if(levels[channel]){form=channel;break}
  return{form,rank:Math.min(3,levels[form]??1),levels,variant:0};
+}
+export function fusionLook(v:Presentation){
+ const l=v.levels,fire=!!(l.flame||l.flamethrower),cold=!!(l.ice||l.icebeam),electric=!!(l.spark||l.thunderbolt),toxic=!!(l.poison||l.sludge);
+ const base={name:FORMS[v.form].name,core:FORMS[v.form].color as number,edge:0xf4eaff,recipe:'single'};
+ if(fire&&cold)return{name:'열충격 융합',core:0x9be9ff,edge:0xff853b,recipe:'thermal'};
+ if(l.water&&electric)return{name:'전도 수류',core:0x83d6ff,edge:0xffe65f,recipe:'conductive'};
+ if(fire&&toxic)return{name:'부식 화염',core:0xffab54,edge:0xcb80ed,recipe:'corrosive'};
+ if(l.shadow&&(fire||cold))return{name:fire?'암흑 화염':'암흑 냉기',core:fire?0xffa272:0x9feaff,edge:0xa787e2,recipe:'shadow'};
+ if(l.drain&&(toxic||electric))return{name:toxic?'독성 흡수':'전기 흡수',core:0xa6edb0,edge:toxic?0xcd8ee8:0xffe875,recipe:'siphon'};
+ const other=Object.keys(l).find(id=>id in FORMS&&id!==v.form) as Form|undefined;
+ return other?{name:FORMS[v.form].name+' 융합',core:base.core,edge:FORMS[other].color,recipe:'fused'}:base;
 }
 export const modifierGlyph:Record<string,string>={split:'⑂',agility:'»',focus:'⊕',ricochet:'◇',recover:'+'};
 export function glyph(id:string){return id in FORMS?FORMS[id as Form].glyph:modifierGlyph[id]??'◎'}
 export type Mark={kind:'line'|'polygon'|'circle';points:number[];color:number;alpha:number;width:number;fill:boolean};
 // Local coordinates, +X is the direction of fire. Shared by the game and the QA gallery.
 export function techniqueMarks(v:Presentation,time:number,r:number):Mark[]{
- const out:Mark[]=[],color=FORMS[v.form].color;
+ const look=fusionLook(v),out:Mark[]=[],color=look.core;
  const line=(p:number[],c:number=color,w=2,a=1)=>out.push({kind:'line',points:p,color:c,alpha:a,width:w,fill:false});
  const poly=(p:number[],c:number=color,a=1)=>out.push({kind:'polygon',points:p,color:c,alpha:a,width:1,fill:true});
  const circle=(x:number,y:number,rad:number,c:number=color,a=1,fill=true,w=2)=>out.push({kind:'circle',points:[x,y,rad],color:c,alpha:a,width:w,fill});
@@ -51,6 +64,7 @@ export function techniqueMarks(v:Presentation,time:number,r:number):Mark[]{
   case 'thunderbolt':for(const side of [-1,1]){const p:number[]=[r,0];for(let i=1;i<8;i++)p.push(-i*r,Math.sin(i*7+time*17)*r*.8+side*r*.45);line(p,0xffd64b,3);line(p,0xffffe8,1)}break;
   case 'flamethrower':for(let i=7;i>=0;i--){const x=-i*r*.65,y=Math.sin(time*14+i)*r*.22,rr=r*(.55+i*.16);circle(x,y,rr,i>3?0xef532c:0xffb43d,.8-i*.07)}poly([r,0,-r*2,-r*.5,-r*4,0,-r*2,r*.5],0xffe8a3,.9);break;
  }
+ if(look.recipe!=='single'){circle(0,0,r*1.8,look.edge,.6,false,2);for(const side of [-1,1])line([-r*2.8,side*r*.9,-r,side*r*.6,r*.7,0],look.edge,2,.7)}
  // Rank changes are geometric, not just a different tint.
  if(v.rank>1)for(const side of [-1,1])line([-r*2,side*r*(1.9+v.rank*.2),-r*.6,side*r*(1.4+v.rank*.2),r*.2,side*r*(1.8+v.rank*.2)],color,1.2,.6);
  return out;

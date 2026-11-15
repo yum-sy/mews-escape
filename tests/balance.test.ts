@@ -18,12 +18,12 @@ test('coverage penalties survive later weapon changes, normalize continuous tick
 test('seven early upgrades and a complete legal build stay within direct DPS budgets',()=>{
  const ids=['tri','psybeam','shadow','agility','flamethrower','thunderbolt','focus'];let max=0;
  const visit=(i:number,owned:string[])=>{if(i===ids.length){max=Math.max(max,directDps(owned));return}const move=MOVES.find(m=>m.id===ids[i])!;for(let n=0;n<=move.max&&owned.length+n<=7;n++)visit(i+1,[...owned,...Array(n).fill(move.id)])};visit(0,[]);
- assert.ok(max>directDps([])*2.5,'focused damage upgrades must still grow without multishot');assert.ok(max<24,`early DPS ${max}`);
- const full=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.ok(directDps(full)<directDps([])*8);
+ assert.ok(max>directDps([])*1.5,'focused growth must remain meaningful');assert.ok(max<12,`early DPS ${max}`);
+ const full=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.ok(directDps(full)<directDps([])*2.6);
 });
 test('split children preserve identity but cannot multiply secondary hits or healing',()=>{
  const a=composeAttack(['shadow','swift','split','spark','sludge','flame','poison','drain','ricochet']);const b=splitAttack(a);
- assert.equal(b.damage,a.damage*.35);assert.equal(b.burn,a.burn*.5);assert.equal(b.poison,a.poison*.5);assert.equal(b.homing,a.homing);
+ assert.equal(b.damage,a.damage*.2);assert.equal(b.burn,a.burn*.5);assert.equal(b.poison,a.poison*.5);assert.equal(b.homing,a.homing);
  for(const key of ['chain','blast','pierce','split','bounce','lifesteal'] as const)assert.equal(b[key],0);
  assert.ok(1+PIERCE_RETAIN+PIERCE_RETAIN**2<2.5,'piercing does not repeat full damage');
 });

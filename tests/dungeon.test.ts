@@ -1,8 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {generateDungeon,DELTA,OPPOSITE,enemyLayout} from '../src/dungeon';
+import {itemOffers} from '../src/rewards';
 import {Run} from '../src/run';
-import {MOVES,composeAttack,rewardOptions} from '../src/moves';
+import {MOVES,composeAttack} from '../src/moves';
 
 test('1000 seeds produce connected, reciprocal nine-room layouts with reachable exits',()=>{
  for(let seed=0;seed<1000;seed++){
@@ -18,17 +19,17 @@ test('1000 seeds produce connected, reciprocal nine-room layouts with reachable 
 });
 test('same seed reproduces rooms, enemies and reward options, other seeds vary',()=>{
  assert.deepEqual(generateDungeon(151),generateDungeon(151));assert.notDeepEqual(generateDungeon(151),generateDungeon(152));
- const room=generateDungeon(151).find(r=>r.kind==='combat')!;assert.deepEqual(enemyLayout(room),enemyLayout(room));assert.deepEqual(rewardOptions(room.seed,[]),rewardOptions(room.seed,[]));
+ const room=generateDungeon(151).find(r=>r.kind==='combat')!;assert.deepEqual(enemyLayout(room),enemyLayout(room));assert.deepEqual(itemOffers(room.seed,[],6,'treasure'),itemOffers(room.seed,[],6,'treasure'));
 });
 test('combat locks travel; cleared rooms and claimed rewards persist on revisit',()=>{
- const run=new Run(151);run.current=run.rooms.find(r=>r.kind==='combat')!.id;
+ const run=new Run(151);run.current=run.rooms.find(r=>r.kind==='reward')!.id;run.room.cleared=false;
  const dir=Object.keys(run.room.doors)[0] as keyof typeof DELTA,id=run.current;
- assert.equal(run.travel(dir),false);run.clear();const reward=run.choices[0];assert.equal(run.choose(reward.id),true);assert.equal(run.choose(reward.id),false);assert.equal(run.choose('invalid'),false);
- assert.equal(run.travel(dir),true);assert.equal(run.travel(OPPOSITE[dir]),true);assert.equal(run.current,id);assert.equal(run.rewardPending,false);assert.equal(enemyLayout(run.room).length,0);assert.deepEqual(run.moves,[reward.id]);
+ assert.equal(run.travel(dir),false);run.clear();assert.ok(run.openReward());const reward=run.choices[0];assert.equal(run.choose(reward.id),true);assert.equal(run.choose(reward.id),false);assert.equal(run.choose('invalid'),false);
+ assert.equal(run.travel(dir),true);run.clear();assert.equal(run.travel(OPPOSITE[dir]),true);assert.equal(run.current,id);assert.equal(run.rewardPending,false);assert.equal(enemyLayout(run.room).length,0);assert.deepEqual(run.moves,[reward.id]);
 });
 function clearFloor(run:Run){
  const visited=new Set<number>();
- const visit=()=>{const room=run.room;visited.add(room.id);if(room.kind==='combat')run.clear();if(run.rewardPending)assert.ok(run.choose(run.choices[0].id));for(const [d,id] of Object.entries(room.doors)){if(visited.has(id)||run.rooms[id].kind==='boss')continue;assert.ok(run.travel(d as keyof typeof DELTA));visit();assert.ok(run.travel(OPPOSITE[d as keyof typeof DELTA]))}};
+ const visit=()=>{const room=run.room;visited.add(room.id);if(room.kind==='combat')run.clear();if(run.rewardPending){if(!run.claimSupply()&&run.openReward()){const choice=run.choices[0];if(choice)assert.ok(run.choose(choice.id));else run.skipReward()}}for(const [d,id] of Object.entries(room.doors)){if(visited.has(id)||run.rooms[id].kind==='boss')continue;assert.ok(run.travel(d as keyof typeof DELTA));visit();assert.ok(run.travel(OPPOSITE[d as keyof typeof DELTA]))}};
  visit();assert.equal(visited.size,run.rooms.length-1);assert.equal(run.canExit,false);
  const target=run.rooms.find(r=>r.kind==='boss')!.id,queue:[number,(keyof typeof DELTA)[]][]=[[run.current,[]]],seen=new Set([run.current]);
  for(const [id,path] of queue){if(id===target){for(const d of path)assert.ok(run.travel(d));break}for(const [d,next] of Object.entries(run.rooms[id].doors))if(!seen.has(next)){seen.add(next);queue.push([next,[...path,d as keyof typeof DELTA]])}}
@@ -41,7 +42,7 @@ test('five escalating floors preserve builds and require the boss before ascent'
 });
 test('independent modifiers compose and remain bounded under repeated upgrades',()=>{
  const a=composeAttack(['shadow','swift','tri','flame','ice','spark','split']);
- assert.equal(a.count,3);assert.equal(a.pierce,1);assert.ok(a.homing>0&&a.burn>0&&a.slow>0);assert.equal(a.chain,1);assert.equal(a.split,2);assert.ok(Math.abs(a.damage*3-1.22*.3575)<1e-10);
- const b=composeAttack(Array.from({length:100},()=>MOVES.map(m=>m.id)).flat());assert.equal(b.count,5);assert.equal(b.interval,.13);assert.equal(b.pierce,4);assert.equal(b.chain,3);assert.equal(b.split,2);assert.equal(b.slow,.45);assert.equal(b.size,11);
- const owned=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.equal(rewardOptions(12,owned)[0].id,'recover');
+ assert.equal(a.count,3);assert.equal(a.pierce,1);assert.ok(a.homing>0&&a.burn>0&&a.slow>0);assert.equal(a.chain,1);assert.equal(a.split,2);assert.ok(Math.abs(a.damage*3-(1+.22/(1+.22*.65))*.3575)<1e-10);
+ const b=composeAttack(Array.from({length:100},()=>MOVES.map(m=>m.id)).flat());assert.equal(b.count,5);assert.equal(b.interval,.155);assert.equal(b.pierce,2);assert.equal(b.chain,2);assert.equal(b.split,2);assert.equal(b.slow,.45);assert.equal(b.size,11);
+ const owned=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.deepEqual(itemOffers(12,owned,2,'treasure'),[]);
 });

@@ -9,3 +9,4 @@ button[hidden]{display:none!important}#minimap{position:relative;width:150px;hei
 
 @media(max-height:500px){body.touch-ui #counter{display:none}}
 @media(min-height:501px){body.touch-ui .loadout{left:50%;bottom:25px;transform:translateX(-50%);max-width:50%}body.touch-ui .loadout span{display:none}body.touch-ui #counter{bottom:90px;right:50%;transform:translateX(50%);white-space:nowrap}body.touch-ui .move-icon{width:35px;height:35px;font-size:24px}body.touch-ui .loadout strong{font-size:12px}}
+.panel.reward-single{width:min(440px,94vw)}.reward-single #rewards{grid-template-columns:1fr}.reward-single .reward-card{min-height:145px}.reward-single .reward-card canvas{height:48px}

@@ -11,8 +11,8 @@ test('six floor themes differ and decorative props preserve door and center acce
 test('interactions require proximity, safe rewards and cleared boss gates; power can be switched during battle',()=>{
  const run=new Run(3),room=run.rooms.find(r=>r.kind==='combat')!;assert.deepEqual(roomInteractions(room,6,false).map(i=>i.kind),['power']);
  assert.equal(nearestInteraction({x:100,y:500},roomInteractions(room,6,false)),undefined);assert.equal(nearestInteraction({x:880,y:200},roomInteractions(room,6,false))?.kind,'power');
- roomEnvironment(room).powerOff=true;assert.deepEqual(roomInteractions(room,6,false),[]);room.cleared=true;assert.ok(roomInteractions(room,6,false).some(i=>i.kind==='reward'));room.rewardTaken=true;assert.ok(!roomInteractions(room,6,false).some(i=>i.kind==='reward'));
- const boss=run.rooms.find(r=>r.kind==='boss')!;boss.cleared=true;assert.ok(!roomInteractions(boss,6,false).some(i=>i.kind==='lift'));assert.ok(roomInteractions(boss,6,true).some(i=>i.kind==='lift'));assert.deepEqual(roomInteractions(boss,1,true),[]);
+ roomEnvironment(room).powerOff=true;assert.deepEqual(roomInteractions(room,6,false),[]);room.cleared=true;room.kind='reward';assert.ok(roomInteractions(room,6,false).some(i=>i.kind==='reward'));room.rewardTaken=true;assert.ok(!roomInteractions(room,6,false).some(i=>i.kind==='reward'));
+ const boss=run.rooms.find(r=>r.kind==='boss')!;boss.cleared=true;boss.rewardTaken=true;assert.ok(!roomInteractions(boss,6,false).some(i=>i.kind==='lift'));assert.ok(roomInteractions(boss,6,true).some(i=>i.kind==='lift'));assert.deepEqual(roomInteractions(boss,1,true),[]);
 });
 test('world changes survive checkpoints without duplicate destruction and older saves remain compatible',()=>{
  const run=new Run(3),state=roomEnvironment(run.room);assert.equal(breakProp(state,2),true);assert.equal(breakProp(state,2),false);state.powerOff=true;state.recordRead=true;
@@ -27,7 +27,7 @@ test('archive persists discoveries once, tracks completed runs and safely handle
 });
 
 test('skipping a reward preserves build and consumes the choice once',()=>{
- const run=new Run(3);run.current=run.rooms.find(r=>r.kind==='combat')!.id;
+ const run=new Run(3);run.current=run.rooms.find(r=>r.kind==='reward')!.id;run.room.cleared=false;
  assert.equal(run.skipReward(),false);run.clear();assert.equal(run.skipReward(),true);
  assert.deepEqual(run.moves,[]);assert.equal(run.rewardPending,false);assert.equal(run.skipReward(),false);assert.equal(run.choose('tri'),false);
 });

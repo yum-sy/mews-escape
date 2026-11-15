@@ -12,8 +12,8 @@ test('every technique has distinct geometry and sound; marks remain finite durin
   for(const voice of [...techniqueSound(form),...techniqueSound(form,true)])assert.ok(voice.duration>0&&voice.from>0&&voice.to>0&&voice.gain<.2);
  }assert.equal(geometry.size,16);assert.equal(sounds.size,16);
 });
-test('first offensive body stays stable while all later effects accumulate',()=>{
- const a=composeAttack(['swift','flame','water','agility','split','ricochet']);assert.equal(a.visual.form,'swift');assert.ok(a.homing&&a.burn&&a.split&&a.bounce);assert.equal(splitAttack(a).visual.form,'swift');
+test('carrier merges techniques while utilities preserve all accumulated effects',()=>{
+ const a=composeAttack(['swift','flame','water','agility','split','ricochet']);assert.equal(a.visual.form,'water');assert.ok(a.homing&&a.burn&&a.split&&a.bounce);assert.equal(splitAttack(a).visual.form,'water');
  assert.equal(presentation(['water','shadow']).form,'water');assert.equal(presentation(['water','water']).rank,2);
  assert.notDeepEqual(techniqueMarks(presentation(['water']),0,6),techniqueMarks(presentation(['water','water']),0,6));
 });
@@ -31,6 +31,6 @@ test('game audio bounds voices, mutes all scheduled sources and recovers across 
  const previous=globalThis.window;Object.assign(globalThis,{window:{clearInterval}});
  try{const audio=new AudioFX(()=>ctx as unknown as AudioContext,false);audio.mode='boss';audio.setScene(1,1);await audio.toggle();for(let i=0;i<128;i++)audio.renderMusicStep(i,i*.1);assert.equal(audio.snapshot.voices,72);
  await audio.toggle();assert.equal(audio.snapshot.voices,0);assert.ok(sources.every(s=>s.stops.at(-1)!<=.06));await audio.toggle();audio.setScene(1,3);assert.equal(audio.snapshot.bpm,166);audio.renderMusicStep(0,0);assert.ok(audio.snapshot.voices>0);audio.mode='silent';assert.equal(audio.snapshot.voices,0);
- audio.mode='combat';audio.shoot(composeAttack(['water']),0,[composeAttack(['flamethrower']),composeAttack(['icebeam'])]);assert.ok(audio.snapshot.voices>=4);sources.forEach(s=>s.onended?.());assert.equal(audio.snapshot.voices,0);audio.dispose();assert.ok(closed);
+ audio.mode='combat';audio.shoot(composeAttack(['water','spark']),0);assert.ok(audio.snapshot.voices>=2);sources.forEach(s=>s.onended?.());assert.equal(audio.snapshot.voices,0);audio.dispose();assert.ok(closed);
  }finally{Object.assign(globalThis,{window:previous})}
 });

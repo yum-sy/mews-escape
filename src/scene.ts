@@ -2,7 +2,8 @@ import {rememberRecord,finishProfile} from './profile';
 import {LabPresentation} from './lab-presentation';
 import {roomEnvironment,roomInteractions,nearestInteraction,breakableProps,breakProp,floorTheme,sceneryBlocks} from './environment';
 import {weaponProfile,fusionLayers,tickAttack,traceWeapon,distanceToSegment,type WeaponPath} from './weapons';
-import {FORMS,glyph,presentation} from './techniques';
+import {roomReward,rewardTier} from './rewards';
+import {FORMS,glyph,presentation,fusionLook} from './techniques';
 import {techniquePreview} from './technique-preview';
 import Phaser from 'phaser';
 import {CombatEffects} from './effects';
@@ -94,7 +95,7 @@ export class LabScene extends Phaser.Scene{
  interaction(){return nearestInteraction(this.player,roomInteractions(this.run.room,this.run.floor,this.run.canExit))}
  interact(){if(this.state!=='playing')return;const target=this.interaction();if(!target)return;
   if(target.kind==='record'){this.readRecord();return}
-  if(target.kind==='reward'){this.audioFX.environment('reward');this.showReward();return}
+  if(target.kind==='reward'){if(this.run.rewardKind==='heart'&&this.hp>=STATS.hp){this.note('체력이 가득 찼습니다. 회복제는 이 방에 남겨둡니다.');return}const supply=this.run.claimSupply();if(supply){if(supply==='heart')this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.refreshRoom();this.updateHud();this.audioFX.environment('reward');this.note(supply==='heart'?'체력 1 회복':'열쇠 +1');return}if(!this.run.openReward()){this.note(this.run.keys<1?'열쇠 1개가 필요합니다.':'더 익힐 기술이 없습니다. 열쇠는 사용하지 않습니다.');return}this.checkpoint();this.audioFX.environment('reward');this.showReward();return}
   if(target.kind==='power'){roomEnvironment(this.run.room).powerOff=true;this.audioFX.environment('switch');this.note('시설 전원을 차단했습니다. 이 방의 레이저·가스·전기 장치가 정지합니다.');if(this.run.room.cleared)this.checkpoint();this.updateHud();return}
   this.state='transition';document.getElementById('interact')!.hidden=true;this.controls.reset();this.clearShots();this.audioFX.mode='silent';this.audioFX.environment('lift');this.cameras.main.fadeOut(320,5,10,18);this.time.delayedCall(350,()=>{if(this.state!=='transition')return;if(this.run.ascend()){this.enterRoom();if(this.state==='transition')this.resume();this.cameras.main.fadeIn(450,5,10,18);this.note(`B${this.run.floor} · ${floorTheme(this.run.floor).name}`)}});
  }
@@ -134,14 +135,14 @@ export class LabScene extends Phaser.Scene{
   });
   this.audioFX.setScene(this.run.floor,this.finalPhase);this.audioFX.mode=this.run.room.kind==='boss'&&!this.run.room.cleared?'boss':this.run.room.cleared?'ambient':'combat';
 
-  this.refreshRoom();this.updateHud();this.checkpoint();if(this.run.floor===1){if(this.run.room.cleared)this.playEnding();else this.finalDialogue();return}if(this.run.rewardPending)this.note('기술 캡슐에 다가가 E 또는 상호작용 버튼으로 여세요.');
+  this.refreshRoom();this.updateHud();this.checkpoint();if(this.run.floor===1){if(this.run.room.cleared)this.playEnding();else this.finalDialogue();return}if(this.run.rewardPending)this.note('중앙 보상에 다가가 E 또는 상호작용 버튼으로 확인하세요.');
  }
  refreshRoom(){
   this.lab.setDoors(this.run.rooms);(this.children.getByName('room-label') as Phaser.GameObjects.Text).setText(`B${this.run.floor} / ${String(this.run.current+1).padStart(2,'0')}`);
   for(const dir of DIRECTIONS){const d=this.doors[dir]!,next=this.run.room.doors[dir];d.shape.setVisible(false);d.label.setVisible(false);if(next===undefined)continue;
    const wasOpen=d.shape.getData('open');const open=this.run.room.cleared&&!(this.run.rooms[next].kind==='boss'&&!this.run.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared));d.shape.setFillStyle(open?0x285e56:0x51333e).setStrokeStyle(2,open?0x83d5bd:0xac6677);if(wasOpen!==open){d.shape.setData('open',open);this.tweens.killTweensOf(d.shape);this.tweens.add({targets:d.shape,alpha:open?.5:1,scaleX:dir==='up'||dir==='down'?(open?.15:1):1,scaleY:dir==='left'||dir==='right'?(open?.15:1):1,duration:300,ease:'Sine.easeInOut'})}d.label.setText(open?(this.run.rooms[next].kind==='boss'?'GENGAR':'OPEN'):'LOCKED');
   }
-  this.terminal.setText(this.run.floor===1?'':this.run.room.kind==='boss'?(this.run.room.cleared?'':'격리 실패 / 팬텀'):this.run.room.kind==='start'?'깨진 격리 장치. 위층에서 소리가 들린다.':this.run.room.kind==='reward'?(this.run.rewardPending?'기술 보관실 · 캡슐을 열어 기술 선택':'기술 보관실 · 보상 수령 완료'):'');
+  this.terminal.setText(this.run.floor===1?'':this.run.room.kind==='boss'?(this.run.room.cleared?'':'격리 실패 / 팬텀'):this.run.room.kind==='start'?'깨진 격리 장치. 위층에서 소리가 들린다.':'');
 
  }
  restart(){
@@ -151,13 +152,13 @@ export class LabScene extends Phaser.Scene{
  resume(){this.controls.reset();this.state='playing';document.getElementById('modal')!.hidden=true;this.audioFX.setScene(this.run.floor,this.finalPhase);this.audioFX.mode=this.run.room.kind==='boss'&&!this.run.room.cleared?'boss':this.run.room.cleared?'ambient':'combat';document.getElementById('pause')!.textContent='Ⅱ'}
  togglePause(){if(this.state==='playing'){this.state='paused';this.effects.setChannels([]);this.audioFX.mode='silent';this.controls.reset();this.showModal('일시정지',this.saveStatus||'진행은 마지막 체크포인트에 저장되어 있습니다. 전투 중 종료하면 이 방 또는 보스 단계 시작부터 이어집니다.','이어하기',true);document.getElementById('pause')!.textContent='▶'}else if(this.state==='paused')this.resume()}
  showModal(title:string,copy:string,button:string,secondary=false){
-  document.getElementById('interact')!.hidden=true;document.querySelector('.panel footer')!.textContent=`PHASE 04 · B${this.run.floor} ${floorTheme(this.run.floor).name}`;document.getElementById('modal')!.hidden=false;document.querySelector('.panel')!.classList.remove('reward-panel');document.getElementById('modal-title')!.textContent=title;document.getElementById('modal-copy')!.textContent=copy;document.getElementById('primary')!.hidden=false;document.getElementById('primary')!.textContent=button;document.getElementById('secondary')!.hidden=!secondary;document.getElementById('instructions')!.style.display='none';document.getElementById('rewards')!.replaceChildren();
+  document.getElementById('interact')!.hidden=true;document.querySelector('.panel footer')!.textContent=`PHASE 04 · B${this.run.floor} ${floorTheme(this.run.floor).name}`;document.getElementById('modal')!.hidden=false;document.querySelector('.panel')!.classList.remove('reward-panel','reward-single');document.getElementById('modal-title')!.textContent=title;document.getElementById('modal-copy')!.textContent=copy;document.getElementById('primary')!.hidden=false;document.getElementById('primary')!.textContent=button;document.getElementById('secondary')!.hidden=!secondary;document.getElementById('instructions')!.style.display='none';document.getElementById('rewards')!.replaceChildren();
  }
  showReward(){
-  this.state='reward';this.controls.reset();this.clearShots();this.showModal('기술 선택','하나를 선택하세요. 기존 효과에 누적되며 체력을 1 회복합니다.','');document.getElementById('primary')!.hidden=true;document.querySelector('.panel')!.classList.add('reward-panel');
-  const container=document.getElementById('rewards')!;
-  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.style.setProperty('--technique-color','#'+move.color.toString(16));const preview=composeAttack([...this.run.moves,move.id]);button.innerHTML=`<small>${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em><span class="reward-form">${move.id in FORMS?(fusionLayers(preview).length>fusionLayers(this.run.attack).length?'주 공격 유지 + 보조 공격 결합':'주 공격 유지 · '+move.form+' 누적'):'형태 유지 · '+move.form}</span>`;button.prepend(techniquePreview(move.id in FORMS?presentation([move.id]):preview.visual));button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.resume();this.audioFX.reward(move.id,this.run.attack);this.effects.upgrade(this.player.x,this.player.y,this.run.attack,move.id);this.note(`${move.name} · ${this.run.moves.filter(id=>id===move.id).length}단계`);this.refreshRoom();this.updateHud()};container.append(button)}
-  const skip=document.createElement('button');skip.className='reward-skip';skip.textContent='현재 조합 유지 · 이번 보상 포기 (회복 없음)';skip.onclick=()=>{if(this.state!=='reward'||!this.run.skipReward())return;this.checkpoint();this.resume();this.refreshRoom();this.updateHud();this.note('기술을 추가하지 않고 현재 조합을 유지합니다.')};container.append(skip);
+  this.state='reward';this.controls.reset();this.clearShots();this.showModal(this.run.rewardKind==='boss'?'보스 보상':'봉인된 기술',this.run.rewardKind==='boss'?'강화 하나를 선택하거나 포기하세요. 열쇠 1개를 받습니다.':'하나를 습득하거나 포기하세요. 기술 습득으로 체력은 회복되지 않습니다.','');document.getElementById('primary')!.hidden=true;document.querySelector('.panel')!.classList.add('reward-panel');
+  const container=document.getElementById('rewards')!;container.style.gridTemplateColumns=`repeat(${Math.max(1,this.run.choices.length)},minmax(0,1fr))`;document.querySelector('.panel')!.classList.toggle('reward-single',this.run.choices.length<=1);if(!this.run.choices.length)document.getElementById('modal-copy')!.textContent='제시된 기술은 이미 충분히 익혔습니다. 보상을 정리하고 진행하세요.';
+  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.style.setProperty('--technique-color','#'+move.color.toString(16));const preview=composeAttack([...this.run.moves,move.id]);button.innerHTML=`<small>${rewardTier(move.id)} · ${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em><span class="reward-form">${fusionLook(preview.visual).name} · 하나의 조준 경로</span>`;button.prepend(techniquePreview(move.id in FORMS?presentation([move.id]):preview.visual));button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.checkpoint();this.resume();this.audioFX.reward(move.id,this.run.attack);this.effects.upgrade(this.player.x,this.player.y,this.run.attack,move.id);this.note(`${move.name} · ${this.run.moves.filter(id=>id===move.id).length}단계`);this.refreshRoom();this.updateHud()};container.append(button)}
+  const skip=document.createElement('button');skip.className='reward-skip';skip.textContent=this.run.rewardKind==='boss'?'강화 포기 · 열쇠만 받기':'현재 조합 유지 · 습득 포기 (열쇠 반환 없음)';skip.onclick=()=>{if(this.state!=='reward'||!this.run.skipReward())return;this.checkpoint();this.resume();this.refreshRoom();this.updateHud();this.note('기술을 추가하지 않고 현재 조합을 유지합니다.')};container.append(skip);
  }
  tryTravel(move:Vec){
   if(!this.run.room.cleared||this.transitionDelay>0)return false;
@@ -172,6 +173,7 @@ export class LabScene extends Phaser.Scene{
   const move=this.controls.movement(),position=moveWithWalls(this.player,{x:move.x*STATS.speed*dt*(this.hazardSlow>0?.6:1),y:move.y*STATS.speed*dt*(this.hazardSlow>0?.6:1)},this.blocks,speciesSize('mew').radius);this.player.x=Phaser.Math.Clamp(position.x,R.left+18,R.right-18);this.player.y=Phaser.Math.Clamp(position.y,R.top+22,R.bottom-22);if(move.x)this.player.setFlipX(move.x>0);
   this.player.setAlpha(this.inv>0?(Math.floor(this.inv*16)%2?.4:1):1);this.player.setAngle(move.x*5);this.shadow.setPosition(this.player.x,this.player.y+25);
   if(this.tryTravel(move))return;
+  if(this.run.rewardPending&&['heart','key'].includes(this.run.rewardKind)&&Math.hypot(this.player.x-560,this.player.y-365)<28&&(this.run.rewardKind!=='heart'||this.hp<STATS.hp))this.interact();
 
   this.updateHazards(dt);if(this.state!=='playing')return;
   this.fireWeapon(dt);
@@ -179,7 +181,7 @@ export class LabScene extends Phaser.Scene{
   this.updateShots(dt);if(this.state!=='playing')return;
   this.effects.render(dt,this.shots,this.enemies);this.lab.update(dt,this.interaction(),this.run.rewardPending,this.run.room.cleared);
   this.enemies=this.enemies.filter(e=>e.hp>0);
-  if((this.run.room.kind==='combat'||this.run.room.kind==='boss')&&!this.run.room.cleared&&this.enemies.length===0){if(this.run.floor===1){const next=nextFinalPhase(this.finalPhase);if(next==='ending'){this.run.clear();this.checkpoint();this.playEnding()}else{this.finalPhase=next;this.enterRoom('down')}return}this.run.clear();this.checkpoint();this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];this.audioFX.play('clear');this.audioFX.mode='ambient';this.refreshRoom();this.updateHud();this.audioFX.environment('door');if(this.run.room.kind==='combat')this.note('문이 열렸습니다. 중앙의 기술 캡슐을 열어 보상을 선택하세요.');else this.note(`팬텀의 발작이 멎었다. B${this.run.floor-1}행 승강기가 움직인다.`);return}
+  if((this.run.room.kind==='combat'||this.run.room.kind==='boss')&&!this.run.room.cleared&&this.enemies.length===0){if(this.run.floor===1){const next=nextFinalPhase(this.finalPhase);if(next==='ending'){this.run.clear();this.checkpoint();this.playEnding()}else{this.finalPhase=next;this.enterRoom('down')}return}this.run.clear();this.checkpoint();this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];this.audioFX.play('clear');this.audioFX.mode='ambient';this.refreshRoom();this.updateHud();this.audioFX.environment('door');if(this.run.room.kind==='combat')this.note(this.run.rewardPending?'문이 열렸습니다. 중앙에 보급품이 남아 있습니다.':'문이 열렸습니다. 이 방에는 보급품이 없습니다.');else this.note(`팬텀의 발작이 멎었다. B${this.run.floor-1}행 승강기가 움직인다.`);return}
   this.hudTime-=dt;if(this.hudTime<=0){this.updateHud();this.hudTime=.15}
  }
  updateEnemies(dt:number){
@@ -250,7 +252,7 @@ export class LabScene extends Phaser.Scene{
     }
     if(profile.held)paths.push(...current);else if(due)this.weaponBursts.set(key,{paths:current,life:.12});
    }
-   if(due&&layerIndex===0)this.audioFX.shoot(attack,undefined,layers.slice(1));
+   if(due&&layerIndex===0)this.audioFX.shoot(attack);
   }
   for(const [key,burst] of this.weaponBursts){burst.life-=dt;if(burst.life<=0)this.weaponBursts.delete(key);else paths.push(...burst.paths.map(p=>({...p,opacity:burst.life/.12})))}
   this.effects.setChannels(paths);
@@ -267,7 +269,7 @@ export class LabScene extends Phaser.Scene{
  hurt(dir:Vec){const result=damage(this.hp,this.inv);if(!result.hit)return;this.hp=result.hp;this.inv=result.invulnerable;this.player.x=Phaser.Math.Clamp(this.player.x+dir.x*22,R.left+18,R.right-18);this.player.y=Phaser.Math.Clamp(this.player.y+dir.y*22,R.top+22,R.bottom-22);this.cameras.main.shake(100,.004);this.audioFX.play('hurt');this.burst(this.player.x,this.player.y,0xf9a1b7,8);this.updateHud();if(this.hp<=0)this.finish(false)}
  burst(x:number,y:number,color:number,count:number){for(let i=0;i<count;i++){const p=this.add.rectangle(x,y,3,3,color).setDepth(15),angle=Math.random()*Math.PI*2;this.tweens.add({targets:p,x:x+Math.cos(angle)*35,y:y+Math.sin(angle)*35,alpha:0,duration:280,onComplete:()=>p.destroy()})}}
  checkpoint(){
-  const save:Checkpoint={version:1,seed:this.run.seed,floor:this.run.floor,current:this.run.current,moves:[...this.run.moves],rooms:this.run.rooms.map(({visited,cleared,rewardTaken,environment})=>({visited,cleared,rewardTaken,environment:environment?{...environment}:undefined})),hp:this.hp,kills:this.kills,elapsed:this.elapsed,drain:this.drain,entry:this.entry,phase:this.finalPhase,ending:this.run.floor===1&&this.run.room.cleared,savedAt:Date.now()};
+  const save:Checkpoint={version:1,keys:this.run.keys,seed:this.run.seed,floor:this.run.floor,current:this.run.current,moves:[...this.run.moves],rooms:this.run.rooms.map(({visited,cleared,rewardTaken,environment,offer,opened})=>({visited,cleared,rewardTaken,offer,opened,environment:environment?{...environment}:undefined})),hp:this.hp,kills:this.kills,elapsed:this.elapsed,drain:this.drain,entry:this.entry,phase:this.finalPhase,ending:this.run.floor===1&&this.run.room.cleared,savedAt:Date.now()};
   this.saveStatus=writeCheckpoint(browserStorage,save)?'':'자동 저장 실패 · 브라우저 저장 공간/권한을 확인해 주세요.';if(this.saveStatus)this.note(this.saveStatus);
  }
  continueRun(){const result=readCheckpoint(browserStorage);if(!result.save){this.restart();this.note(result.status||'저장이 없어 새 게임을 시작합니다.');return}const s=result.save;this.run=restoreRun(s);this.hp=s.hp;this.kills=s.kills;this.elapsed=s.elapsed;this.drain=s.drain;this.finalPhase=s.phase;this.resume();this.enterRoom(s.entry??undefined);if(this.run.floor!==1)this.note('체크포인트에서 이어합니다.');}
@@ -288,10 +290,10 @@ export class LabScene extends Phaser.Scene{
   const boss=this.enemies.find(e=>(e.kind==='gengar'||e.kind==='mewtwo')&&e.hp>0);document.getElementById('boss-hud')!.hidden=!boss;if(boss){document.getElementById('boss-name')!.textContent=boss.kind==='mewtwo'?`뮤츠 · ${MEWTWO_SCRIPT[this.finalPhase-1].emotion} / ${this.finalPhase}단계`:`팬텀 · 부서진 경비 / ${boss.phase}단계`;document.getElementById('boss-fill')!.style.width=`${boss.hp/boss.maxHp*100}%`}
   document.querySelector('.map>span')!.textContent=`B${this.run.floor} / ${['원본 격리','표본 보관','독성 처리','공명 실험','중앙 통제','지상 출입'][this.run.tuning.level]} 구역`;
   const target=this.interaction(),button=document.getElementById('interact')!;button.hidden=!target||this.state!=='playing';if(target)button.textContent=`E · ${target.label}`;
-  const attack=this.run.attack,form=FORMS[attack.visual.form];document.getElementById('build-info')!.textContent=`${form.name} Lv.${attack.visual.rank} · ${fusionLayers(attack).length>1?fusionLayers(attack).length+'종 동시 합성':attack.count+'갈래'}`;document.getElementById('build-info')!.title=`공격 ${attack.damage.toFixed(1)} · 발사 간격 ${attack.interval.toFixed(2)}초 · ${this.run.moves.length} 강화`;const icon=document.querySelector('.move-icon') as HTMLElement;icon.textContent=glyph(attack.visual.form);icon.style.color='#'+form.color.toString(16);document.querySelector('.loadout small')!.textContent=`주 기술 / ${MOVES.find(m=>m.id===attack.visual.form)?.type??'에스퍼'} · 효과 누적`;document.getElementById('sound')!.title=this.audioFX.snapshot.title;
+  const attack=this.run.attack,form=FORMS[attack.visual.form],look=fusionLook(attack.visual);document.getElementById('build-info')!.textContent=`${look.name} · ${attack.count}갈래 · 열쇠 ${this.run.keys}`;document.getElementById('build-info')!.title=`공격 ${attack.damage.toFixed(1)} · 발사 간격 ${attack.interval.toFixed(2)}초 · ${this.run.moves.length} 강화`;const icon=document.querySelector('.move-icon') as HTMLElement;icon.textContent=glyph(attack.visual.form);icon.style.color='#'+form.color.toString(16);document.querySelector('.loadout small')!.textContent=`주 기술 / ${MOVES.find(m=>m.id===attack.visual.form)?.type??'에스퍼'} · 효과 누적`;document.getElementById('sound')!.title=this.audioFX.snapshot.title;
   const counts=new Map<string,number>();for(const id of this.run.moves)counts.set(id,(counts.get(id)??0)+1);
   document.getElementById('build-list')!.textContent=counts.size?[...counts].map(([id,n])=>`${MOVES.find(m=>m.id===id)!.name}${n>1?' ×'+n:''}`).join(' · '):'염동력 · 기술을 모아 효과를 조합하세요';
   const map=document.getElementById('minimap')!,rooms=this.run.rooms,minX=Math.min(...rooms.map(r=>r.x)),minY=Math.min(...rooms.map(r=>r.y));
-  map.replaceChildren();for(const room of rooms){const known=room.visited||Object.values(this.run.room.doors).includes(room.id);if(!known)continue;const cell=document.createElement('span');cell.className='map-cell'+(room.id===this.run.current?' current':'')+(room.visited&&room.cleared?' cleared':'');cell.style.left=`${(room.x-minX)*19}px`;cell.style.top=`${(room.y-minY)*19}px`;cell.textContent=room.visited?({start:'S',combat:room.cleared?(room.rewardTaken?'·':'✧'):'!',reward:'✧',boss:room.cleared?'↑':'B'}[room.kind]):'?';cell.title=room.visited?ROOM_NAME[room.kind]:'미탐험';map.append(cell)}
+  map.replaceChildren();for(const room of rooms){const known=room.visited||Object.values(this.run.room.doors).includes(room.id);if(!known)continue;const cell=document.createElement('span');cell.className='map-cell'+(room.id===this.run.current?' current':'')+(room.visited&&room.cleared?' cleared':'');cell.style.left=`${(room.x-minX)*19}px`;cell.style.top=`${(room.y-minY)*19}px`;cell.textContent=room.visited?({start:'S',combat:room.cleared?(room.rewardTaken||roomReward(room,this.run.floor)==='none'?'·':'✧'):'!',reward:room.rewardTaken?'·':'✧',boss:room.cleared?(room.rewardTaken?'↑':'✧'):'B'}[room.kind]):'?';cell.title=room.visited?ROOM_NAME[room.kind]:'미탐험';map.append(cell)}
  }
 }

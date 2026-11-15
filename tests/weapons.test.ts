@@ -42,9 +42,9 @@ test('all legal stacked channel builds have finite bounded paths and limited con
  }
 });
 
-test('fusion keeps projectile, fire and ice simultaneously without multiplying aggregate DPS',()=>{
- const a=composeAttack(['shadow','flamethrower','icebeam','tri','swift']),layers=fusionLayers(a);assert.equal(a.visual.form,'shadow');assert.deepEqual(layers.map(x=>weaponProfile(x).kind),['projectile','flame','beam']);
+test('fusion resolves fire and ice into one damage path with all inherited modifiers',()=>{
+ const a=composeAttack(['shadow','flamethrower','icebeam','tri','swift']),layers=fusionLayers(a);assert.equal(a.visual.form,'icebeam');assert.deepEqual(layers.map(x=>weaponProfile(x).kind),['beam']);
  const sum=layers.reduce((n,x)=>n+x.damage*x.count/x.interval,0);assert.ok(Math.abs(sum-a.damage*a.count/a.interval)<1e-10);
  for(const x of layers){assert.equal(x.burn,a.burn);assert.equal(x.slow,a.slow);assert.equal(x.homing,a.homing);assert.equal(x.pierce,a.pierce)}
- const full=composeAttack(MOVES.flatMap(m=>Array(m.max).fill(m.id))),all=fusionLayers(full);assert.ok(all.length<=7);assert.ok(all.reduce((n,x)=>n+x.count,0)<=11);
+ const full=composeAttack(MOVES.flatMap(m=>Array(m.max).fill(m.id))),all=fusionLayers(full);assert.ok(all.length===1);assert.ok(all.reduce((n,x)=>n+x.count,0)<=5);
 });
