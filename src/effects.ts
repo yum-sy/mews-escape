@@ -1,3 +1,4 @@
+import type {WeaponPath} from './weapons';
 import Phaser from 'phaser';
 import type {Attack} from './moves';
 import {techniqueMarks,presentation,FORMS,type Mark,type Presentation} from './techniques';
@@ -6,9 +7,32 @@ export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;t
 type Particle={x:number;y:number;vx:number;vy:number;age:number;life:number;color:number;size:number;ring:boolean;shape?:string};
 export function effectPalette(a:Attack){return [...new Set([a.color,...(a.burn?[0xff843e]:[]),...(a.slow?[0x8deaff]:[]),...(a.chain?[0xffe568]:[]),...(a.poison?[0xc780ff]:[]),...(a.lifesteal?[0x8cf5b1]:[])])]}
 export class CombatEffects{
- private g:Phaser.GameObjects.Graphics;private particles:Particle[]=[];private clock=0;private links:{a:Point;b:Point;age:number;life:number;drain:boolean}[]=[];private awards:{x:number;y:number;age:number;visual:Presentation}[]=[];
- constructor(scene:Phaser.Scene){this.g=scene.add.graphics().setDepth(14)}
- clear(){this.particles=[];this.links=[];this.awards=[];this.g.clear()}
+ private channelG:Phaser.GameObjects.Graphics;private channels:WeaponPath[]=[];private channelAge=0;private g:Phaser.GameObjects.Graphics;private particles:Particle[]=[];private clock=0;private links:{a:Point;b:Point;age:number;life:number;drain:boolean}[]=[];private awards:{x:number;y:number;age:number;visual:Presentation}[]=[];
+ constructor(scene:Phaser.Scene){this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
+ clear(){this.setChannels([]);this.particles=[];this.links=[];this.awards=[];this.g.clear()}
+ setChannels(paths:WeaponPath[]){this.channels=paths;this.channelAge=0;this.drawChannels(1)}
+ fadeChannels(dt:number){this.channelAge+=dt;this.drawChannels(Math.max(0,1-this.channelAge/.12))}
+ private drawChannels(alpha:number){
+  const g=this.channelG;g.clear();if(alpha<=0)return;
+  for(const path of this.channels){const points=path.points,flame=path.kind==='flame',arc=path.kind==='arc';
+   for(let i=1;i<points.length;i++){const from=points[i-1],to=points[i],t=i/points.length,pulse=Math.sin(this.clock*24-i*.8);
+    g.lineStyle(to.width*2,path.color,alpha*(flame?.07:.16));g.lineBetween(from.x,from.y,to.x,to.y);
+    g.lineStyle(flame?to.width*1.3:arc?3:Math.max(2,to.width*.65),flame?0xff9b39:path.color,alpha*(flame?.15:.85));g.lineBetween(from.x,from.y,to.x,to.y);
+    if(!flame){g.lineStyle(arc?1:2,0xf3ffff,alpha*.85);const j=arc?pulse*6:0;g.lineBetween(from.x,from.y, to.x+j,to.y-j)}
+
+    if(path.kind==='beam'&&i%7===0){g.lineStyle(1.5,0xcfffff,alpha*.8);const r=4+pulse*2;g.strokePoints([{x:to.x-r,y:to.y},{x:to.x,y:to.y-r},{x:to.x+r,y:to.y},{x:to.x,y:to.y+r}],true)}
+    if(path.kind==='water'&&i%4===0){g.fillStyle(0xd3faff,alpha*.7);g.fillCircle(to.x+pulse*3,to.y-pulse*3,2)}
+    if(path.kind==='pulse'&&i%3===0){g.fillStyle(0xf8aaff,alpha*.7);g.fillCircle(to.x+pulse*5,to.y-pulse*5,3)}
+    if(path.kind==='tether'&&i%6===Math.floor(this.clock*25)%6){g.fillStyle(0xccffa9,alpha);g.fillEllipse(to.x,to.y,8,4)}
+    if(i%13===Math.floor(this.clock*24)%13){const a=path.attack;for(const [enabled,color,offset] of [[a.burn,0xff8c45,-8],[a.slow,0xa8f4ff,8],[a.poison,0xd68dff,-13],[a.lifesteal,0x9afaac,13]] as number[][]){if(enabled){g.fillStyle(color,alpha*.85);g.fillCircle(to.x+offset,to.y-offset,2.5)}}}
+   }
+   if(flame&&points.length>1)for(let k=0;k<28;k++){
+    const t=(k/28+this.clock*1.8)%1,index=Math.min(points.length-1,Math.max(1,Math.floor(t*(points.length-1)))),p=points[index],prev=points[index-1],angle=Math.atan2(p.y-prev.y,p.x-prev.x),co=Math.cos(angle),si=Math.sin(angle),offset=Math.sin(k*17.3+this.clock*3)*p.width*.6,x=p.x-si*offset,y=p.y+co*offset,r=(3+p.width*.32)*(1-t*.3),length=r*2.4;
+    g.fillStyle(k%3?0xff842e:0xffd576,alpha*(.65-t*.3));g.fillTriangle(x+co*length,y+si*length,x-co*r-si*r,y-si*r+co*r,x-co*r+si*r,y-si*r-co*r);
+    g.fillStyle(0xffdd8d,alpha*(1-t)*.6);g.fillCircle(x-co*r*.4,y-si*r*.4,r*.5);
+   }
+  }
+ }
  impact(x:number,y:number,a:Attack,critical=false){
   const colors=effectPalette(a),count=critical?16:9;
   for(let i=0;i<count;i++){const angle=i/count*Math.PI*2+Math.random()*.3,speed=55+Math.random()*110;this.add({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,age:0,life:.22+Math.random()*.2,color:colors[i%colors.length],size:critical?4:2.5,ring:false,shape:FORMS[a.visual.form].shape})}

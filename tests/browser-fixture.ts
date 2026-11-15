@@ -4,6 +4,8 @@ import {MOVES} from '../src/moves';
 import {roomsForFloor} from '../src/run';
 import {Run} from '../src/run';
 export function installFixture(scene:LabScene){
+ const hold=document.createElement('button');hold.textContent='연속 발사 검증';hold.style.cssText='position:fixed;left:10px;top:50px;z-index:101;font-size:10px';hold.onclick=()=>{if(scene.controls.keys.has('ArrowUp'))scene.controls.keys.delete('ArrowUp');else scene.controls.keys.add('ArrowUp')};document.body.append(hold);
+ const stats=document.createElement('output');stats.style.cssText='position:fixed;left:155px;top:55px;z-index:101;color:white;font:11px monospace;background:#111b';document.body.append(stats);scene.time.addEvent({delay:200,loop:true,callback:()=>{stats.textContent=`${scene.state} · 입력 ${scene.controls.keys.has('ArrowUp')?'ON':'OFF'} · 적 HP ${scene.enemies.map(e=>e.hp.toFixed(1)).join('/')} · 화상 ${scene.enemies[0]?.burn.toFixed(2)??0} · 둔화 ${scene.enemies[0]?.slow.toFixed(2)??0} · 탄환 ${scene.shots.filter(s=>!s.hostile).length}`}});
  const reward=document.createElement('button');reward.textContent='보상 검증';reward.style.cssText='position:fixed;left:10px;top:10px;z-index:101;font-size:10px';reward.onclick=()=>{scene.clearActors();scene.run.current=scene.run.rooms.find(r=>r.kind==='combat')!.id;scene.run.room.cleared=true;scene.run.room.rewardTaken=false;scene.showReward()};document.body.append(reward);
  const finale=document.createElement('button');finale.textContent='개발 검증 · B2 승강기';finale.style.cssText='position:fixed;right:10px;bottom:145px;z-index:100;font-size:10px';document.body.append(finale);
  finale.onclick=()=>{scene.menu();document.getElementById('shell')!.hidden=true;document.body.dataset.screen='game';scene.restart();scene.run.floor=2;scene.run.rooms=roomsForFloor(3,2);scene.run.seed=3;scene.run.current=scene.run.rooms.find(r=>r.kind==='boss')!.id;scene.run.rooms.forEach(r=>{r.cleared=true;r.visited=true});scene.run.moves=MOVES.flatMap(m=>Array(m.max).fill(m.id));scene.enterRoom('down');scene.resume();finale.hidden=true};
@@ -18,8 +20,8 @@ export function installFixture(scene:LabScene){
   scene.run.moves=['swift','shadow','tri','poison','flame','ice','drain','spark','split','ricochet','sludge'];
   scene.enterRoom('down');scene.resume();button.hidden=true;
   const panel=document.createElement('div');panel.style.cssText='position:fixed;left:12px;bottom:70px;z-index:100;display:flex;gap:5px';
-  for(const [label,moves] of Object.entries({'기본':[],'화염 2단계':['flame','flame','flamethrower'],'얼음 관통':['psybeam','icebeam','icebeam'],'복합 강화':['swift','tri','shadow','flame','ice','spark','poison','ricochet']})){
-   const choice=document.createElement('button');choice.textContent=label;choice.onclick=()=>{scene.clearShots();scene.run.moves=moves;scene.hp=6;scene.inv=60;scene.effects.upgrade(scene.player.x,scene.player.y,scene.run.attack);scene.updateHud()};panel.append(choice);
+  for(const [label,moves] of Object.entries({'기본':[],'화염 2단계':['flame','flame','flamethrower'],'얼음 관통':['psybeam','icebeam','icebeam'],'복합 빔':['swift','tri','shadow','flame','spark','drain','split','ricochet','icebeam'],'물줄기':['water'],'흡수 줄기':['drain'],'즉발 번개':['thunderbolt']})){
+   const choice=document.createElement('button');choice.textContent=label;choice.onclick=()=>{scene.clearShots();scene.run.moves=moves;scene.hp=6;scene.inv=60;scene.startDelay=999;scene.player.setPosition(560,480);scene.enemies.forEach((e,i)=>{e.sprite.setPosition(560+i*70,320);e.hp=e.maxHp=500;e.burn=e.poison=e.slow=e.statusTime=0});scene.effects.upgrade(scene.player.x,scene.player.y,scene.run.attack);scene.updateHud()};panel.append(choice);
   }document.body.append(panel);
  };
 }
