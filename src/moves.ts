@@ -1,6 +1,7 @@
+import {presentation,FORMS,type Presentation} from './techniques';
 import {rng,shuffle} from './dungeon';
-export interface Attack{damage:number;interval:number;speed:number;range:number;size:number;count:number;pierce:number;homing:number;split:number;color:number;burn:number;slow:number;chain:number;poison:number;knockback:number;crit:number;lifesteal:number;bounce:number;blast:number}
-export type Modifier=Partial<Omit<Attack,'color'>>;
+export interface Attack{visual:Presentation;damage:number;interval:number;speed:number;range:number;size:number;count:number;pierce:number;homing:number;split:number;color:number;burn:number;slow:number;chain:number;poison:number;knockback:number;crit:number;lifesteal:number;bounce:number;blast:number}
+export type Modifier=Partial<Omit<Attack,'color'|'visual'>>;
 export interface Move{id:string;name:string;type:string;form:string;description:string;synergy:string;modifier:Modifier;color:number;priority:number;max:number}
 export const MOVES:Move[]=[
  {id:'shadow',name:'섀도볼',type:'고스트',form:'관통 탄환',description:'공격력 +0.22 · 적 1마리 추가 관통 (후속 적중마다 위력 20% 감소)',synergy:'유도·다중 탄환에도 관통이 적용됩니다.',modifier:{damage:.22,pierce:1},color:0xbca0ff,priority:2,max:2},
@@ -25,9 +26,9 @@ export const MOVES:Move[]=[
  {id:'flamethrower',name:'화염방사',type:'불꽃',form:'고속 화염탄',description:'발사 간격 -0.012초 · 화상 DPS +0.45',synergy:'기존 유도·관통을 유지한 채 빠르게 화상을 입힙니다.',modifier:{interval:-.012,burn:.45},color:0xff9872,priority:4,max:2},
 ];
 export function composeAttack(ids:string[]):Attack{
- const a:Attack={damage:1,interval:.19,speed:600,range:720,size:5,count:1,pierce:0,homing:0,split:0,color:0xf3b9ef,burn:0,slow:0,chain:0,poison:0,knockback:0,crit:0,lifesteal:0,bounce:0,blast:0};let priority=-1;
+ const a:Attack={visual:presentation(ids),damage:1,interval:.19,speed:600,range:720,size:5,count:1,pierce:0,homing:0,split:0,color:0xf3b9ef,burn:0,slow:0,chain:0,poison:0,knockback:0,crit:0,lifesteal:0,bounce:0,blast:0};let priority=-1;
  for(const id of ids){const move=MOVES.find(m=>m.id===id);if(!move)continue;for(const [key,value] of Object.entries(move.modifier))a[key as keyof Modifier]+=value;if(move.priority>=priority){a.color=move.color;priority=move.priority}}
- a.count=Math.min(5,a.count);a.interval=Math.max(.13,a.interval);a.pierce=Math.min(4,a.pierce);a.homing=Math.min(4.4,a.homing);a.slow=Math.min(.45,a.slow);a.chain=Math.min(3,a.chain);a.size=Math.min(11,a.size);a.split=Math.min(2,a.split);a.speed=Math.min(960,a.speed);a.range=Math.min(1200,a.range);a.crit=Math.min(.24,a.crit);a.lifesteal=Math.min(1/45,a.lifesteal);a.knockback=Math.min(32,a.knockback);a.bounce=Math.min(2,a.bounce);a.blast=Math.min(100,a.blast);a.damage/=1+.5*(a.count-1);return a;
+ a.count=Math.min(5,a.count);a.interval=Math.max(.13,a.interval);a.pierce=Math.min(4,a.pierce);a.homing=Math.min(4.4,a.homing);a.slow=Math.min(.45,a.slow);a.chain=Math.min(3,a.chain);a.size=Math.min(11,a.size);a.split=Math.min(2,a.split);a.speed=Math.min(960,a.speed);a.range=Math.min(1200,a.range);a.crit=Math.min(.24,a.crit);a.lifesteal=Math.min(1/45,a.lifesteal);a.knockback=Math.min(32,a.knockback);a.bounce=Math.min(2,a.bounce);a.blast=Math.min(100,a.blast);a.damage/=1+.5*(a.count-1);a.color=FORMS[a.visual.form].color;return a;
 }
 export function rewardOptions(seed:number,owned:string[]){const choices=shuffle(MOVES.filter(m=>owned.filter(id=>id===m.id).length<m.max),rng(seed)).slice(0,3);return choices.length?choices:[{id:'recover',name:'휴식',type:'회복',form:'성장 한계',description:'모든 기술을 충분히 익혔습니다. 체력을 1 회복합니다.',synergy:'기존 빌드는 그대로 유지됩니다.',modifier:{},color:0x9be3aa,priority:0,max:1}]}
 
