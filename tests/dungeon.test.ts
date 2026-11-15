@@ -41,7 +41,7 @@ test('five escalating floors preserve builds and require the boss before ascent'
 });
 test('independent modifiers compose and remain bounded under repeated upgrades',()=>{
  const a=composeAttack(['shadow','swift','tri','flame','ice','spark','split']);
- assert.equal(a.count,3);assert.equal(a.pierce,1);assert.ok(a.homing>0&&a.burn>0&&a.slow>0);assert.equal(a.chain,1);assert.equal(a.split,2);assert.equal(a.damage,.61);
+ assert.equal(a.count,3);assert.equal(a.pierce,1);assert.ok(a.homing>0&&a.burn>0&&a.slow>0);assert.equal(a.chain,1);assert.equal(a.split,2);assert.ok(Math.abs(a.damage*3-1.22*.3575)<1e-10);
  const b=composeAttack(Array.from({length:100},()=>MOVES.map(m=>m.id)).flat());assert.equal(b.count,5);assert.equal(b.interval,.13);assert.equal(b.pierce,4);assert.equal(b.chain,3);assert.equal(b.split,2);assert.equal(b.slow,.45);assert.equal(b.size,11);
  const owned=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.equal(rewardOptions(12,owned)[0].id,'recover');
 });

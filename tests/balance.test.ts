@@ -4,14 +4,21 @@ import {MOVES,composeAttack,splitAttack,CRITICAL_MULTIPLIER,PIERCE_RETAIN} from 
 import {ENEMIES} from '../src/data';
 import {stepBrain,type Brain} from '../src/ai';
 const directDps=(ids:string[])=>{const a=composeAttack(ids);return a.damage*a.count/a.interval*(1+a.crit*(CRITICAL_MULTIPLIER-1))};
-test('multishot improves coverage without multiplying direct damage three or five times',()=>{
- const base=directDps([]);assert.ok(Math.abs(directDps(['tri'])/base-1.5)<1e-10);assert.ok(Math.abs(directDps(['tri','tri'])/base-5/3)<1e-10);
- assert.ok(directDps(['tri','psybeam'])>directDps(['tri']));
+test('multishot and homing sacrifice total direct damage even when every projectile converges',()=>{
+ const base=directDps([]);for(const [ids,ratio] of [[['tri'],.65],[['tri','tri'],.5],[['swift'],.55],[['swift','swift'],.4],[['tri','swift'],.3575],[['tri','tri','swift','swift'],.2]] as [string[],number][]){assert.ok(Math.abs(directDps(ids)/base-ratio)<1e-10)}
+});
+test('coverage penalties survive later weapon changes, normalize continuous ticks and reduce child/proc base damage',()=>{
+ for(const form of ['flamethrower','icebeam','water','psybeam','thunderbolt','shadow']){
+  const base=composeAttack(['flame','poison','split','spark',form]),covered=composeAttack(['tri','swift','flame','poison','split','spark',form]);
+  assert.ok(Math.abs(covered.damage*covered.count/base.damage-.3575)<1e-10);assert.ok(covered.damage<base.damage);
+  assert.equal(covered.burn,base.burn);assert.equal(covered.poison,base.poison);assert.equal(covered.chain,base.chain);
+  assert.ok(Math.abs(splitAttack(covered).damage*covered.count/splitAttack(base).damage-.3575)<1e-10);
+ }
 });
 test('seven early upgrades and a complete legal build stay within direct DPS budgets',()=>{
  const ids=['tri','psybeam','shadow','agility','flamethrower','thunderbolt','focus'];let max=0;
  const visit=(i:number,owned:string[])=>{if(i===ids.length){max=Math.max(max,directDps(owned));return}const move=MOVES.find(m=>m.id===ids[i])!;for(let n=0;n<=move.max&&owned.length+n<=7;n++)visit(i+1,[...owned,...Array(n).fill(move.id)])};visit(0,[]);
- assert.ok(max>directDps([])*3,'growth must still feel meaningful');assert.ok(max<24,`early DPS ${max}`);
+ assert.ok(max>directDps([])*2.5,'focused damage upgrades must still grow without multishot');assert.ok(max<24,`early DPS ${max}`);
  const full=MOVES.flatMap(m=>Array(m.max).fill(m.id));assert.ok(directDps(full)<directDps([])*8);
 });
 test('split children preserve identity but cannot multiply secondary hits or healing',()=>{
