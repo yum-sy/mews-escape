@@ -4,6 +4,7 @@ import {MOVES} from '../src/moves';
 import {roomsForFloor} from '../src/run';
 import {Run} from '../src/run';
 export function installFixture(scene:LabScene){
+ for(const phase of [1,2,3] as const){const story=document.createElement('button');story.textContent=`스토리 검증 ${phase}`;story.style.cssText=`position:fixed;left:${10+(phase-1)*130}px;bottom:10px;z-index:103;font-size:10px`;story.onclick=()=>{scene.stopStory();scene.menu();document.getElementById('shell')!.hidden=true;scene.restart();scene.run.floor=1;scene.run.rooms=roomsForFloor(3,1);scene.run.current=0;scene.finalPhase=phase;scene.enterRoom()};document.body.append(story)}
  const mobile=document.createElement('button');mobile.textContent='터치 UI 표시';mobile.style.cssText='position:fixed;right:10px;top:95px;z-index:102';mobile.onclick=()=>document.body.classList.toggle('touch-ui');document.body.append(mobile);
  const stress=document.createElement('button');stress.textContent='합성 부하 검증 (무적)';stress.style.cssText='position:fixed;right:10px;top:130px;z-index:102';document.body.append(stress);
  const timing=document.createElement('output');timing.id='frame-report';timing.style.cssText='position:fixed;right:10px;top:170px;z-index:102;color:white;background:#111d;font:11px monospace';document.body.append(timing);
