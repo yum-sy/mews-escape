@@ -1,4 +1,4 @@
-import {generateDungeon,exitReady,type DungeonRoom,type Direction} from './dungeon';
+import {generateDungeon,exitReady,enemyLayout,type DungeonRoom,type Direction} from './dungeon';
 import {composeAttack,rewardOptions} from './moves';
 import {difficulty} from './scaling';
 export class Run{
@@ -19,4 +19,9 @@ export class Run{
 export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{
  if(floor===1)return[{id:0,x:0,y:0,kind:'boss',doors:{},visited:true,cleared:false,rewardTaken:false,seed}];
  return generateDungeon((seed+Math.imul(6-floor,0x9e3779b1))>>>0,difficulty(floor).combatCount);
+}
+
+export function roomEnemies(room:DungeonRoom,floor:number):ReturnType<typeof enemyLayout>{
+ if(room.cleared)return[];if(floor===1)return[{kind:'mewtwo',x:560,y:260}];const layout=enemyLayout(room),level=6-floor;
+ if(room.kind==='combat'&&level>=2)layout.push({kind:level>=3?'koffing':'houndour',x:560,y:365});return layout;
 }

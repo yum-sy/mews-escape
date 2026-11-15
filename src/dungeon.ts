@@ -1,10 +1,11 @@
+import type {EnvironmentState} from './environment';
 import {NORMAL_KINDS,type Kind} from './data';
 export type Direction='up'|'right'|'down'|'left';
 export const DIRECTIONS:Direction[]=['up','right','down','left'];
 export const DELTA:Record<Direction,[number,number]>={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
 export const OPPOSITE:Record<Direction,Direction>={up:'down',right:'left',down:'up',left:'right'};
 export type RoomKind='start'|'combat'|'reward'|'boss';
-export interface DungeonRoom{id:number;x:number;y:number;kind:RoomKind;doors:Partial<Record<Direction,number>>;visited:boolean;cleared:boolean;rewardTaken:boolean;seed:number}
+export interface DungeonRoom{environment?:EnvironmentState;id:number;x:number;y:number;kind:RoomKind;doors:Partial<Record<Direction,number>>;visited:boolean;cleared:boolean;rewardTaken:boolean;seed:number}
 export function rng(seed:number){let a=seed>>>0;return()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 export function shuffle<T>(items:T[],random:()=>number){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 export function generateDungeon(seed:number,combatCount=5):DungeonRoom[]{
