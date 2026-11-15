@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {ENEMIES,NORMAL_KINDS} from '../src/data';
 import {SPECIES,speciesSize,difficulty,hazardPhase} from '../src/scaling';
 import {stepBrain,bossPhase,type Brain} from '../src/ai';
-import {obstacles,overlapsBlock,moveWithWalls} from '../src/lab';
+import {knockbackPosition,obstacles,overlapsBlock,moveWithWalls} from '../src/lab';
 import {generateDungeon,enemyLayout} from '../src/dungeon';
 import {Run} from '../src/run';
 import {MOVES,composeAttack} from '../src/moves';
@@ -42,4 +42,13 @@ test('content includes 10+ named moves and 15+ independently used modifier chann
 
 test('high-output player builds cannot consume the enemy bullet reserve',async()=>{
  const {canSpawnProjectile}=await import('../src/combat');const player=Array.from({length:80},()=>({hostile:false}));assert.equal(canSpawnProjectile(player,false),false);assert.equal(canSpawnProjectile(player,true),true);const full=[...player,...Array.from({length:40},()=>({hostile:true}))];assert.equal(canSpawnProjectile(full,true),false);
+});
+
+test('damage recoil cannot embed Mew inside a crate and movement away remains possible',()=>{
+ const crate={x:950,y:480,w:50,h:48},p={x:906,y:480};
+ const pushed=knockbackPosition(p,{x:1,y:0},[crate],18);
+ assert.ok(!overlapsBlock(pushed,18,crate));assert.equal(pushed.x,p.x);
+ assert.ok(moveWithWalls(pushed,{x:-4,y:0},[crate],18).x<pushed.x);
+ const corner=knockbackPosition({x:910,y:442},{x:.707,y:.707},[crate],18);assert.ok(!overlapsBlock(corner,18,crate));
+ assert.deepEqual(knockbackPosition({x:98,y:160},{x:-1,y:-1},[],18),{x:96,y:158});
 });

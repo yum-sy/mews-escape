@@ -42,6 +42,6 @@ Phaser 3 + TypeScript + Vite로 만든 팬 게임 웹 데모입니다. 원래 �
 
 Node.js 22 이상에서 `npm install`, `npm run dev`, `npm test`, `npm run build`를 사용합니다. main push 시 GitHub Actions가 테스트·빌드·Pages 배포를 수행합니다. `?seed=3`은 재현 가능한 던전, 개발 서버의 `?qa`는 검증용 버튼, `?campaign`은 정상 규칙 자동 조작기이며 배포 번들에서는 제거됩니다.
 
-[이전 버전 진행 검증](docs/PLAYTEST-QA.md), [완성도 검증 기록](docs/COMPLETION-QA.md), [보류/처리한 피드백](docs/FEEDBACK.md), [이야기](docs/STORY.md)를 참고하세요. 이전 버전의 전체 진행과 현재 보상 체계의 검증 결과를 구분해 기록합니다. 모바일 실기기 성능과 사람의 난이도·승률은 자동 조작이나 화면 크기 검증으로 대신했다고 주장하지 않습니다.
+[현재 전체 진행·모바일 점검](docs/FULL-RUN-QA.md), [이전 버전 진행 검증](docs/PLAYTEST-QA.md), [완성도 검증 기록](docs/COMPLETION-QA.md), [보류/처리한 피드백](docs/FEEDBACK.md), [이야기](docs/STORY.md)를 참고하세요. 이전 버전의 전체 진행과 현재 보상 체계의 검증 결과를 구분해 기록합니다. 모바일 실기기 성능과 사람의 난이도·승률은 자동 조작이나 화면 크기 검증으로 대신했다고 주장하지 않습니다.
 
 리소스는 로컬 제공하며 플레이 중 API를 호출하지 않습니다. Pokémon 이미지·Kenney 타일·생성된 오프닝 소재의 출처는 `public/assets/CREDITS.txt`, `Kenney-LICENSE.txt`, 관련 출처 JSON에 보존했습니다. 이번 환경 개선은 기존 타일과 코드로 그린 도형을 사용했습니다.

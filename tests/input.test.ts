@@ -52,3 +52,17 @@ test('two touch pointers preserve analog movement, independent aiming and cancel
   move.events.pointerdown(event(3,124,62));assert.equal(c.move.x,1);c.reset();assert.deepEqual(c.move,{x:0,y:0});assert.equal(move.knob.style.transform,'');move.events.pointerdown(event(4,62,100));assert.ok(c.move.y>0);assert.equal(c.move.x,0);
  }finally{Object.assign(globalThis,{window:previousWindow,document:previousDocument})}
 });
+
+test('menus retain native keyboard activation and scrolling; pause always remains available',()=>{
+ const previousWindow=globalThis.window,previousDocument=globalThis.document;
+ const events:Record<string,(e:any)=>void>={};const stick={querySelector:()=>({style:{transform:''}}),addEventListener:()=>{}};
+ try{
+  Object.assign(globalThis,{window:{addEventListener:(name:string,fn:(e:any)=>void)=>events[name]=fn},document:{getElementById:()=>stick}});
+  let active=false,prevented=0,pauses=0,interactions=0;const c=new Controls(()=>active);c.onPause=()=>pauses++;c.onInteract=()=>interactions++;
+  const press=(code:string)=>events.keydown({code,repeat:false,preventDefault:()=>prevented++});
+  press('Space');press('ArrowDown');press('KeyE');assert.equal(prevented,0);assert.equal(c.keys.size,0);assert.equal(interactions,0);
+  press('Escape');assert.equal(pauses,1);
+  active=true;press('ArrowDown');press('KeyE');assert.equal(prevented,1);assert.equal(interactions,1);assert.ok(c.keys.has('ArrowDown'));
+  active=false;events.keyup({code:'ArrowDown'});assert.ok(!c.keys.has('ArrowDown'));
+ }finally{Object.assign(globalThis,{window:previousWindow,document:previousDocument})}
+});

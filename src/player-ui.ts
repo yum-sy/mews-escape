@@ -1,7 +1,8 @@
 import type {Run} from './run';
 import {composeAttack,MOVES,type Attack} from './moves';
 import {fusionLook} from './techniques';
-export function objective(run:Run):string{
+export function objective(run:Run,entryGrace=false):string{
+ if(entryGrace&&!run.room.cleared)return'진입 보호 중 · 공격하면 해제됩니다';
  if(run.floor===1)return run.room.cleared?'열린 문 너머로, 함께':'뮤츠를 넘어 지상으로';
  if(!run.room.cleared)return run.room.kind==='boss'?'팬텀을 진정시키고 승강기 확보':'방 안의 위협을 모두 제압';
  if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 승강기':'승강기를 타고 B'+(run.floor-1)+'로';
@@ -25,3 +26,8 @@ export function rewardComparison(ids:string[],id:string){
  return {rank,delta,caption:delta===0?'직접 화력 유지':`직접 화력 ${delta>0?'+':''}${delta}%`,name:fusionLook(after.visual).name,traits:attackTraits(after),carrier:MOVES.find(m=>m.id===after.visual.form)?.name??'염동력'};
 }
 export function formatDuration(seconds:number){const n=Math.max(0,Math.floor(seconds));return `${Math.floor(n/60)}분 ${String(n%60).padStart(2,'0')}초`}
+
+export function attackLabel(a:Attack){
+ const carrier=MOVES.find(m=>m.id===a.visual.form)?.name??'염동력',fusion=fusionLook(a.visual).name;
+ return carrier===fusion?carrier:`${carrier} · ${fusion}`;
+}
