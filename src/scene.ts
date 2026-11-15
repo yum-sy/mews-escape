@@ -1,8 +1,8 @@
 import {rememberRecord,finishProfile} from './profile';
 import {LabPresentation} from './lab-presentation';
-import {roomEnvironment,roomInteractions,nearestInteraction,breakableProps,breakProp,floorTheme} from './environment';
-import {weaponProfile,tickAttack,traceWeapon,distanceToSegment,type WeaponPath} from './weapons';
-import {FORMS,glyph} from './techniques';
+import {roomEnvironment,roomInteractions,nearestInteraction,breakableProps,breakProp,floorTheme,sceneryBlocks} from './environment';
+import {weaponProfile,fusionLayers,tickAttack,traceWeapon,distanceToSegment,type WeaponPath} from './weapons';
+import {FORMS,glyph,presentation} from './techniques';
 import {techniquePreview} from './technique-preview';
 import Phaser from 'phaser';
 import {CombatEffects} from './effects';
@@ -32,6 +32,7 @@ export class LabScene extends Phaser.Scene{
  lab!:LabPresentation;effects!:CombatEffects;controls=new Controls();audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
  doors:Partial<Record<Direction,{shape:Phaser.GameObjects.Rectangle;label:Phaser.GameObjects.Text}>>={};terminal!:Phaser.GameObjects.Text;
  enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;
+ weaponTimers=new Map<string,number>();weaponBursts=new Map<string,{paths:WeaponPath[];life:number}>();
  run=new Run(nextSeed());finalPhase:FinalPhase=1;entry:Direction|null=null;stopStory=()=>{};saveStatus='';
  beams:{shape:Phaser.GameObjects.Rectangle;axis:'x'|'y';position:number;age:number}[]=[];
  menu=()=>{};roomDecor!:Phaser.GameObjects.Container;blocks:Block[]=[];roomClock=0;drain=0;noteTime=0;toxic=0;toxicTick=0;hazardSlow=0;
@@ -50,6 +51,7 @@ export class LabScene extends Phaser.Scene{
   document.getElementById('back-menu')!.onclick=()=>{this.stopStory();this.state='ready';this.controls.reset();this.clearActors();document.getElementById('modal')!.hidden=true;this.audioFX.mode='silent';this.menu()};
   document.getElementById('interact')!.onclick=()=>this.interact();this.controls.onInteract=()=>this.interact();
   this.menu=setupShell(restore=>restore?this.continueRun():this.restart());
+  if(import.meta.env.DEV&&new URLSearchParams(location.search).has('campaign'))void import('../tests/campaign-fixture').then(m=>m.installCampaign(this));
   if(import.meta.env.DEV&&new URLSearchParams(location.search).has('qa'))void import('../tests/browser-fixture').then(m=>m.installFixture(this));
   document.getElementById('pause')!.onclick=()=>this.togglePause();this.controls.onPause=()=>this.togglePause();
   document.getElementById('sound')!.onclick=async()=>{const button=document.getElementById('sound') as HTMLButtonElement;button.disabled=true;const on=await this.audioFX.toggle();button.disabled=false;button.textContent=on?'소리 ON':'소리 OFF';button.setAttribute('aria-label',on?'소리 끄기':'소리 켜기')};
@@ -73,7 +75,7 @@ export class LabScene extends Phaser.Scene{
  for(let y=0;y<700;y+=4)this.add.rectangle(560,y,1120,1,0x000000,.04).setDepth(30);
  }
  decorateRoom(){
-  this.lab.build(this.run.room,this.run.floor);this.roomDecor.removeAll(true);this.blocks=this.run.floor===1?[]:obstacles(this.run.room);this.env=[];
+  this.lab.build(this.run.room,this.run.floor);this.roomDecor.removeAll(true);this.blocks=this.run.floor===1?[]:[...obstacles(this.run.room),...sceneryBlocks(this.run.room)];this.env=[];
   for(const d of debris(this.run.room)){let item:Phaser.GameObjects.GameObject;
    if(d.kind===0){const stain=this.add.ellipse(d.x,d.y,25,9,0x642f40,.45).setAngle(d.angle);item=stain}
    else if(d.kind===1)item=this.add.image(d.x,d.y,'tiles','paper').setDisplaySize(30,26).setTint(0xa6a5b0).setAngle(d.angle).setAlpha(.65);
@@ -81,8 +83,8 @@ export class LabScene extends Phaser.Scene{
    else item=this.add.rectangle(d.x,d.y,19,7,0xa8a6b2,.45).setAngle(d.angle);
    this.roomDecor.add(item);
   }
-  for(const b of this.blocks){this.roomDecor.add(this.add.rectangle(b.x+4,b.y+7,b.w+7,b.h+8,0x000000,.4));this.roomDecor.add(this.add.image(b.x,b.y,'tiles',this.run.room.seed%2?'desk':'cabinet').setDisplaySize(b.w,b.h).setTint(0x526675));this.roomDecor.add(this.add.rectangle(b.x,b.y-5,b.w*.5,4,0x43575e))}
-  this.roomDecor.add(this.add.image(230,200,'tiles','paper').setDisplaySize(32,32).setTint(0x9bdbd0));this.roomDecor.add(this.add.text(230,225,'기록 / E',{fontFamily:'sans-serif',fontSize:'9px',color:'#7daca8'}).setOrigin(.5));
+  for(const b of obstacles(this.run.room)){this.roomDecor.add(this.add.rectangle(b.x+4,b.y+7,b.w+7,b.h+8,0x000000,.4));this.roomDecor.add(this.add.image(b.x,b.y,'tiles',this.run.room.seed%2?'desk':'cabinet').setDisplaySize(b.w,b.h).setTint(0x526675));this.roomDecor.add(this.add.rectangle(b.x,b.y-5,b.w*.5,4,0x43575e))}
+  this.roomDecor.add(this.add.image(230,200,'tiles','paper').setDisplaySize(50,44).setTint(0x9bdbd0));this.roomDecor.add(this.add.text(230,238,'연구 기록',{fontFamily:'sans-serif',fontSize:'14px',color:'#7daca8'}).setOrigin(.5));
   if(this.run.floor===1){this.roomDecor.add(this.add.rectangle(560,116,180,40,0xcce9d0,.45));this.roomDecor.add(this.add.text(560,115,'SURFACE / 地上',{fontFamily:'monospace',fontSize:'12px',color:'#f0fff1'}).setOrigin(.5));this.roomDecor.add(this.add.circle(560,350,135,0xa380db,.045).setStrokeStyle(2,0xa48ac6,.35));this.roomDecor.add(this.add.text(560,165,'PROJECT 150 / 最後の扉',{fontFamily:'monospace',fontSize:'10px',color:'#baa8d3'}).setOrigin(.5))}
   if(this.run.room.kind==='combat'){
    const kinds=['laser','gas','electric'] as const;const count=this.run.tuning.level>=2?2:1;
@@ -96,7 +98,7 @@ export class LabScene extends Phaser.Scene{
   if(target.kind==='power'){roomEnvironment(this.run.room).powerOff=true;this.audioFX.environment('switch');this.note('시설 전원을 차단했습니다. 이 방의 레이저·가스·전기 장치가 정지합니다.');if(this.run.room.cleared)this.checkpoint();this.updateHud();return}
   this.state='transition';document.getElementById('interact')!.hidden=true;this.controls.reset();this.clearShots();this.audioFX.mode='silent';this.audioFX.environment('lift');this.cameras.main.fadeOut(320,5,10,18);this.time.delayedCall(350,()=>{if(this.state!=='transition')return;if(this.run.ascend()){this.enterRoom();if(this.state==='transition')this.resume();this.cameras.main.fadeIn(450,5,10,18);this.note(`B${this.run.floor} · ${floorTheme(this.run.floor).name}`)}});
  }
- hitScenery(points:{x:number;y:number;width:number}[]){const state=roomEnvironment(this.run.room);for(const prop of breakableProps(this.run.room)){if(state.broken&(1<<prop.id))continue;if(points.some((p,i)=>i>0&&distanceToSegment(prop,points[i-1],p)<=prop.radius+p.width)&&breakProp(state,prop.id)){this.lab.refreshProps();this.burst(prop.x,prop.y,prop.kind==='crate'?0x9faeaf:0xa2ddd1,8);this.audioFX.environment(prop.kind==='crate'?'crate':'glass');if(this.run.room.cleared)this.checkpoint()}}}
+ hitScenery(points:{x:number;y:number;width:number}[]){const state=roomEnvironment(this.run.room);for(const prop of breakableProps(this.run.room)){if(state.broken&(1<<prop.id))continue;if(points.some((p,i)=>i>0&&distanceToSegment(prop,points[i-1],p)<=prop.radius+p.width)&&breakProp(state,prop.id)){this.blocks=[...obstacles(this.run.room),...sceneryBlocks(this.run.room)];this.lab.refreshProps();this.burst(prop.x,prop.y,prop.kind==='crate'?0x9faeaf:0xa2ddd1,8);this.audioFX.environment(prop.kind==='crate'?'crate':'glass');if(this.run.room.cleared)this.checkpoint()}}}
  note(text:string){document.getElementById('room-note')!.textContent=text;this.noteTime=4}
  readRecord(){if(this.state!=='playing'||!this.run.room.cleared||!intersects(this.player,{x:230,y:200},80))return;roomEnvironment(this.run.room).recordRead=true;this.checkpoint();this.state='record';this.controls.reset();this.effects.setChannels([]);this.audioFX.mode='silent';this.audioFX.play('read');const recordIndex=(this.run.current+this.run.tuning.level)%LAB_RECORDS.length,record=LAB_RECORDS[recordIndex];if(!rememberRecord(browserStorage,recordIndex))this.note('기록 보관함 저장에 실패했습니다.');this.showModal(record.title,record.text,'기록 닫기')}
  warn(x:number,y:number,r:number){const ring=this.add.circle(x,y,r,0xe4ad7d,.04).setStrokeStyle(2,0xffc294,.65).setDepth(4);this.tweens.add({targets:ring,alpha:.1,duration:650,onComplete:()=>ring.destroy()})}
@@ -119,7 +121,7 @@ export class LabScene extends Phaser.Scene{
   this.enemies.forEach(e=>{e.sprite.destroy();e.shadow.destroy();e.bar.destroy()});this.enemies=[];
   this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];
  }
- clearShots(){this.effects?.setChannels([]);this.shots.forEach(s=>{s.sprite.destroy();s.glow.destroy()});this.shots=[]}
+ clearShots(){this.weaponTimers.clear();this.weaponBursts.clear();this.effects?.setChannels([]);this.shots.forEach(s=>{s.sprite.destroy();s.glow.destroy()});this.shots=[]}
  enterRoom(from?:Direction){
   this.entry=from??null;
   this.clearActors();this.controls.reset();this.inv=1.2;this.fire=0;this.startDelay=1.2;this.transitionDelay=.65;
@@ -127,7 +129,7 @@ export class LabScene extends Phaser.Scene{
   const pos=from?spawn[from]:{x:560,y:365};this.player.setPosition(pos.x,pos.y).setAlpha(1);this.shadow.setPosition(pos.x,pos.y+25);
   this.roomClock=0;this.toxic=0;this.toxicTick=0;this.hazardSlow=0;this.decorateRoom();
   const layout=roomEnemies(this.run.room,this.run.floor);
-  layout.forEach((spawn,i)=>{const size=speciesSize(spawn.kind),maxHp=spawn.kind==='mewtwo'?FINAL_HP[this.finalPhase-1]:ENEMIES[spawn.kind].hp*this.run.tuning.hp*(spawn.kind==='gengar'?1+this.run.tuning.level*.15:1);
+  layout.forEach((spawn,i)=>{const size=speciesSize(spawn.kind),maxHp=spawn.kind==='mewtwo'?FINAL_HP[this.finalPhase-1]:spawn.kind==='gengar'?this.run.tuning.bossHp:ENEMIES[spawn.kind].hp*this.run.tuning.hp;
    this.enemies.push({id:i,kind:spawn.kind,hp:maxHp,maxHp,radius:size.radius,sprite:this.add.image(spawn.x,spawn.y,spawn.kind,'body').setDisplaySize(size.width,size.height).setDepth(spawn.kind==='mewtwo'?16:9),shadow:this.add.ellipse(spawn.x,spawn.y+size.height*.4,size.width*.6,12,0x000000,.3).setDepth(8),bar:this.add.rectangle(spawn.x,spawn.y-size.height*.6,30,3,0xca8eb3).setDepth(12),cooldown:.5+i*.15,charge:0,dir:{x:0,y:0},flash:0,burn:0,slow:0,statusTime:0,poison:0,phase:spawn.kind==='mewtwo'?this.finalPhase:1,cycle:0});
   });
   this.audioFX.setScene(this.run.floor,this.finalPhase);this.audioFX.mode=this.run.room.kind==='boss'&&!this.run.room.cleared?'boss':this.run.room.cleared?'ambient':'combat';
@@ -135,11 +137,11 @@ export class LabScene extends Phaser.Scene{
   this.refreshRoom();this.updateHud();this.checkpoint();if(this.run.floor===1){if(this.run.room.cleared)this.playEnding();else this.finalDialogue();return}if(this.run.rewardPending)this.note('기술 캡슐에 다가가 E 또는 상호작용 버튼으로 여세요.');
  }
  refreshRoom(){
-  (this.children.getByName('room-label') as Phaser.GameObjects.Text).setText(`B${this.run.floor} / ${String(this.run.current+1).padStart(2,'0')}`);
-  for(const dir of DIRECTIONS){const d=this.doors[dir]!,next=this.run.room.doors[dir];d.shape.setVisible(next!==undefined);d.label.setVisible(next!==undefined);if(next===undefined)continue;
+  this.lab.setDoors(this.run.rooms);(this.children.getByName('room-label') as Phaser.GameObjects.Text).setText(`B${this.run.floor} / ${String(this.run.current+1).padStart(2,'0')}`);
+  for(const dir of DIRECTIONS){const d=this.doors[dir]!,next=this.run.room.doors[dir];d.shape.setVisible(false);d.label.setVisible(false);if(next===undefined)continue;
    const wasOpen=d.shape.getData('open');const open=this.run.room.cleared&&!(this.run.rooms[next].kind==='boss'&&!this.run.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared));d.shape.setFillStyle(open?0x285e56:0x51333e).setStrokeStyle(2,open?0x83d5bd:0xac6677);if(wasOpen!==open){d.shape.setData('open',open);this.tweens.killTweensOf(d.shape);this.tweens.add({targets:d.shape,alpha:open?.5:1,scaleX:dir==='up'||dir==='down'?(open?.15:1):1,scaleY:dir==='left'||dir==='right'?(open?.15:1):1,duration:300,ease:'Sine.easeInOut'})}d.label.setText(open?(this.run.rooms[next].kind==='boss'?'GENGAR':'OPEN'):'LOCKED');
   }
-  this.terminal.setText(this.run.floor===1?'':this.run.room.kind==='boss'?(this.run.room.cleared?`B${this.run.floor-1}행 승강기\n가까이에서 E / 작동 버튼`:'격리 실패 / 팬텀'):this.run.room.kind==='start'?'깨진 격리 장치. 위층에서 소리가 들린다.':this.run.room.kind==='reward'?(this.run.rewardPending?'기술 보관실 · 캡슐을 열어 기술 선택':'기술 보관실 · 보상 수령 완료'):'');
+  this.terminal.setText(this.run.floor===1?'':this.run.room.kind==='boss'?(this.run.room.cleared?'':'격리 실패 / 팬텀'):this.run.room.kind==='start'?'깨진 격리 장치. 위층에서 소리가 들린다.':this.run.room.kind==='reward'?(this.run.rewardPending?'기술 보관실 · 캡슐을 열어 기술 선택':'기술 보관실 · 보상 수령 완료'):'');
 
  }
  restart(){
@@ -154,7 +156,8 @@ export class LabScene extends Phaser.Scene{
  showReward(){
   this.state='reward';this.controls.reset();this.clearShots();this.showModal('기술 선택','하나를 선택하세요. 기존 효과에 누적되며 체력을 1 회복합니다.','');document.getElementById('primary')!.hidden=true;document.querySelector('.panel')!.classList.add('reward-panel');
   const container=document.getElementById('rewards')!;
-  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.style.setProperty('--technique-color','#'+move.color.toString(16));const preview=composeAttack([...this.run.moves,move.id]);button.innerHTML=`<small>${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em><span class="reward-form">${move.id in FORMS?'공격 방식 → '+move.form:'형태 유지 · '+move.form}</span>`;button.prepend(techniquePreview(preview.visual));button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.resume();this.audioFX.reward(move.id,this.run.attack);this.effects.upgrade(this.player.x,this.player.y,this.run.attack,move.id);this.note(`${move.name} · ${this.run.moves.filter(id=>id===move.id).length}단계`);this.refreshRoom();this.updateHud()};container.append(button)}
+  for(const move of this.run.choices){const button=document.createElement('button');button.className='reward-card';button.style.setProperty('--technique-color','#'+move.color.toString(16));const preview=composeAttack([...this.run.moves,move.id]);button.innerHTML=`<small>${move.type} / ${move.form}</small><strong>${move.name}</strong><span>${move.description}</span><em>${move.synergy}</em><span class="reward-form">${move.id in FORMS?(fusionLayers(preview).length>fusionLayers(this.run.attack).length?'주 공격 유지 + 보조 공격 결합':'주 공격 유지 · '+move.form+' 누적'):'형태 유지 · '+move.form}</span>`;button.prepend(techniquePreview(move.id in FORMS?presentation([move.id]):preview.visual));button.onclick=()=>{if(this.state!=='reward'||!this.run.choose(move.id))return;this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.resume();this.audioFX.reward(move.id,this.run.attack);this.effects.upgrade(this.player.x,this.player.y,this.run.attack,move.id);this.note(`${move.name} · ${this.run.moves.filter(id=>id===move.id).length}단계`);this.refreshRoom();this.updateHud()};container.append(button)}
+  const skip=document.createElement('button');skip.className='reward-skip';skip.textContent='현재 조합 유지 · 이번 보상 포기 (회복 없음)';skip.onclick=()=>{if(this.state!=='reward'||!this.run.skipReward())return;this.checkpoint();this.resume();this.refreshRoom();this.updateHud();this.note('기술을 추가하지 않고 현재 조합을 유지합니다.')};container.append(skip);
  }
  tryTravel(move:Vec){
   if(!this.run.room.cleared||this.transitionDelay>0)return false;
@@ -221,28 +224,38 @@ export class LabScene extends Phaser.Scene{
 
  }
  fireWeapon(dt:number){
-  const aim=this.controls.attack();if(!aim.x&&!aim.y){this.effects.setChannels([]);return}
-  const attack=this.run.attack,profile=weaponProfile(attack),angle=Math.atan2(aim.y,aim.x),due=this.fire<=0;
-  if(profile.kind==='projectile'){
-   this.effects.setChannels([]);if(!due)return;this.fire=Math.max(this.fire,-dt)+profile.interval;
-   for(let i=0;i<attack.count;i++)for(let j=0;j<profile.pellets;j++){
-    const theta=angle+(i-(attack.count-1)/2)*.15+(j-(profile.pellets-1)/2)*(attack.visual.form==='ice'?.24:.12),dir={x:Math.cos(theta),y:Math.sin(theta)};
-    const shot={...attack,damage:attack.damage/profile.pellets,speed:attack.speed*profile.speed,size:attack.size*(attack.visual.form==='dragon'?2:attack.visual.form==='sludge'?1.5:1),visual:{...attack.visual,variant:i+j}};
-    this.shoot(this.player.x+dir.x*22,this.player.y+dir.y*22,dir,false,shot);
-   }this.audioFX.shoot(attack);return;
-  }
-  if(!profile.held&&!due){this.effects.fadeChannels(dt);return}
-  const paths:WeaponPath[]=[];
-  for(let i=0;i<attack.count;i++){
-   const theta=angle+(i-(attack.count-1)/2)*.15,dir={x:Math.cos(theta),y:Math.sin(theta)},origin={x:this.player.x+dir.x*22,y:this.player.y+dir.y*22};
-   const path=traceWeapon(origin,theta,attack,this.enemies.filter(e=>e.hp>0).map(e=>({id:e.id,x:e.sprite.x,y:e.sprite.y,radius:e.radius})),this.blocks,R);paths.push(path);
-   if(due){this.hitScenery(path.points);const critical=Math.random()<attack.crit;let hitAttack=tickAttack(attack);if(critical)hitAttack={...hitAttack,damage:hitAttack.damage*CRITICAL_MULTIPLIER};
-    for(let n=0;n<path.hits.length;n++){const e=this.enemies.find(e=>e.id===path.hits[n]);if(e&&e.hp>0)this.applyWeaponHit(e,hitAttack,e.sprite,dir,critical,n===0,n===0);hitAttack={...hitAttack,damage:hitAttack.damage*PIERCE_RETAIN}}
-    if(path.reflections)this.audioFX.proc('bounce');
+  const aim=this.controls.attack();if(!aim.x&&!aim.y){this.weaponBursts.clear();this.effects.setChannels([]);for(const [key,value] of this.weaponTimers)this.weaponTimers.set(key,Math.max(0,value-dt));return}
+  if(this.startDelay>0){this.startDelay=0;this.inv=0}
+  const layers=fusionLayers(this.run.attack),angle=Math.atan2(aim.y,aim.x),paths:WeaponPath[]=[];
+  const targets=this.enemies.filter(e=>e.hp>0).map(e=>({id:e.id,x:e.sprite.x,y:e.sprite.y,radius:e.radius}));
+  for(const [layerIndex,attack] of layers.entries()){
+   const key=attack.visual.form,profile=weaponProfile(attack),left=(this.weaponTimers.get(key)??0)-dt,due=left<=0;this.weaponTimers.set(key,due?Math.max(left,-dt)+profile.interval:left);
+   const offset=layerIndex===0?0:(layerIndex%2?1:-1)*(.045+Math.floor(layerIndex/2)*.025);
+   if(profile.kind==='projectile'){
+    if(!due)continue;
+    for(let i=0;i<attack.count;i++)for(let j=0;j<profile.pellets;j++){
+     const theta=angle+offset+(i-(attack.count-1)/2)*.15+(j-(profile.pellets-1)/2)*(attack.visual.form==='ice'?.24:.12),dir={x:Math.cos(theta),y:Math.sin(theta)};
+     const shot={...attack,damage:attack.damage/profile.pellets,speed:attack.speed*profile.speed,size:attack.size*(attack.visual.form==='dragon'?2:attack.visual.form==='sludge'?1.5:1),visual:{...attack.visual,variant:i+j}};
+     this.shoot(this.player.x+dir.x*22,this.player.y+dir.y*22,dir,false,shot);
+    }
+   }else{
+    const current:WeaponPath[]=[];
+    if(profile.held||due)for(let i=0;i<attack.count;i++){
+     const theta=angle+offset+(i-(attack.count-1)/2)*.15,dir={x:Math.cos(theta),y:Math.sin(theta)},origin={x:this.player.x+dir.x*22,y:this.player.y+dir.y*22};
+     const path=traceWeapon(origin,theta,attack,targets,this.blocks,R);current.push(path);
+     if(due){this.hitScenery(path.points);const critical=Math.random()<attack.crit;let hitAttack=tickAttack(attack);if(critical)hitAttack={...hitAttack,damage:hitAttack.damage*CRITICAL_MULTIPLIER};
+      for(let n=0;n<path.hits.length;n++){const e=this.enemies.find(e=>e.id===path.hits[n]);if(e&&e.hp>0)this.applyWeaponHit(e,hitAttack,e.sprite,dir,critical,n===0,n===0);hitAttack={...hitAttack,damage:hitAttack.damage*PIERCE_RETAIN}}
+      if(path.reflections)this.audioFX.proc('bounce');
+     }
+    }
+    if(profile.held)paths.push(...current);else if(due)this.weaponBursts.set(key,{paths:current,life:.12});
    }
+   if(due&&layerIndex===0)this.audioFX.shoot(attack,undefined,layers.slice(1));
   }
-  this.effects.setChannels(paths);if(due){this.fire=Math.max(this.fire,-dt)+profile.interval;this.audioFX.shoot(attack)}
+  for(const [key,burst] of this.weaponBursts){burst.life-=dt;if(burst.life<=0)this.weaponBursts.delete(key);else paths.push(...burst.paths.map(p=>({...p,opacity:burst.life/.12})))}
+  this.effects.setChannels(paths);
  }
+
  shoot(x:number,y:number,dir:Vec,hostile:boolean,attack=this.run.attack,child=false,ignore?:number,tracking=0,shotSpeed?:number){
   if(!canSpawnProjectile(this.shots,hostile))return;
   const critical=!hostile&&!child&&Math.random()<attack.crit;
@@ -275,7 +288,7 @@ export class LabScene extends Phaser.Scene{
   const boss=this.enemies.find(e=>(e.kind==='gengar'||e.kind==='mewtwo')&&e.hp>0);document.getElementById('boss-hud')!.hidden=!boss;if(boss){document.getElementById('boss-name')!.textContent=boss.kind==='mewtwo'?`뮤츠 · ${MEWTWO_SCRIPT[this.finalPhase-1].emotion} / ${this.finalPhase}단계`:`팬텀 · 부서진 경비 / ${boss.phase}단계`;document.getElementById('boss-fill')!.style.width=`${boss.hp/boss.maxHp*100}%`}
   document.querySelector('.map>span')!.textContent=`B${this.run.floor} / ${['원본 격리','표본 보관','독성 처리','공명 실험','중앙 통제','지상 출입'][this.run.tuning.level]} 구역`;
   const target=this.interaction(),button=document.getElementById('interact')!;button.hidden=!target||this.state!=='playing';if(target)button.textContent=`E · ${target.label}`;
-  const attack=this.run.attack,form=FORMS[attack.visual.form];document.getElementById('build-info')!.textContent=`${form.name} Lv.${attack.visual.rank} · ${attack.count}${weaponProfile(attack).held?'줄기':'발'}`;document.getElementById('build-info')!.title=`공격 ${attack.damage.toFixed(1)} · 발사 간격 ${attack.interval.toFixed(2)}초 · ${this.run.moves.length} 강화`;const icon=document.querySelector('.move-icon') as HTMLElement;icon.textContent=glyph(attack.visual.form);icon.style.color='#'+form.color.toString(16);document.querySelector('.loadout small')!.textContent=`주 기술 / ${MOVES.find(m=>m.id===attack.visual.form)?.type??'에스퍼'} · 효과 누적`;document.getElementById('sound')!.title=this.audioFX.snapshot.title;
+  const attack=this.run.attack,form=FORMS[attack.visual.form];document.getElementById('build-info')!.textContent=`${form.name} Lv.${attack.visual.rank} · ${fusionLayers(attack).length>1?fusionLayers(attack).length+'종 동시 합성':attack.count+'갈래'}`;document.getElementById('build-info')!.title=`공격 ${attack.damage.toFixed(1)} · 발사 간격 ${attack.interval.toFixed(2)}초 · ${this.run.moves.length} 강화`;const icon=document.querySelector('.move-icon') as HTMLElement;icon.textContent=glyph(attack.visual.form);icon.style.color='#'+form.color.toString(16);document.querySelector('.loadout small')!.textContent=`주 기술 / ${MOVES.find(m=>m.id===attack.visual.form)?.type??'에스퍼'} · 효과 누적`;document.getElementById('sound')!.title=this.audioFX.snapshot.title;
   const counts=new Map<string,number>();for(const id of this.run.moves)counts.set(id,(counts.get(id)??0)+1);
   document.getElementById('build-list')!.textContent=counts.size?[...counts].map(([id,n])=>`${MOVES.find(m=>m.id===id)!.name}${n>1?' ×'+n:''}`).join(' · '):'염동력 · 기술을 모아 효과를 조합하세요';
   const map=document.getElementById('minimap')!,rooms=this.run.rooms,minX=Math.min(...rooms.map(r=>r.x)),minY=Math.min(...rooms.map(r=>r.y));

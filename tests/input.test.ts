@@ -36,3 +36,19 @@ test('movement and attack vectors remain independent',()=>{
  const c=controls(['KeyA','ArrowUp','ArrowRight']);assert.deepEqual(c.movement(),{x:-1,y:0});
  assert.ok(c.attack().x>0&&c.attack().y<0);
 });
+
+test('two touch pointers preserve analog movement, independent aiming and cancellation',()=>{
+ const previousWindow=globalThis.window,previousDocument=globalThis.document;
+ const make=()=>{const events:Record<string,(e:any)=>void>={};return{events,knob:{style:{transform:''}},getBoundingClientRect:()=>({left:0,top:0,width:124,height:124}),querySelector(){return this.knob},setPointerCapture:()=>{},addEventListener:(name:string,fn:(e:any)=>void)=>events[name]=fn}};
+ const move=make(),attack=make();
+ try{
+  Object.assign(globalThis,{window:{addEventListener:()=>{}},document:{getElementById:(id:string)=>id==='move-stick'?move:attack,querySelectorAll:()=>[move.knob,attack.knob]}});
+  const c=new Controls(),event=(id:number,x:number,y:number)=>({pointerId:id,clientX:x,clientY:y,preventDefault:()=>{}});
+  move.events.pointerdown(event(1,80,62));attack.events.pointerdown(event(2,90,40));
+  assert.ok(c.move.x>0&&c.move.x<.5);assert.equal(c.move.y,0);assert.ok(c.attack().x>0&&c.attack().y<0);
+  const aim={...c.aim};attack.events.pointermove(event(1,0,0));assert.deepEqual(c.aim,aim);
+  move.events.pointercancel(event(1,0,0));assert.deepEqual(c.move,{x:0,y:0});assert.deepEqual(c.aim,aim);
+  attack.events.lostpointercapture(event(2,0,0));assert.deepEqual(c.aim,{x:0,y:0});
+  move.events.pointerdown(event(3,124,62));assert.equal(c.move.x,1);c.reset();assert.deepEqual(c.move,{x:0,y:0});assert.equal(move.knob.style.transform,'');move.events.pointerdown(event(4,62,100));assert.ok(c.move.y>0);assert.equal(c.move.x,0);
+ }finally{Object.assign(globalThis,{window:previousWindow,document:previousDocument})}
+});

@@ -30,7 +30,7 @@ export class AudioFX{
   else{const o=c.createOscillator();o.type=v.wave;o.frequency.setValueAtTime(v.from,t);o.frequency.exponentialRampToValueAtTime(v.to,t+v.duration);o.connect(g);source=o}
   this.voices.set(source,{group,nodes});source.onended=()=>{source.disconnect();nodes.forEach(n=>n.disconnect());this.voices.delete(source)};source.start(t);source.stop(t+v.duration+.025);
  }
- shoot(a:Attack,at=this.ctx?.currentTime??0){if(!this.enabled||at-this.lastShot<.055)return;this.lastShot=at;for(const v of attackSound(a))this.voice(v,at,'fx')}
+ shoot(a:Attack,at=this.ctx?.currentTime??0,companions:Attack[]=[]){if(!this.enabled||at-this.lastShot<.055)return;this.lastShot=at;for(const v of attackSound(a))this.voice(v,at,'fx');for(const layer of companions)for(const v of techniqueSound(layer.visual.form).slice(0,1))this.voice({...v,gain:v.gain*.35/Math.sqrt(companions.length),delay:v.delay+.025},at,'fx')}
  hit(a:Attack,at=this.ctx?.currentTime??0){if(!this.enabled||at-this.lastHit<.055)return;this.lastHit=at;for(const v of attackSound(a,true))this.voice(v,at,'fx')}
  reward(id:string,a:Attack){const at=this.ctx?.currentTime??0;this.play('win');const form=id in FORMS?id as Form:a.visual.form;for(const v of techniqueSound(form))this.voice({...v,gain:v.gain*.8,delay:v.delay+.12},at,'fx')}
  proc(kind:'chain'|'split'|'bounce'|'heal'){const now=this.ctx?.currentTime??0;if(now-(this.procTime.get(kind)??-1)<.12)return;this.procTime.set(kind,now);const form:Form={chain:'spark',split:'swift',bounce:'ice',heal:'drain'}[kind] as Form;for(const v of techniqueSound(form,true))this.voice({...v,gain:v.gain*.6},now,'fx')}

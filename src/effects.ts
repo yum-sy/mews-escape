@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import type {Attack} from './moves';
 import {techniqueMarks,presentation,FORMS,type Mark,type Presentation} from './techniques';
 type Point={x:number;y:number};
-export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;trail:Point[];critical:boolean}
+export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;trail:Point[];critical:boolean;child?:boolean}
 type Particle={x:number;y:number;vx:number;vy:number;age:number;life:number;color:number;size:number;ring:boolean;shape?:string};
 export function effectPalette(a:Attack){return [...new Set([a.color,...(a.burn?[0xff843e]:[]),...(a.slow?[0x8deaff]:[]),...(a.chain?[0xffe568]:[]),...(a.poison?[0xc780ff]:[]),...(a.lifesteal?[0x8cf5b1]:[])])]}
 export class CombatEffects{
@@ -12,9 +12,9 @@ export class CombatEffects{
  clear(){this.setChannels([]);this.particles=[];this.links=[];this.awards=[];this.g.clear()}
  setChannels(paths:WeaponPath[]){this.channels=paths;this.channelAge=0;this.drawChannels(1)}
  fadeChannels(dt:number){this.channelAge+=dt;this.drawChannels(Math.max(0,1-this.channelAge/.12))}
- private drawChannels(alpha:number){
+ private drawChannels(globalAlpha:number){let alpha=globalAlpha;
   const g=this.channelG;g.clear();if(alpha<=0)return;
-  for(const path of this.channels){const points=path.points,flame=path.kind==='flame',arc=path.kind==='arc';
+  for(const path of this.channels){alpha=globalAlpha*(path.opacity??1);const points=path.points,flame=path.kind==='flame',arc=path.kind==='arc';
    for(let i=1;i<points.length;i++){const from=points[i-1],to=points[i],t=i/points.length,pulse=Math.sin(this.clock*24-i*.8);
     g.lineStyle(to.width*2,path.color,alpha*(flame?.07:.16));g.lineBetween(from.x,from.y,to.x,to.y);
     g.lineStyle(flame?to.width*1.3:arc?3:Math.max(2,to.width*.65),flame?0xff9b39:path.color,alpha*(flame?.15:.85));g.lineBetween(from.x,from.y,to.x,to.y);
@@ -47,9 +47,10 @@ export class CombatEffects{
   this.clock+=dt;const g=this.g;g.clear();
   for(const s of shots){if(s.hostile)continue;const a=s.attack,p=s.sprite,r=a.size+Math.min(5,(a.damage-1)*1.2+a.burn*.5+a.poison*.4+a.slow*2),angle=Math.atan2(s.v.y,s.v.x);
    s.trail.push({x:p.x,y:p.y});if(s.trail.length>9)s.trail.shift();
-   for(let i=1;i<s.trail.length;i++){const t=i/s.trail.length,from=s.trail[i-1],to=s.trail[i];g.lineStyle(Math.max(1,r*t*.7),a.color,t*.45);g.lineBetween(from.x,from.y,to.x,to.y)}
-   g.fillStyle(a.color,.1);g.fillCircle(p.x,p.y,r*2.5);
-   this.marks(techniqueMarks(a.visual,this.clock,r),p.x,p.y,angle);
+   for(let i=1;i<s.trail.length;i++){const t=i/s.trail.length,from=s.trail[i-1],to=s.trail[i];g.lineStyle(Math.max(1,r*t*.7),a.color,t*(s.child?.2:.45));g.lineBetween(from.x,from.y,to.x,to.y)}
+   g.fillStyle(a.color,s.child?.035:.1);g.fillCircle(p.x,p.y,r*2.5);
+   this.marks(techniqueMarks(a.visual,this.clock,r),p.x,p.y,angle,s.child?.5:1);
+   if(s.child)continue;
    // Secondary effects stay recognizable even when another move owns the main silhouette.
    const side=(offset:number)=>({x:p.x-Math.sin(angle)*offset,y:p.y+Math.cos(angle)*offset});
    if(a.burn){const q=side(r+5);g.fillStyle(0xff914d,.8);g.fillTriangle(q.x-3,q.y+4,q.x+3,q.y+4,q.x,q.y-6)}

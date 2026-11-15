@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {composeAttack,splitAttack,MOVES} from '../src/moves';
-import {traceWeapon,weaponProfile,tickAttack} from '../src/weapons';
+import {traceWeapon,weaponProfile,tickAttack,fusionLayers} from '../src/weapons';
 const bounds={left:0,right:1000,top:0,bottom:700},origin={x:100,y:350};
 const target=(id:number,x:number,y=350)=>({id,x,y,radius:12});
 test('flame, beam, water, tether, pulse and electricity use different attack mechanics',()=>{
@@ -30,7 +30,7 @@ test('beam collision stops at furniture and at its penetration budget, independe
  const boosted=composeAttack(['shadow','icebeam']);assert.deepEqual(traceWeapon(origin,0,boosted,enemies,[],bounds).hits,[1,2,3]);
 });
 test('homing bends the real hit path; reflection stays inside room and never hits a target twice per tick',()=>{
- const enemies=[target(1,400,420)],straight=traceWeapon(origin,0,composeAttack(['icebeam']),enemies,[],bounds),guided=traceWeapon(origin,0,composeAttack(['swift','icebeam']),enemies,[],bounds);
+ const enemies=[target(1,400,420)],straight=traceWeapon(origin,0,composeAttack(['icebeam']),enemies,[],bounds),guided=traceWeapon(origin,0,composeAttack(['icebeam','swift']),enemies,[],bounds);
  assert.deepEqual(straight.hits,[]);assert.deepEqual(guided.hits,[1]);assert.ok(guided.points.some(p=>p.y>380));
  const a=composeAttack(['ricochet','icebeam']),small={left:0,right:400,top:0,bottom:700},reflected=traceWeapon({x:300,y:350},0,a,[target(1,180)],[],small);
  assert.equal(reflected.reflections,1);assert.deepEqual(reflected.hits,[1]);assert.ok(reflected.points.every(p=>p.x>=0&&p.x<=400));
@@ -40,4 +40,11 @@ test('all legal stacked channel builds have finite bounded paths and limited con
   const a=composeAttack([...all,id]),path=traceWeapon(origin,.3,a,Array.from({length:20},(_,i)=>target(i,150+i*35,350+Math.sin(i)*50)),[],bounds);
   assert.ok(path.points.length<=151);assert.equal(new Set(path.hits).size,path.hits.length);assert.ok(path.hits.length<=1+a.pierce+(id==='flamethrower'?1:0));assert.ok(path.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)));
  }
+});
+
+test('fusion keeps projectile, fire and ice simultaneously without multiplying aggregate DPS',()=>{
+ const a=composeAttack(['shadow','flamethrower','icebeam','tri','swift']),layers=fusionLayers(a);assert.equal(a.visual.form,'shadow');assert.deepEqual(layers.map(x=>weaponProfile(x).kind),['projectile','flame','beam']);
+ const sum=layers.reduce((n,x)=>n+x.damage*x.count/x.interval,0);assert.ok(Math.abs(sum-a.damage*a.count/a.interval)<1e-10);
+ for(const x of layers){assert.equal(x.burn,a.burn);assert.equal(x.slow,a.slow);assert.equal(x.homing,a.homing);assert.equal(x.pierce,a.pierce)}
+ const full=composeAttack(MOVES.flatMap(m=>Array(m.max).fill(m.id))),all=fusionLayers(full);assert.ok(all.length<=7);assert.ok(all.reduce((n,x)=>n+x.count,0)<=11);
 });

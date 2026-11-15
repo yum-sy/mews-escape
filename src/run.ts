@@ -13,6 +13,7 @@ export class Run{
  clear(){this.room.cleared=true}
  get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&(this.room.kind==='combat'||this.room.kind==='reward')}
  get choices(){return rewardOptions(this.room.seed,this.moves)}
+ skipReward(){if(!this.rewardPending)return false;this.room.rewardTaken=true;return true}
  choose(id:string){if(!this.rewardPending||!this.choices.some(m=>m.id===id))return false;if(id!=='recover')this.moves.push(id);this.room.rewardTaken=true;return true}
 }
 

@@ -4,11 +4,11 @@ The original plan ends at Phase 4 (a complete playable demo). This pass complete
 
 ## Delivered
 
-Six floor palettes with distinct facilities, floor grates, overhead cables, static shadows, upper-floor cracks, soft lamps and bounded animated dust. Existing local assets and source/license metadata are preserved. Breakable non-blocking containers leave debris without loot farming. Circuit breakers disable only room facility hazards. Doors visibly retract on unlock. Rewards wait in an interactable capsule and remain claimable across revisits and saves. Elevators use an explicit nearby action and a fade transition. Record discovery and run statistics persist separately from the active run. High-floor cleared rooms no longer respawn reinforcement enemies on revisit. No change to the deferred entry-invulnerability rule.
+Six floor palettes with distinct facilities, floor grates, overhead cables, static shadows, upper-floor cracks, soft lamps and bounded animated dust. Existing local assets and source/license metadata are preserved. Breakable solid containers leave debris without loot farming. Circuit breakers disable only room facility hazards. Doors visibly retract on unlock. Rewards wait in an interactable capsule and remain claimable across revisits and saves. Elevators use an explicit nearby action and a fade transition. Record discovery and run statistics persist separately from the active run. High-floor cleared rooms no longer respawn reinforcement enemies on revisit. The later balance pass cancels entry grace when firing; see PLAYTEST-QA.md.
 
 ## Automated
 
-57 tests: previous combat, build composition, weapon geometry, cinematics, dungeon connectivity, boss phase/save tests plus environment interaction/proximity rules, prop state idempotence, old-save compatibility, environment restoration, cleared-room reinforcement regression and archive storage/failure handling. TypeScript/Vite production build, production exclusion of QA fixtures and final deployment hash checks are required for release.
+The original pass had 57 tests: previous combat, build composition, weapon geometry, cinematics, dungeon connectivity, boss phase/save tests plus environment interaction/proximity rules, prop state idempotence, old-save compatibility, environment restoration, cleared-room reinforcement regression and archive storage/failure handling. TypeScript/Vite production build, production exclusion of QA fixtures and final deployment hash checks are required for release.
 
 ## Browser observations
 

@@ -1,6 +1,6 @@
 import {normalize,type Vec} from './combat';
 import type {Action,Brain} from './ai';
-export const FINAL_HP=[600,750,900] as const;
+export const FINAL_HP=[420,520,640] as const;
 export type FinalPhase=1|2|3;
 export type FinalAction=Action|{type:'beam';axis:'x'|'y';position:number};
 export function nextFinalPhase(phase:FinalPhase):FinalPhase|'ending'{return phase===3?'ending':(phase+1) as FinalPhase}

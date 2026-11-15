@@ -1,3 +1,4 @@
+import {FORMS,type Form} from './techniques';
 import type {Attack} from './moves';
 import type {Vec} from './combat';
 import type {Block} from './lab';
@@ -12,14 +13,14 @@ export function weaponProfile(a:Attack){
 export function tickAttack(a:Attack):Attack{const p=weaponProfile(a),scale=p.interval/a.interval;return {...a,damage:a.damage*scale,knockback:a.knockback*scale};}
 export interface Target extends Vec{id:number;radius:number}
 export interface PathPoint extends Vec{width:number}
-export interface WeaponPath{points:PathPoint[];hits:number[];kind:WeaponKind;color:number;attack:Attack;reflections:number}
+export interface WeaponPath{points:PathPoint[];hits:number[];kind:WeaponKind;color:number;attack:Attack;reflections:number;opacity?:number}
 export const distanceToSegment=(p:Vec,a:Vec,b:Vec)=>{const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)};
 // Short swept segments keep damage and the rendered path on the same geometry.
 export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],blocks:Block[],bounds:{left:number;right:number;top:number;bottom:number}):WeaponPath{
  const p=weaponProfile(a),points:PathPoint[]=[{...origin,width:a.size}],hits:number[]=[],seen=new Set<number>();let x=origin.x,y=origin.y,heading=angle,reflections=0;
  const limit=1+a.pierce+(p.kind==='flame'?1:0),homing=a.homing+(p.kind==='tether'?1.4:0);
  for(let travelled=0;travelled<p.range;travelled+=8){
-  if(homing){const target=targets.filter(t=>!seen.has(t.id)).map(t=>({t,d:Math.hypot(t.x-x,t.y-y),turn:Math.atan2(Math.sin(Math.atan2(t.y-y,t.x-x)-heading),Math.cos(Math.atan2(t.y-y,t.x-x)-heading))})).filter(t=>Math.abs(t.turn)<.65).sort((a,b)=>a.d-b.d)[0];if(target)heading+=Math.max(-.04,Math.min(.04,target.turn*homing*.025))}
+  if(homing){let nearest=Infinity,turn=0;for(const target of targets){if(seen.has(target.id))continue;const dx=target.x-x,dy=target.y-y,d=dx*dx+dy*dy;if(d>=nearest)continue;const delta=Math.atan2(dy,dx)-heading,t=Math.atan2(Math.sin(delta),Math.cos(delta));if(Math.abs(t)<.65){nearest=d;turn=t}}if(nearest<Infinity)heading+=Math.max(-.04,Math.min(.04,turn*homing*.025))}
   const step=Math.min(8,p.range-travelled);let nx=x+Math.cos(heading)*step,ny=y+Math.sin(heading)*step;
   if(nx<bounds.left||nx>bounds.right||ny<bounds.top||ny>bounds.bottom){if(reflections>=a.bounce)break;if(nx<bounds.left||nx>bounds.right)heading=Math.PI-heading;if(ny<bounds.top||ny>bounds.bottom)heading=-heading;reflections++;nx=Math.max(bounds.left,Math.min(bounds.right,nx));ny=Math.max(bounds.top,Math.min(bounds.bottom,ny))}
   const width=p.kind==='flame'?a.size+travelled*.13:p.kind==='water'?a.size+3:a.size;
@@ -29,4 +30,12 @@ export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],bl
   x=nx;y=ny;
  }
  return{points,hits,kind:p.kind,color:a.color,attack:a,reflections};
+}
+
+// Keep the first attack body. Different mechanical families coexist; same-family moves
+// contribute their modifiers to every layer rather than replacing the body.
+export function fusionLayers(a:Attack):Attack[]{
+ const forms:Form[]=[a.visual.form],seen=new Set([weaponProfile(a).kind]);
+ for(const id of Object.keys(a.visual.levels)){if(!(id in FORMS))continue;const form=id as Form,candidate={...a,visual:{...a.visual,form}},kind=weaponProfile(candidate).kind;if(!seen.has(kind)){seen.add(kind);forms.push(form)}}
+ return forms.map((form,index)=>{const weight=forms.length===1?1:index===0?.55:.45/(forms.length-1),count=index===0?a.count:1;return{...a,count,damage:a.damage*a.count*weight/count,knockback:a.knockback*weight,color:FORMS[form].color,visual:{...a.visual,form,rank:Math.min(3,a.visual.levels[form]??1)}}});
 }

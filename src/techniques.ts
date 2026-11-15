@@ -20,7 +20,7 @@ export type Form=keyof typeof FORMS;
 export interface Presentation{form:Form;rank:number;levels:Record<string,number>;variant:number}
 export function presentation(ids:readonly string[]):Presentation{
  const levels:Record<string,number>={};let form:Form='psychic';
- for(const id of ids){levels[id]=(levels[id]??0)+1;if(id in FORMS)form=id as Form}
+ for(const id of ids){levels[id]=(levels[id]??0)+1;if(form==='psychic'&&id in FORMS)form=id as Form}
  return{form,rank:Math.min(3,levels[form]??1),levels,variant:0};
 }
 export const modifierGlyph:Record<string,string>={split:'⑂',agility:'»',focus:'⊕',ricochet:'◇',recover:'+'};

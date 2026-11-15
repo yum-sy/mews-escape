@@ -1,7 +1,8 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {Run,roomsForFloor,roomEnemies} from '../src/run';
-import {floorTheme,breakableProps,roomEnvironment,breakProp,roomInteractions,nearestInteraction} from '../src/environment';
+import {floorTheme,breakableProps,roomEnvironment,breakProp,roomInteractions,nearestInteraction,sceneryBlocks} from '../src/environment';
 import {decodeSave,restoreRun,type Checkpoint} from '../src/save';
+import {overlapsBlock} from '../src/lab';
 import {readProfile,rememberRecord,finishProfile} from '../src/profile';
 test('six floor themes differ and decorative props preserve door and center access',()=>{
  assert.equal(new Set([6,5,4,3,2,1].map(f=>floorTheme(f).feature)).size,6);
@@ -23,4 +24,18 @@ test('archive persists discoveries once, tracks completed runs and safely handle
  const map=new Map<string,string>(),storage={getItem:(k:string)=>map.get(k)??null,setItem:(k:string,v:string)=>{map.set(k,v)},removeItem:(k:string)=>{map.delete(k)}};
  rememberRecord(storage,2);rememberRecord(storage,2);finishProfile(storage,false,4,12,100);finishProfile(storage,true,1,100,720);finishProfile(storage,true,1,90,650);const p=readProfile(storage);assert.deepEqual(p.records,[2]);assert.equal(p.runs,3);assert.equal(p.wins,2);assert.equal(p.bestFloor,1);assert.equal(p.bestKills,100);assert.equal(p.bestTime,650);
  const denied={getItem:()=>{throw Error()},setItem:()=>{throw Error()},removeItem:()=>{throw Error()}};assert.equal(readProfile(denied).runs,0);assert.equal(rememberRecord(denied,0),false);assert.equal(finishProfile(denied,false,6,0,1),false);
+});
+
+test('skipping a reward preserves build and consumes the choice once',()=>{
+ const run=new Run(3);run.current=run.rooms.find(r=>r.kind==='combat')!.id;
+ assert.equal(run.skipReward(),false);run.clear();assert.equal(run.skipReward(),true);
+ assert.deepEqual(run.moves,[]);assert.equal(run.rewardPending,false);assert.equal(run.skipReward(),false);assert.equal(run.choose('tri'),false);
+});
+
+
+test('solid props preserve door landings, reward access and disappear after destruction',()=>{
+ for(let seed=0;seed<50;seed++)for(let floor=6;floor>=2;floor--)for(const room of roomsForFloor(seed,floor)){
+  const blocks=sceneryBlocks(room);for(const p of [{x:560,y:365},{x:560,y:166},{x:560,y:560},{x:108,y:364},{x:1012,y:364}])assert.ok(!blocks.some(b=>overlapsBlock(p,23,b)));
+  if(blocks.length){breakProp(roomEnvironment(room),0);assert.equal(sceneryBlocks(room).length,blocks.length-1)}
+ }
 });

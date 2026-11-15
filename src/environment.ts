@@ -12,7 +12,7 @@ export const FLOOR_THEMES=[
  {name:'마지막 문',floor:0x363342,light:0xf1d4ab,accent:0xc8a4b8,sign:'SURFACE / EXIT',feature:'ruins'},
 ] as const;
 export const floorTheme=(floor:number)=>FLOOR_THEMES[Math.max(0,Math.min(5,6-floor))];
-export function breakableProps(room:DungeonRoom){if(room.kind==='boss')return[];const positions=[{x:170,y:280},{x:950,y:480},{x:300,y:535},{x:820,y:220}];return positions.map((p,i)=>({...p,id:i,kind:(room.seed+i)%2?'crate':'canister',radius:17}))}
+export function breakableProps(room:DungeonRoom){if(room.kind==='boss')return[];const positions=[{x:170,y:280},{x:950,y:480},{x:300,y:535},{x:900,y:280}];return positions.map((p,i)=>({...p,id:i,kind:(room.seed+i)%2?'crate':'canister',radius:29}))}
 export type InteractionKind='reward'|'lift'|'record'|'power';
 export interface Interaction extends Vec{kind:InteractionKind;label:string}
 export function roomInteractions(room:DungeonRoom,floor:number,canExit:boolean):Interaction[]{
@@ -23,3 +23,5 @@ export function roomInteractions(room:DungeonRoom,floor:number,canExit:boolean):
 }
 export function nearestInteraction(player:Vec,items:Interaction[]){return items.filter(i=>Math.hypot(i.x-player.x,i.y-player.y)<=72).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]}
 export function breakProp(state:EnvironmentState,id:number){if(id<0||id>3||!Number.isInteger(id)||state.broken&(1<<id))return false;state.broken|=1<<id;return true}
+
+export function sceneryBlocks(room:DungeonRoom){const state=room.environment??freshEnvironment();return breakableProps(room).filter(p=>!(state.broken&(1<<p.id))).map(p=>({x:p.x,y:p.y,w:50,h:48}))}
