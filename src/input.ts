@@ -6,6 +6,7 @@ export class Controls{
  window.addEventListener('keydown',e=>{if(e.code==='Escape'&&!e.repeat){this.onPause();return}if(!this.active())return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();this.keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)this.onInteract()});
  window.addEventListener('keyup',e=>this.keys.delete(e.code));
  window.addEventListener('blur',()=>this.reset());
+ window.addEventListener('resize',()=>this.reset());
  window.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')document.body?.classList.add('touch-ui')});
  this.stick('move-stick',v=>this.move=v,true);this.stick('attack-stick',v=>this.aim=v);
  }

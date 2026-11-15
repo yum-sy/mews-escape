@@ -35,3 +35,9 @@ button[hidden]{display:none!important}#minimap{position:relative;width:150px;hei
 @media(max-height:600px){.panel:not(.reward-panel){width:min(400px,94vw)}}
 @media(max-width:600px) and (orientation:portrait){#boss-hud{top:155px;left:20px;right:45%;font-size:10px}}
 #pause,#sound{min-width:44px;min-height:44px}body.touch-ui #interact{min-height:44px}@media(pointer:coarse){#interact{min-height:44px}}
+
+/* Keep thumb controls away from notches and home indicators. */
+.stick{left:max(24px,env(safe-area-inset-left));bottom:max(20px,env(safe-area-inset-bottom))}.stick.attack{left:auto;right:max(24px,env(safe-area-inset-right))}
+.top-right{right:max(20px,env(safe-area-inset-right))}
+@media(pointer:coarse){#modal{backdrop-filter:none}.panel{box-shadow:none}}
+@media(max-height:500px) and (orientation:landscape){.info-screen{padding:16px max(24px,env(safe-area-inset-left));justify-content:flex-start;max-height:none;overflow:visible}.info-screen>*{flex-shrink:0}.info-screen h2{font-size:24px;margin:6px 0}.info-screen p{font-size:12px;line-height:1.5}.info-actions button{min-height:44px}.help-grid{gap:12px}}

@@ -23,7 +23,7 @@ export function rewardComparison(ids:string[],id:string){
  const direct=(a:Attack)=>a.damage*a.count/a.interval*(1+a.crit*.6);
  const delta=Math.round((direct(after)/direct(before)-1)*100);
  const rank=ids.filter(x=>x===id).length+1;
- return {rank,delta,caption:delta===0?'직접 화력 유지':`직접 화력 ${delta>0?'+':''}${delta}%`,name:fusionLook(after.visual).name,traits:attackTraits(after),carrier:MOVES.find(m=>m.id===after.visual.form)?.name??'염동력'};
+ return {rank,delta,caption:id==='survey'?'지도·방 종류 공개 · 화력 유지':delta===0?'직접 화력 유지':`직접 화력 ${delta>0?'+':''}${delta}%`,name:fusionLook(after.visual).name,traits:attackTraits(after),carrier:MOVES.find(m=>m.id===after.visual.form)?.name??'염동력'};
 }
 export function formatDuration(seconds:number){const n=Math.max(0,Math.floor(seconds));return `${Math.floor(n/60)}분 ${String(n%60).padStart(2,'0')}초`}
 

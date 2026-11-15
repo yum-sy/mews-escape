@@ -3,6 +3,7 @@ export interface Attack{visual:Presentation;damage:number;interval:number;speed:
 export type Modifier=Partial<Omit<Attack,'color'|'visual'>>;
 export interface Move{id:string;name:string;type:string;form:string;description:string;synergy:string;modifier:Modifier;color:number;priority:number;max:number}
 export const MOVES:Move[]=[
+ {id:'survey',name:'마음의눈',type:'탐색',form:'연구소 감지',description:'현재 층과 이후 층의 지도·방 종류 공개 · 공격력 변화 없음',synergy:'전투 강화 한 번을 포기하고 탐색 경로를 계획합니다. 적이나 보상 내용은 공개하지 않습니다.',modifier:{},color:0x9cdbcc,priority:-2,max:1},
  {id:'shadow',name:'섀도볼',type:'고스트',form:'관통 탄환',description:'공격력 성장 +0.22 (중첩 효율 감소) · 적 1마리 추가 관통 (후속 적중마다 위력 35% 감소 · 최대 2관통)',synergy:'유도·다중 탄환에도 관통이 적용됩니다.',modifier:{damage:.22,pierce:1},color:0xbca0ff,priority:2,max:2},
  {id:'swift',name:'스피드스타',type:'노말',form:'유도 탄환',description:'유도 강화 · 직접 피해 55%로 감소 (2단계 40%)',synergy:'관통 후 다음 적을 추적합니다. 상태 효과를 모은 뒤 선택하세요.',modifier:{homing:2.2},color:0xffe0a0,priority:1,max:2},
  {id:'tri',name:'트라이어택',type:'노말',form:'다중 탄환',description:'3발 합산 직접 피해 65% (2단계 5발 합산 50%)',synergy:'화력을 포기하고 효과를 넓게 전달합니다. 유도 감산과 곱해집니다.',modifier:{count:2},color:0xf5bce6,priority:0,max:2},

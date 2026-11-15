@@ -6,7 +6,7 @@ export function roomReward(room:DungeonRoom,floor:number):RewardKind{
  if(room.kind==='reward')return'treasure';if(room.kind==='boss')return'boss';
  const roll=rng(room.seed^0x51a7)();return roll<.55?'none':roll<.8?'key':'heart';
 }
-const rare=new Set(['icebeam','flamethrower','thunderbolt','drain','split']);
+const rare=new Set(['survey','icebeam','flamethrower','thunderbolt','drain','split']);
 export function rewardTier(id:string){return rare.has(id)?'희귀 변형':['shadow','psybeam','sludge'].includes(id)?'특수':'일반'}
 // Quality is our own weighting rule, not a claim about Isaac's quality system.
 export function itemWeight(id:string,floor:number){return rare.has(id)?(floor>=5?.22:.4):['shadow','psybeam','sludge'].includes(id)?.6:1}

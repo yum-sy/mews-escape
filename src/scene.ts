@@ -1,3 +1,4 @@
+import {roomKnown,mapSymbol} from './exploration';
 import {objective,attackTraits,rewardComparison,formatDuration,attackLabel} from './player-ui';
 import {rememberRecord,finishProfile} from './profile';
 import {LabPresentation} from './lab-presentation';
@@ -16,7 +17,7 @@ import {Run,roomEnemies} from './run';
 import {FINAL_HP,stepMewtwo,nextFinalPhase,beamPhase,beamHits,type FinalPhase} from './finale';
 import {browserStorage,readCheckpoint,writeCheckpoint,removeCheckpoint,restoreRun,type Checkpoint} from './save';
 import {showStory} from './story-player';
-import {DIRECTIONS,OPPOSITE,type Direction} from './dungeon';
+import {OPPOSITE,type Direction} from './dungeon';
 import {MOVES,composeAttack,splitAttack,CHAIN_DAMAGE,BLAST_DAMAGE,PIERCE_RETAIN,CRITICAL_MULTIPLIER,type Attack} from './moves';
 import {setupShell} from './shell';
 import {LAB_RECORDS,MEWTWO_SCRIPT,ENDING} from './story';
@@ -27,12 +28,10 @@ import {SPECIES,speciesSize,hazardPhase} from './scaling';
 type Enemy={id:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;bar:Phaser.GameObjects.Rectangle;kind:Kind;hp:number;cooldown:number;charge:number;dir:Vec;flash:number;burn:number;slow:number;statusTime:number;poison:number;phase:number;maxHp:number;radius:number;cycle:number};
 type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number;trail:Vec[];critical:boolean;procAvailable:boolean;tracking:number;speed:number};
 type State='ready'|'playing'|'paused'|'reward'|'record'|'won'|'lost'|'story'|'transition';
-const DOOR_POS:Record<Direction,Vec>={up:{x:560,y:112},right:{x:1055,y:364},down:{x:560,y:614},left:{x:65,y:364}};
 function nextSeed(){const raw=new URLSearchParams(location.search).get('seed');const value=Number(raw);return raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(value)&&value>=0&&value<=0xffffffff?value:crypto.getRandomValues(new Uint32Array(1))[0]}
 const ROOM_NAME={start:'격리실',combat:'실험실',reward:'기술 보관실',boss:'승강기 제어실'};
 export class LabScene extends Phaser.Scene{
- lab!:LabPresentation;effects!:CombatEffects;controls=new Controls(()=>this.state==='playing');audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
- doors:Partial<Record<Direction,{shape:Phaser.GameObjects.Rectangle;label:Phaser.GameObjects.Text}>>={};terminal!:Phaser.GameObjects.Text;
+ terminal!:Phaser.GameObjects.Text;lab!:LabPresentation;effects!:CombatEffects;controls=new Controls(()=>this.state==='playing');audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
  enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;
  weaponTimers=new Map<string,number>();weaponBursts=new Map<string,{paths:WeaponPath[];life:number}>();
  run=new Run(nextSeed());finalPhase:FinalPhase=1;entry:Direction|null=null;stopStory=()=>{};saveStatus='';
@@ -44,7 +43,7 @@ export class LabScene extends Phaser.Scene{
  create(){
   for(const [key,data] of Object.entries(SPECIES)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
   this.buildRoom();this.lab=new LabPresentation(this);this.effects=new CombatEffects(this);this.roomDecor=this.add.container(0,0).setDepth(3);
-  for(const dir of DIRECTIONS){const p=DOOR_POS[dir],vertical=dir==='left'||dir==='right';this.doors[dir]={shape:this.add.rectangle(p.x,p.y,vertical?30:108,vertical?100:42,0x397a70).setDepth(5),label:this.add.text(p.x,p.y,'',{fontFamily:'monospace',fontSize:'10px',color:'#d0f5e7'}).setOrigin(.5).setDepth(6)}}
+
   this.terminal=this.add.text(560,410,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#a6dfd5',align:'center'}).setOrigin(.5).setDepth(6);
   this.shadow=this.add.ellipse(560,385,40,14,0x000000,.4).setDepth(8);this.player=this.add.image(560,360,'mew','body').setDisplaySize(speciesSize('mew').width,speciesSize('mew').height).setDepth(17);
   this.decorateRoom();this.refreshRoom();this.updateHud();
@@ -139,10 +138,7 @@ export class LabScene extends Phaser.Scene{
   this.refreshRoom();this.updateHud();this.checkpoint();if(this.run.floor===1){if(this.run.room.cleared)this.playEnding();else this.finalDialogue();return}if(this.run.rewardPending)this.note('중앙 보상에 다가가 E 또는 상호작용 버튼으로 확인하세요.');
  }
  refreshRoom(){
-  this.lab.setDoors(this.run.rooms);(this.children.getByName('room-label') as Phaser.GameObjects.Text).setText(`B${this.run.floor} / ${String(this.run.current+1).padStart(2,'0')}`);
-  for(const dir of DIRECTIONS){const d=this.doors[dir]!,next=this.run.room.doors[dir];d.shape.setVisible(false);d.label.setVisible(false);if(next===undefined)continue;
-   const wasOpen=d.shape.getData('open');const open=this.run.room.cleared&&!(this.run.rooms[next].kind==='boss'&&!this.run.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared));d.shape.setFillStyle(open?0x285e56:0x51333e).setStrokeStyle(2,open?0x83d5bd:0xac6677);if(wasOpen!==open){d.shape.setData('open',open);this.tweens.killTweensOf(d.shape);this.tweens.add({targets:d.shape,alpha:open?.5:1,scaleX:dir==='up'||dir==='down'?(open?.15:1):1,scaleY:dir==='left'||dir==='right'?(open?.15:1):1,duration:300,ease:'Sine.easeInOut'})}d.label.setText(open?(this.run.rooms[next].kind==='boss'?'GENGAR':'OPEN'):'LOCKED');
-  }
+  this.lab.setDoors(this.run.rooms,this.run.moves);(this.children.getByName('room-label') as Phaser.GameObjects.Text).setText(`B${this.run.floor} / ${String(this.run.current+1).padStart(2,'0')}`);
   this.terminal.setText(this.run.floor===1?'':this.run.room.kind==='boss'?(this.run.room.cleared?'':'격리 실패 / 팬텀'):this.run.room.kind==='start'?'깨진 격리 장치. 위층에서 소리가 들린다.':'');
 
  }
@@ -305,6 +301,6 @@ export class LabScene extends Phaser.Scene{
   const counts=new Map<string,number>();for(const id of this.run.moves)counts.set(id,(counts.get(id)??0)+1);
   document.getElementById('build-list')!.textContent=counts.size?[...counts].map(([id,n])=>`${MOVES.find(m=>m.id===id)!.name}${n>1?' ×'+n:''}`).join(' · '):'염동력 · 기술을 모아 효과를 조합하세요';
   const map=document.getElementById('minimap')!,rooms=this.run.rooms,minX=Math.min(...rooms.map(r=>r.x)),minY=Math.min(...rooms.map(r=>r.y));
-  map.replaceChildren();for(const room of rooms){const known=room.visited||Object.values(this.run.room.doors).includes(room.id);if(!known)continue;const cell=document.createElement('span');cell.className='map-cell'+(room.id===this.run.current?' current':'')+(room.visited&&room.cleared?' cleared':'');cell.style.left=`${(room.x-minX)*19}px`;cell.style.top=`${(room.y-minY)*19}px`;cell.textContent=room.visited?({start:'S',combat:room.cleared?(room.rewardTaken||roomReward(room,this.run.floor)==='none'?'·':'✧'):'!',reward:room.rewardTaken?'·':'✧',boss:room.cleared?(room.rewardTaken?'↑':'✧'):'B'}[room.kind]):'?';cell.title=room.visited?ROOM_NAME[room.kind]:'미탐험';map.append(cell)}
+  map.replaceChildren();for(const room of rooms){const known=roomKnown(room,this.run.moves);if(!known)continue;const cell=document.createElement('span');cell.className='map-cell'+(room.id===this.run.current?' current':'')+(room.visited&&room.cleared?' cleared':'');cell.style.left=`${(room.x-minX)*19}px`;cell.style.top=`${(room.y-minY)*19}px`;cell.textContent=room.visited&&room.kind==='combat'&&room.cleared&&!room.rewardTaken&&roomReward(room,this.run.floor)!=='none'?'✧':mapSymbol(room,this.run.moves);cell.title=roomKnown(room,this.run.moves)?ROOM_NAME[room.kind]:'미탐험';map.append(cell)}
  }
 }
