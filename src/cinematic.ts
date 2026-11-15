@@ -1,20 +1,21 @@
+import {files,prepareCinematic} from './cinematic-assets';
 import {openingAudio} from './cinematic-audio';
 import {rubblePose,LAB_EXIT} from './cinematic-stage';
 import {createIllustrationRig} from './cinematic-rig';
 import {captureMew,escapeMew,chamberOpening,operatorPose,deformOperator,deformMew,CAPTURE_FIRE,CAPTURE_CONTACT,type MewPose} from './cinematic-motion';
 // Illustrated plates and props; Pokémon remain the unmodified recorded PokéAPI artwork.
-const files={mew:'mew-artwork.png',mewtwo:'mewtwo-artwork.png',forest:'forest-cinematic-v1.png',lab:'lab-cinematic-v1.png',intact:'lab-intact-v2.png',operative:'capture-operative-v2.png',chamber:'containment-v2.png',researcher:'researcher-v2.png',fleeing:'fleeing-researcher-v2.png'};
+
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const ease=(v:number)=>{const p=clamp(v);return p*p*(3-2*p)};
 export function playCinematic(host:HTMLElement,shot:string,hold=false,previewTime?:()=>number){
  const canvas=document.createElement('canvas');canvas.className='cinematic';host.replaceChildren(canvas);const c=canvas.getContext('2d')!;
- const art=Object.fromEntries(Object.entries(files).map(([key,file])=>{const img=new Image();img.src='./assets/'+file;return[key,img]})) as Record<keyof typeof files,HTMLImageElement>;
- const rig=createIllustrationRig();
+ let art:Record<keyof typeof files,HTMLImageElement>;let ready=false;const mobile=matchMedia('(pointer:coarse)').matches||innerHeight<600;
+ const rig=createIllustrationRig(mobile);
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  let stageHeight=1,frame=0,start=performance.now(),hiddenAt=0,disposed=false,repaint=()=>{};
- const size=()=>{const box=host.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);canvas.width=Math.max(1,box.width*dpr);canvas.height=Math.max(1,box.height*dpr);stageHeight=Math.min(canvas.height,canvas.width/2);repaint()};
+ const size=()=>{const box=host.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,mobile?1:1.5);canvas.width=Math.max(1,box.width*dpr);canvas.height=Math.max(1,box.height*dpr);stageHeight=Math.min(canvas.height,canvas.width/2);repaint()};
  const soundtrack=document.body.dataset.screen==='intro'?openingAudio.track(shot):null;
- const audioTimer=soundtrack?window.setInterval(()=>{if(!document.hidden)soundtrack.update(Math.min(8,(performance.now()-start)/1000))},40):undefined;
+ const audioTimer=soundtrack?window.setInterval(()=>{if(ready&&!document.hidden)soundtrack.update(Math.min(8,(performance.now()-start)/1000))},40):undefined;
  const observer=new ResizeObserver(size);observer.observe(host);size();
  const vis=()=>{if(document.hidden){hiddenAt=performance.now();soundtrack?.pause(Math.min(8,(hiddenAt-start)/1000))}else if(hiddenAt){start+=performance.now()-hiddenAt;hiddenAt=0;soundtrack?.resume(Math.min(8,(performance.now()-start)/1000))}};document.addEventListener('visibilitychange',vis);
  const ellipse=(x:number,y:number,rx:number,ry:number,color:string)=>{c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()};
@@ -63,7 +64,7 @@ export function playCinematic(host:HTMLElement,shot:string,hold=false,previewTim
   else{const crack=clamp(t/.9);c.save();c.globalAlpha=(1-release)*crack;c.translate(500,0);c.scale(chamberFit,1);c.translate(-500,0);c.beginPath();c.rect(435,157,130,196);c.clip();path([495,115,482,167,510,211,487,257,523,306,507,369],'#d9eef2',1.4);path([510,211,546,194,566,169],'#e0f1f2',1);path([487,257,449,283,432,328],'#d9eef2',1);c.restore();if(t>1.1)for(let i=0;i<23;i++){const age=Math.max(0,t-1.1),sy=150+(i*37)%180,hit=Math.sqrt((425-sy)/170),fall=Math.min(age,hit),x=450+i%6*18+Math.sin(i*7)*fall*65,y=sy+170*fall*fall;c.save();c.translate(x,y);c.scale(1,age>=hit?.25:1);c.rotate(i+fall*3);c.globalAlpha=.5*(1-ease((t-4.8)/2));c.fillStyle='#badce755';c.strokeStyle='#d1e6e7';c.lineWidth=.6;c.beginPath();c.moveTo(-4,-11);c.lineTo(7,-4);c.lineTo(0,15);c.closePath();c.fill();c.stroke();c.restore()}}
   if(foreground){c.save();if(t>6.4){c.beginPath();c.rect(0,0,LAB_EXIT.right,500);c.clip();c.globalAlpha=1-ease((t-6.9)/.7)}movingMew(pose,t);c.restore()}
  };
- const draw=(now:number)=>{if(disposed)return;const t=import.meta.env.DEV&&previewTime?previewTime():reduced?4:Math.min(hold?7.2:8,(now-start)/1000);c.setTransform(1,0,0,1,0,0);c.fillStyle='#0a1017';c.fillRect(0,0,canvas.width,canvas.height);c.setTransform(canvas.width/1000,0,0,stageHeight/500,0,(canvas.height-stageHeight)/2);c.fillStyle='#111a22';c.fillRect(0,0,1000,500);c.save();c.beginPath();c.rect(0,0,1000,500);c.clip();c.save();
+ let lastFrame=0;const draw=(now:number)=>{if(disposed||!ready)return;if(mobile&&now-lastFrame<32){frame=requestAnimationFrame(draw);return}lastFrame=now;const t=import.meta.env.DEV&&previewTime?previewTime():reduced?4:Math.min(hold?7.2:8,(now-start)/1000);c.setTransform(1,0,0,1,0,0);c.fillStyle='#0a1017';c.fillRect(0,0,canvas.width,canvas.height);c.setTransform(canvas.width/1000,0,0,stageHeight/500,0,(canvas.height-stageHeight)/2);c.fillStyle='#111a22';c.fillRect(0,0,1000,500);c.save();c.beginPath();c.rect(0,0,1000,500);c.clip();c.save();
   const shake=shot==='collapse'&&!reduced?(1-ease((t-4)/4))*4:0,zoom=1+t*(shot==='awakening'?.012:.004);c.translate(500+Math.sin(t*49)*shake,250+Math.cos(t*41)*shake);c.scale(zoom,zoom);c.translate(-500,-250);
   if(['forest','capture','sunrise'].includes(shot)){
    plate('forest');dust(t);if(shot==='forest'){glow(690,85,320,'#fff0bd22');contactShadow(454+Math.sin(t*.8)*80,425,60,12,.18);pokemon('mew',470+Math.sin(t*.8)*80,238+Math.sin(t*1.8)*17,210,t)}
@@ -105,6 +106,6 @@ export function playCinematic(host:HTMLElement,shot:string,hold=false,previewTim
   c.strokeStyle='#d8c8ab22';c.lineWidth=1;c.strokeRect(23,21,954,458);for(let i=0;i<130;i++){c.fillStyle=i%2?'#e2d5b509':'#00000016';c.fillRect(i*137%1000,i*83%500,1+i%3,1)}
   c.font='9px monospace';c.fillStyle='#cbbda766';c.fillText('ARCHIVE / 151 — '+shot.toUpperCase(),38,480);
   c.fillStyle=`rgba(4,8,15,${reduced?0:Math.max(0,1-t*2,hold?0:(t-7.5)*2)})`;c.fillRect(0,0,1000,500);c.restore();if(!reduced)frame=requestAnimationFrame(draw);
- };repaint=()=>{if(reduced&&!disposed)draw(performance.now())};for(const img of Object.values(art))img.onload=repaint;frame=requestAnimationFrame(draw);
+ };repaint=()=>{if(reduced&&!disposed)draw(performance.now())};void prepareCinematic().then(images=>{if(disposed)return;art=images;ready=true;start=performance.now();frame=requestAnimationFrame(draw)}).catch(()=>{if(!disposed){host.textContent='장면을 불러오지 못했습니다. 다음 장면 또는 건너뛰기를 눌러 주세요.'}});
  return()=>{disposed=true;window.clearInterval(audioTimer);soundtrack?.dispose();cancelAnimationFrame(frame);observer.disconnect();rig.dispose();masks.clear();document.removeEventListener('visibilitychange',vis)};
 }

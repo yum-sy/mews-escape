@@ -1,3 +1,4 @@
+import {arenaView} from './viewport';
 import {roomKnown,mapSymbol} from './exploration';
 import {objective,attackTraits,rewardComparison,formatDuration,attackLabel} from './player-ui';
 import {rememberRecord,finishProfile} from './profile';
@@ -41,6 +42,7 @@ export class LabScene extends Phaser.Scene{
  env:{shape:Phaser.GameObjects.Rectangle|Phaser.GameObjects.Arc;kind:'laser'|'gas'|'electric';x:number;y:number;r:number;offset:number}[]=[];
  preload(){Object.keys(SPECIES).forEach(key=>this.load.image(key,`./assets/${key}.png`));this.load.image('tiles','./assets/lab-tiles.png');this.load.on('loaderror',()=>{document.getElementById('modal-copy')!.textContent='리소스를 불러오지 못했습니다. 페이지를 새로고침해 주세요.'})}
  create(){
+  const fit=()=>{const v=arenaView(this.scale.width,this.scale.height);this.cameras.main.setZoom(v.zoom).centerOn(v.x,v.y);document.documentElement.style.setProperty('--arena-inset',`${v.left}px`)};fit();this.scale.on('resize',fit);this.events.once('shutdown',()=>this.scale.off('resize',fit));
   for(const [key,data] of Object.entries(SPECIES)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
   this.buildRoom();this.lab=new LabPresentation(this);this.effects=new CombatEffects(this);this.roomDecor=this.add.container(0,0).setDepth(3);
 

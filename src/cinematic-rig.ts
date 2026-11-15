@@ -1,15 +1,15 @@
 import type {Point} from './cinematic-motion';
 type Rig={source:HTMLCanvasElement;output:HTMLCanvasElement;context:CanvasRenderingContext2D;stamp:string};
 // A continuous textured mesh avoids hard cut seams at joints and preserves the source illustration.
-export function createIllustrationRig(){
+export function createIllustrationRig(mobile=false){
  const rigs=new Map<string,Rig>();
  const draw=(c:CanvasRenderingContext2D,key:string,image:HTMLImageElement,x:number,y:number,width:number,height:number,time:number,deform:(p:Point)=>Point,angle=0,flip=1)=>{
   if(!image.naturalWidth)return;
   let rig=rigs.get(key);
-  if(!rig){const source=document.createElement('canvas');source.width=360;source.height=Math.round(360*image.naturalHeight/image.naturalWidth);source.getContext('2d')!.drawImage(image,0,0,source.width,source.height);const output=document.createElement('canvas');output.width=source.width+80;output.height=source.height+80;rig={source,output,context:output.getContext('2d')!,stamp:''};rigs.set(key,rig)}
+  if(!rig){const source=document.createElement('canvas');source.width=mobile?240:360;source.height=Math.round(source.width*image.naturalHeight/image.naturalWidth);source.getContext('2d')!.drawImage(image,0,0,source.width,source.height);const output=document.createElement('canvas');output.width=source.width+80;output.height=source.height+80;rig={source,output,context:output.getContext('2d')!,stamp:''};rigs.set(key,rig)}
   // 30 poses/sec with 60Hz scene motion bounds CPU work on mobile.
   const stamp=`${Math.round(time*30)}:${Math.round(width)}:${Math.round(height)}`;
-  if(stamp!==rig.stamp){rig.stamp=stamp;const ctx=rig.context,sw=rig.source.width,sh=rig.source.height,nx=key.startsWith('mew')?20:12,ny=key.startsWith('mew')?24:16;ctx.clearRect(0,0,rig.output.width,rig.output.height);
+  if(stamp!==rig.stamp){rig.stamp=stamp;const ctx=rig.context,sw=rig.source.width,sh=rig.source.height,nx=key.startsWith('mew')?(mobile?10:20):(mobile?8:12),ny=key.startsWith('mew')?(mobile?12:24):(mobile?10:16);ctx.clearRect(0,0,rig.output.width,rig.output.height);
    const points:Point[]=[];for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const p=deform({x:i/nx,y:j/ny});points.push({x:p.x*sw+40,y:p.y*sh+40})}
    const tri=(a:Point,b:Point,d:Point,pa:Point,pb:Point,pd:Point)=>{
     const det=(b.x-a.x)*(d.y-a.y)-(d.x-a.x)*(b.y-a.y);if(!det)return;

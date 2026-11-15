@@ -1,3 +1,4 @@
+import {prepareCinematic} from './cinematic-assets';
 import {enterLandscape} from './mobile';
 import {readProfile} from './profile';
 import {LAB_RECORDS} from './story';
@@ -14,11 +15,11 @@ window.addEventListener('appinstalled',()=>{installEvent=null;const b=document.g
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||Boolean((navigator as Navigator&{standalone?:boolean}).standalone);
 export function setupShell(start:(resume:boolean)=>void){
  const shell=document.getElementById('shell')!;
- let heardOpening=false;
+ let heardOpening=false,waiting=true;
  let sceneIndex=0,timer:number|undefined;let nextShot:(()=>void)|null=null,deadline=0,remaining=8200;let stopFilm=()=>{};
  const clear=()=>{nextShot=null;stopFilm();window.clearTimeout(timer);shell.replaceChildren()};
  const menu=()=>{
-  clear();document.body.dataset.screen='menu';shell.hidden=false;const saved=readCheckpoint(browserStorage);
+  waiting=false;clear();document.body.dataset.screen='menu';shell.hidden=false;const saved=readCheckpoint(browserStorage);
   shell.innerHTML=`<section class="menu-screen"><div class="menu-mark">PROJECT 151 / THE ASCENT</div><img class="menu-mew" src="./assets/mew.png" alt="뮤"><h2>MEW’S<br><em>ESCAPE</em></h2><p>가장 깊은 곳에서, 다시 하늘로.</p><div class="menu-actions"><button id="start-game">${saved.save?'이어하기':'게임 시작'} <span>${saved.save?'B'+saved.save.floor:'↗'}</span></button><button id="show-help">게임 설명 <small>이야기 · 조작법</small></button><button id="show-install">게임 설치 <small>${standalone()?'앱으로 실행 중':'권장 · 더 넓은 화면'}</small></button></div><footer>여섯 층의 어둠을 지나, 다시 하늘로</footer></section>`;
   document.getElementById('start-game')!.onclick=()=>{if(saved.save)chooseRun();else launch(false)};
   if(saved.status){const status=document.createElement('p');status.className='save-warning';status.textContent=saved.status;shell.querySelector('.menu-screen')!.append(status)}
@@ -54,7 +55,10 @@ export function setupShell(start:(resume:boolean)=>void){
  // Browser chrome and safe-area changes resize the game without assuming a fixed mobile height.
  const resize=()=>{document.documentElement.style.setProperty('--viewport-height',`${window.visualViewport?.height??window.innerHeight}px`)};
  resize();window.visualViewport?.addEventListener('resize',resize);window.addEventListener('resize',resize);
- intro();return menu;
+ // Decode once before the first timeline, while keeping a route straight to play.
+ shell.innerHTML='<section class="info-screen"><h2>기억을 불러오는 중…</h2><p>첫 오프닝의 그림을 준비하고 있습니다.</p><button id="loading-skip">바로 시작 화면으로</button></section>';
+ document.getElementById('loading-skip')!.onclick=()=>{waiting=false;menu()};
+ void prepareCinematic().then(()=>{if(waiting){waiting=false;intro()}}).catch(()=>{if(waiting){waiting=false;menu()}});return menu;
 }
 export function registerOffline(){
  if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>{void navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>navigator.serviceWorker.ready).then(()=>{offlineReady=true;const label=document.getElementById('offline-state');if(label)label.textContent='오프라인 준비 완료 · 게임 리소스 저장됨'}).catch(()=>{offlineError='오프라인 준비에 실패했습니다. 인터넷 연결 후 다시 열어 주세요.';const label=document.getElementById('offline-state');if(label)label.textContent=offlineError})})}
