@@ -54,3 +54,20 @@ button[hidden]{display:none!important}#minimap{position:relative;width:150px;hei
  body.touch-ui #interact{bottom:85px;max-width:35%;min-height:44px}
 }
 @media(orientation:portrait){.stick{width:132px;height:132px;left:32px;bottom:30px}.stick.attack{left:auto;right:32px}.stick i{width:52px;height:52px;left:39px;top:39px}}
+/* Quiet combat HUD: text explanations remain in pause/help and accessible labels. */
+#hud .eyebrow,#hud .live,#seed,#counter,.loadout small,#build-info,#build-list{display:none!important}
+#hearts{display:flex;gap:3px;width:156px;height:18px;padding:3px;margin:0;background:#08141cb3;border:1px solid #c0d6d24d;border-radius:5px;filter:none;--hp:#8ed8bc}
+#hearts[data-tone=warning]{--hp:#edc96a}#hearts[data-tone=danger]{--hp:#ed7e80;border-color:#ed7e8080}
+.hp-segment{flex:1;min-width:0;border-radius:1px;background:#d6e1e014}.hp-segment.filled{background:var(--hp);opacity:.72}
+.resource-line{gap:10px;align-items:center;margin-top:2px!important}#supplies{display:flex;gap:5px;align-items:center;background:#10192390;padding:3px 6px;border:0}#supplies b{font-size:12px;font-weight:500}
+.hud-symbol{width:22px;height:22px;display:inline-block;vertical-align:middle;flex-shrink:0}
+#status{display:block;color:#e7c181;font-size:18px;min-height:22px;margin-top:5px}
+body .loadout,body.touch-ui .loadout{width:auto;max-width:80%;left:50%;transform:translateX(-50%);bottom:12px}
+body .loadout .move-icon,body.touch-ui .loadout .move-icon{display:grid;width:30px;height:30px;font-size:21px;background:#14243599;border-color:#bdb2ce50}
+#objective{display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:#0a172380;padding:4px 8px;bottom:48px;min-height:28px}
+#pause,#sound{width:44px;padding:8px;background:#111c298c}.map{letter-spacing:1px}.map>span{font-size:12px;color:#cadbd6}
+body #interact,body.touch-ui #interact{min-width:52px;min-height:48px;padding:8px 12px;gap:8px;align-items:center;justify-content:center;background:#142535c9}
+#interact:not([hidden]){display:flex}#interact kbd{font-size:11px;color:#aec9c5}
+@media(orientation:portrait){body .loadout,body.touch-ui .loadout{bottom:170px}#objective{bottom:208px}#hearts{width:138px}.resource-line{margin-top:38px!important}}
+#build-info{display:block!important;font-size:15px!important;letter-spacing:3px;color:#d3c4e7;white-space:nowrap}
+.reward-option{min-width:0}.reward-option .reward-card{width:100%;min-height:150px;gap:9px}.reward-option details{text-align:left;background:#101c29b3;border-radius:5px;font-size:11px;line-height:1.6;padding:0 12px;color:#c3d2dd}.reward-option summary{min-height:40px;padding:10px 0;cursor:pointer}.reward-option details p{margin:6px 0}.reward-option details small{display:block;padding-bottom:12px;color:#94a9ba}.reward-form{font-size:22px!important;letter-spacing:4px;text-align:center;color:#d8b8ec!important}

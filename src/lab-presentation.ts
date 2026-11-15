@@ -1,4 +1,3 @@
-import {roomLabel} from './exploration';
 import Phaser from 'phaser';
 import {roomReward} from './rewards';
 import {DIRECTIONS,type DungeonRoom,type Direction} from './dungeon';
@@ -25,7 +24,7 @@ export class LabPresentation{
   if(floor<=3){g.lineStyle(3,0x080d15,.65);g.strokePoints([{x:820,y:560},{x:790,y:520},{x:815,y:492},{x:766,y:460},{x:784,y:425}],false);g.lineStyle(1,t.light,.15);g.lineBetween(815,492,850,475)}
   this.base.add(s.add.text(560,151,`B${floor} / ${t.sign}`,{fontFamily:'monospace',fontSize:'10px',color:'#b5c6d0'}).setOrigin(.5).setAlpha(.65));
   if(room.kind==='boss'&&floor>1){g.fillStyle(0x060a12,.8);g.fillRoundedRect(490,306,140,118,12);g.lineStyle(2,t.light,.35);g.strokeRoundedRect(490,306,140,118,12);for(let i=0;i<4;i++){g.lineStyle(1,0x66778a,.3);g.lineBetween(503,325+i*25,617,325+i*25)}}
-  if(room.kind==='combat')this.base.add(s.add.text(880,252,'전원 차단기',{fontFamily:'sans-serif',fontSize:'14px',color:'#e9ce96'}).setOrigin(.5));
+  if(room.kind==='combat')this.base.add(s.add.text(880,252,'ϟ',{fontFamily:'sans-serif',fontSize:'14px',color:'#e9ce96'}).setOrigin(.5));
   this.refreshProps();
  }
  setDoors(rooms:DungeonRoom[],moves:readonly string[]=[]){this.neighbors=rooms;this.moves=moves;this.doorStamp=''}
@@ -44,7 +43,7 @@ export class LabPresentation{
    if(panel>17){rect(-49,-3,panel-7,15,0x142733);rect(56-panel,-3,panel-7,15,0x142733);rect(-48,-2,panel-9,2,0x9ec0c9,.5);rect(57-panel,-2,panel-9,2,0x9ec0c9,.5)}
    const color=unlocked?0x85f0cb:0xe7a075;rect(-64,-15,5,48,color);rect(59,-15,5,48,color);
    if(unlocked){g.lineStyle(3,0xb9ffe3,.9);for(const v of [11,27])g.strokePoints([point(-12,v+7),point(0,v),point(12,v+7)],false)}else{const c=point(0,11);g.lineStyle(3,color,1);g.strokeCircle(c.x,c.y-6,7);g.fillStyle(color,1);g.fillRoundedRect(c.x-10,c.y-3,20,15,3)}
-   const q=point(0,dir==='left'||dir==='right'?100:67);label.setPosition(q.x,q.y);label.setText(!this.room.cleared?'격리 잠금':!unlocked?'중앙 잠금 · 구역 정리 필요':`${roomLabel(dest,this.moves)} · 열림 ${({up:'↑',down:'↓',left:'←',right:'→'}[dir])}`);label.setColor(unlocked?'#b4f3d9':'#efb48b');
+   const q=point(0,dir==='left'||dir==='right'?100:67);label.setPosition(q.x,q.y);label.setText(!unlocked?'':({up:'↑',down:'↓',left:'←',right:'→'}[dir]));label.setColor(unlocked?'#b4f3d9':'#efb48b');
   }
  }
  refreshProps(){const g=this.cracks;g.clear();if(!this.room)return;const state=roomEnvironment(this.room);
@@ -59,7 +58,7 @@ export class LabPresentation{
   // Dust drifts slowly; the array is fixed and independent of frame rate.
   if(!this.reducedMotion)for(let i=0;i<18;i++){const x=115+(i*137%870)+Math.sin(this.clock*.2+i)*9,y=180+(i*79+this.clock*4)%370;g.fillStyle(t.light,.16);g.fillCircle(x,y,1)}
   if(this.room.kind==='combat'){g.fillStyle(0x07121c,.95);g.fillRoundedRect(851,163,58,70,5);g.lineStyle(2,state.powerOff?0x526774:0xe6bc79,.8);g.strokeRoundedRect(851,163,58,70,5);g.lineStyle(7,state.powerOff?0x526774:0xe6bc79,1);g.lineBetween(880,180,880,state.powerOff?215:198);g.fillStyle(state.powerOff?0x526774:0xf6d48b,1);g.fillRoundedRect(868,state.powerOff?211:192,24,10,3)}
-  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'회복제 · HP 1',key:'열쇠',treasure:this.room.opened?'기술 캡슐':'봉인 · 열쇠 1',boss:'보스 강화 · 열쇠 1'}[reward]);
+  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'+1',key:'⚿',treasure:this.room.opened?'◇':'⚿ 1 → ◇',boss:'⚿ 1 → ◇'}[reward]);
   if(pending){const y=365+Math.sin(this.clock*3)*3;g.fillStyle(0x000000,.3);g.fillEllipse(560,398,90,24);g.lineStyle(2,0xf4b8df,pulse);g.strokeEllipse(560,398,88,24);g.fillStyle(0x203749,1);g.fillRoundedRect(525,y-29,70,58,16);g.lineStyle(2,0xf4b8df,.9);g.strokeRoundedRect(525,y-29,70,58,16);g.fillStyle(0xf4b8df,.85);if(reward==='key'){g.lineStyle(4,0xffd675,1);g.strokeCircle(550,y,8);g.lineBetween(558,y,578,y);g.lineBetween(570,y,570,y+7);g.lineBetween(577,y,577,y+7)}else if(reward==='heart'){g.fillStyle(0xf8a5bf,1);g.fillRect(555,y-13,10,26);g.fillRect(547,y-5,26,10)}else{g.fillCircle(560,y,11)}this.beams.fillStyle(0xf4b8df,.045);this.beams.fillTriangle(560,290,530,385,590,385)}
   if(this.room.kind==='boss'&&cleared&&this.floor>1&&!pending){g.lineStyle(3,t.light,pulse);g.strokeRoundedRect(495,310,130,110,10);for(let i=0;i<3;i++){const y=333+((this.clock*24+i*25)%65);g.lineStyle(2,t.light,.55);g.strokePoints([{x:545,y:y+6},{x:560,y},{x:575,y:y+6}],false)}}
   if(active){g.lineStyle(2,0xf6ead3,.8);g.strokeEllipse(active.x,active.y+22,66,16)}
