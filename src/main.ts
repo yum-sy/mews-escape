@@ -14,3 +14,8 @@ const fitViewport=()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnim
 window.addEventListener('resize',fitViewport);
 window.visualViewport?.addEventListener('resize',fitViewport);
 new ResizeObserver(fitViewport).observe(document.getElementById('game')!);
+
+// The DOM opening/menu completely covers the laboratory: avoid rendering it underneath.
+const syncSceneVisibility=()=>{for(const scene of game.scene.getScenes(true))scene.scene.setVisible(document.body.dataset.screen==='game')};
+new MutationObserver(syncSceneVisibility).observe(document.body,{attributes:true,attributeFilter:['data-screen']});
+game.events.on('ready',syncSceneVisibility);

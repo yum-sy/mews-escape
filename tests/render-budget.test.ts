@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {nextFrame,occupiedCells} from '../src/render-budget';
+import ARTWORK from '../src/artwork-frames.json';
+import {SPECIES,speciesSize} from '../src/scaling';
+import {readFileSync} from 'node:fs';
+test('30Hz render budget does not drift on 60/90/120Hz screens',()=>{for(const hz of [60,90,120]){let last=0,count=0;for(let i=1;i<=hz*10;i++){const tick=nextFrame(i*1000/hz,last);if(tick!==null){last=tick;count++}}assert.ok(Math.abs(count-300)<=1,`${hz}: ${count}`)}});
+test('transparent mesh cells skip draw calls, including one-pixel boundary padding',()=>{const a=new Uint8ClampedArray(40*40*4);a[(5*40+5)*4+3]=255;assert.deepEqual(occupiedCells(a,40,40,4,4),[{i:0,j:0}]);a[(10*40+10)*4+3]=255;assert.equal(occupiedCells(a,40,40,4,4).length,4);assert.equal(occupiedCells(new Uint8ClampedArray(40*40*4),40,40,4,4).length,0)});
+test('every gameplay species has valid high-resolution PNG frames; collision radii unchanged',()=>{for(const [key,art] of Object.entries(ARTWORK)){const b=readFileSync('public/assets/'+art.file);const w=b.readUInt32BE(16),h=b.readUInt32BE(20);assert.ok(w>=400&&h>=400);const [l,t,r,d]=art.bounds;assert.ok(l>=0&&t>=0&&r<=w&&d<=h&&r>l&&d>t);const name=key as keyof typeof SPECIES;assert.equal(speciesSize(name).radius,Math.max(10,32*Math.sqrt(SPECIES[name].heightDm/4)*.36))}});

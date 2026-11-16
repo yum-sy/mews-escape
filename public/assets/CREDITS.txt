@@ -51,3 +51,5 @@ Adaptation: square crop, dark background, resizing; no generative redraw.
 No reuse license or artist permission was verified. Not covered by this project's code or Kenney licenses. Pokémon is third-party intellectual property.
 
 2026-11-16: Original supplied artwork restored at user request; production icons use crop, background and resizing only, without edge cleanup.
+
+2026-11-16 gameplay artwork upgrade: all nine species now use 475x475 official-artwork PNGs from PokeAPI/sprites. Existing Mew/Mewtwo files retained; seven additional files downloaded directly from the official repository because REST returned 403. Exact URLs and SHA-256: artwork-sources.json. Alpha cropping preserves natural aspect ratio; original PNGs are unmodified. Character/artwork rights remain with their respective rights holders.

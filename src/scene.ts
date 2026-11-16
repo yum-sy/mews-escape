@@ -1,3 +1,4 @@
+import ARTWORK from './artwork-frames.json';
 import {techniqueIcon,techniqueBadge,moveHint,stableMarkup} from './technique-icons';
 import {symbol,paintHealth} from './hud-symbols';
 import {arenaView} from './viewport';
@@ -42,10 +43,10 @@ export class LabScene extends Phaser.Scene{
  menu=()=>{};roomDecor!:Phaser.GameObjects.Container;blocks:Block[]=[];roomClock=0;drain=0;noteTime=0;toxic=0;toxicTick=0;hazardSlow=0;
  pools:{shape:Phaser.GameObjects.Arc;x:number;y:number;r:number;age:number}[]=[];
  env:{shape:Phaser.GameObjects.Rectangle|Phaser.GameObjects.Arc;kind:'laser'|'gas'|'electric';x:number;y:number;r:number;offset:number}[]=[];
- preload(){Object.keys(SPECIES).forEach(key=>this.load.image(key,`./assets/${key}.png`));this.load.image('tiles','./assets/lab-tiles.png');this.load.on('loaderror',()=>{document.getElementById('modal-copy')!.textContent='리소스를 불러오지 못했습니다. 페이지를 새로고침해 주세요.'})}
+ preload(){Object.entries(ARTWORK).forEach(([key,art])=>this.load.image(key,`./assets/${art.file}`));this.load.image('tiles','./assets/lab-tiles.png');this.load.on('loaderror',()=>{document.getElementById('modal-copy')!.textContent='리소스를 불러오지 못했습니다. 페이지를 새로고침해 주세요.'})}
  create(){
   const fit=()=>{const v=arenaView(this.scale.width,this.scale.height);this.cameras.main.setZoom(v.zoom).centerOn(v.x,v.y);document.documentElement.style.setProperty('--arena-inset',`${v.left}px`)};fit();this.scale.on('resize',fit);this.events.once('shutdown',()=>this.scale.off('resize',fit));
-  for(const [key,data] of Object.entries(SPECIES)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
+  for(const [key,data] of Object.entries(ARTWORK)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
   this.buildRoom();this.lab=new LabPresentation(this);this.effects=new CombatEffects(this);this.roomDecor=this.add.container(0,0).setDepth(3);
 
   this.terminal=this.add.text(560,410,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#a6dfd5',align:'center'}).setOrigin(.5).setDepth(6);

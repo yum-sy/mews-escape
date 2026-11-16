@@ -9,6 +9,69 @@
     "sha256": "9991aee5181178b604b99aec636533b0c5a52a321ce246dd3b9c33243a342a64"
   },
   {
+    "id": 92,
+    "name": "gastly",
+    "api": "https://pokeapi.co/api/v2/pokemon/92/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/92.png",
+    "file": "gastly-artwork.png",
+    "sha256": "23c69f67ece1dd1724666a4bb94ebea14d53045c6f406faa2963db4f04bd5f4b"
+  },
+  {
+    "id": 41,
+    "name": "zubat",
+    "api": "https://pokeapi.co/api/v2/pokemon/41/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/41.png",
+    "file": "zubat-artwork.png",
+    "sha256": "249cd65089f552f51c8da681bb13af267c01c99c2f9d70fdcb3415a82f7c6912"
+  },
+  {
+    "id": 109,
+    "name": "koffing",
+    "api": "https://pokeapi.co/api/v2/pokemon/109/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/109.png",
+    "file": "koffing-artwork.png",
+    "sha256": "fafb96d013ab7b44989cd86501e3ea78c43c42e0baec37a3c1da826859ec7cac"
+  },
+  {
+    "id": 88,
+    "name": "grimer",
+    "api": "https://pokeapi.co/api/v2/pokemon/88/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/88.png",
+    "file": "grimer-artwork.png",
+    "sha256": "1d032143f4d902a6a26f8776d194ceb696e4aca1bee23fde512f8eb66d2e4b08"
+  },
+  {
+    "id": 228,
+    "name": "houndour",
+    "api": "https://pokeapi.co/api/v2/pokemon/228/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/228.png",
+    "file": "houndour-artwork.png",
+    "sha256": "1a2c2859e415d3b60e156a0f31f5399e1d5af9e49f23296df5b5f0283d41b2e9"
+  },
+  {
+    "id": 353,
+    "name": "shuppet",
+    "api": "https://pokeapi.co/api/v2/pokemon/353/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/353.png",
+    "file": "shuppet-artwork.png",
+    "sha256": "0aef2f3dd73007a798ba0b7529cf700e2b78f0926e50a1da257a01da1ce491c1"
+  },
+  {
+    "id": 94,
+    "name": "gengar",
+    "api": "https://pokeapi.co/api/v2/pokemon/94/",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png",
+    "file": "gengar-artwork.png",
+    "sha256": "b6549b80537676fcf4a589c8853b38cce42f42b5f707bbe2e63797666175cf06"
+  },
+  {
     "id": 150,
     "name": "mewtwo",
     "api": "https://pokeapi.co/api/v2/pokemon/150/",

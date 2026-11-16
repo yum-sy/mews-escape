@@ -1,0 +1,83 @@
+{
+  "mew": {
+    "file": "mew-artwork.png",
+    "bounds": [
+      25,
+      22,
+      450,
+      453
+    ]
+  },
+  "gastly": {
+    "file": "gastly-artwork.png",
+    "bounds": [
+      22,
+      23,
+      453,
+      452
+    ]
+  },
+  "zubat": {
+    "file": "zubat-artwork.png",
+    "bounds": [
+      22,
+      33,
+      453,
+      441
+    ]
+  },
+  "koffing": {
+    "file": "koffing-artwork.png",
+    "bounds": [
+      22,
+      57,
+      453,
+      418
+    ]
+  },
+  "grimer": {
+    "file": "grimer-artwork.png",
+    "bounds": [
+      22,
+      89,
+      453,
+      386
+    ]
+  },
+  "houndour": {
+    "file": "houndour-artwork.png",
+    "bounds": [
+      61,
+      22,
+      414,
+      453
+    ]
+  },
+  "shuppet": {
+    "file": "shuppet-artwork.png",
+    "bounds": [
+      55,
+      22,
+      420,
+      453
+    ]
+  },
+  "gengar": {
+    "file": "gengar-artwork.png",
+    "bounds": [
+      26,
+      22,
+      448,
+      453
+    ]
+  },
+  "mewtwo": {
+    "file": "mewtwo-artwork.png",
+    "bounds": [
+      61,
+      22,
+      414,
+      453
+    ]
+  }
+}
