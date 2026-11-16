@@ -1,5 +1,7 @@
 export function healthState(hp:number,max:number){const value=Math.max(0,Math.min(max,hp)),ratio=max>0?value/max:0;return{value,ratio,tone:ratio<=.3?'danger':ratio<=.6?'warning':'healthy'}}
 const paths:Record<string,string>={
+ empty:'M5 5h14v14H5z',
+ monster:'M4 9 3 3l6 4h6l6-4-1 6v7l-5 5H9l-5-5zM7 11l3 2m7-2-3 2M9 17h6',
  map:'M2 5 8 2l8 3 6-3v17l-6 3-8-3-6 3zM8 2v17M16 5v17',
  crate:'M4 4h16v16H4zM4 4l16 16M20 4 4 20',
  boss:'m3 7 4 4 5-7 5 7 4-4-2 13H5z',

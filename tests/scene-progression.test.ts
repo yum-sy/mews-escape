@@ -71,11 +71,16 @@ test('active traps hurt and recoil both sides once, then respect recovery and di
  update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);assert.notEqual(s.player.y,350);assert.ok(sprite.x>565);s.player.setPosition(560,350);sprite.setPosition(565,350);for(let i=0;i<30;i++)update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);roomEnvironment(s.run.room).powerOff=true;s.inv=0;enemy.trapInv=0;update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);
 });
 
-test('first-pattern help freezes play until confirmation and is not repeated in a new session',()=>{
- const data=new Map<string,string>(),storage={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v)},removeItem:(k:string)=>{data.delete(k)}};const {scene:s,element}=harness();s.hints=new PatternHints(storage);let updates=0;s.updateEnemies=()=>updates++;s.offerHint('beam');assert.equal(s.state,'hint');s.update(0,32);s.hurt({x:1,y:0});assert.equal(updates,0);assert.equal(s.hp,6);element('hint-confirm').onclick();assert.equal(s.state,'playing');assert.equal(element('pattern-hint').hidden,true);s.hints=new PatternHints(storage);s.offerHint('beam');assert.equal(s.state,'playing');
+test('first attack warnings stay live, keep controls active and never create a confirmation dialog',()=>{
+ const {scene:s,element}=harness();let shown=0,updates=0,resets=0;s.telegraphs={show(){shown++},update(){}};s.controls.reset=()=>resets++;s.updateEnemies=()=>updates++;s.startDelay=0;const hp=s.hp;s.warn(300,300,40,{cue:'aim',directions:[{x:1,y:0}]});s.update(0,16);s.hurt({x:1,y:0});assert.equal(s.state,'playing');assert.equal(shown,1);assert.ok(updates>0);assert.equal(resets,0);assert.equal(s.hp,hp-1);assert.equal(element('hint-confirm').onclick,undefined);
 });
 
 test('actual scene interaction enters cache and depth, then returns without advancing the main floor',()=>{
  const {scene:s}=harness();s.run.floor=4;s.run.rooms=roomsForFloor(s.run.seed,4);s.run.keys=3;for(const r of s.run.rooms.slice(0,2)){r.visited=true;r.cleared=true;r.environment={broken:0,powerOff:false,recordRead:true}}
  s.player.setPosition(230,200);s.interact();assert.equal(s.run.branch,'cache');assert.equal(s.state,'playing');assert.equal(s.enemies.length,0);s.run.openReward();s.run.choose(s.run.choices.find((m:any)=>m.id!=='survey').id);s.startDelay=0;s.player.setPosition(560,500);s.interact();assert.equal(s.run.branch,'depth');assert.equal(s.run.keys,2);assert.equal(s.state,'playing');s.startDelay=0;s.player.setPosition(230,200);s.interact();assert.equal(s.run.branch,null);assert.equal(s.run.floor,4);assert.equal(s.run.current,0);assert.equal(s.run.moves.length,1);assert.equal(s.run.secretAvailable,false);
+});
+
+test('both elite bosses must die before room clear and Mewtwo inherits alert HP',()=>{
+ const {scene:s}=harness();s.run.floor=4;s.run.rooms=roomsForFloor(151,4);s.run.keys=4;for(const r of s.run.rooms.slice(0,2)){r.visited=true;r.cleared=true;r.environment={broken:0,recordRead:true,powerOff:false}}s.run.enterSecret();s.run.openReward();s.run.skipReward();s.run.enterDepth();s.run.current=2;s.run.room.visited=true;s.enterRoom('left');assert.equal(s.enemies.length,2);s.startDelay=0;s.hitEnemy(s.enemies[0],1e6);s.update(0,16);assert.equal(s.run.room.cleared,false);s.hitEnemy(s.enemies[0],1e6);s.update(0,16);assert.equal(s.run.room.cleared,true);
+ s.run=new Run(151);s.run.threat=4;s.run.floor=1;s.run.rooms=roomsForFloor(151,1);s.finalPhase=1;s.enterRoom();assert.equal(s.enemies[0].maxHp,Math.round(FINAL_HP[0]*1.2));
 });

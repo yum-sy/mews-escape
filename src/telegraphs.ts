@@ -22,11 +22,8 @@ export class Telegraphs{
    const tip=m.arrow;g.fillStyle(color,1);g.fillTriangle(d.x*length,d.y*length,d.x*(length-tip*2)-d.y*tip,d.y*(length-tip*2)+d.x*tip,d.x*(length-tip*2)+d.y*tip,d.y*(length-tip*2)-d.x*tip);
    if(w.tracking){const at=length*.67;g.lineStyle(m.line,color,1);g.lineBetween(d.x*at-d.y*10,d.y*at+d.x*10,d.x*(at+13)-d.y*20,d.y*(at+13)+d.x*20)}
   }
-  const label=w.label??(w.tracking?'출현 · 추적탄':{rush:'돌진',burst:w.kind?'출현 · 방사':'방사 공격',teleport:'이동 예고',aim:'발사 예고',notice:'!',phase:'패턴 변화',pool:'독 분출'}[w.cue??'aim']);
-  const text=s.add.text(0,w.cue==='notice'?0:-w.r-24*m.fontScale,label,{fontFamily:'sans-serif',fontSize:w.cue==='notice'?'23px':'13px',color:w.tracking?'#f4c6ff':'#ffe0a7',backgroundColor:'#14202ae8',padding:{x:4,y:2},stroke:'#14202a',strokeThickness:2}).setOrigin(.5).setScale(m.fontScale);
-  const view=s.cameras.main.worldView,pad=8*m.fontScale; // Keep labels readable near arena edges.
-  text.x=Phaser.Math.Clamp(w.x,view.left+text.displayWidth/2+pad,view.right-text.displayWidth/2-pad)-w.x;
-  text.y=Math.max(text.y,view.top+text.displayHeight/2+pad-w.y);root.add(text);
+  if(w.cue==='notice')root.add(s.add.text(0,0,'!',{fontSize:'23px',color:'#ffe0a7',stroke:'#14202a',strokeThickness:3}).setOrigin(.5).setScale(m.fontScale));
+  if(w.cue==='phase'){g.lineStyle(m.line,color,.9);g.strokeCircle(0,0,w.r);g.strokeCircle(0,0,w.r+10)}
   this.cues.push({root,ghost,left:duration,total:duration});
  }
  update(dt:number){for(const c of this.cues){c.left-=dt;c.ghost?.setAlpha(.3+.4*(1-Math.max(0,c.left)/c.total))}this.cues=this.cues.filter(c=>{if(c.left<=0){c.root.destroy(true);return false}return true})}
