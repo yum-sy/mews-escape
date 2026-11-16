@@ -9,7 +9,7 @@ export const PATTERN_HINTS={
  tracking:{title:'추적탄',text:'보라색 탄은 잠깐 뮤를 따라 꺾입니다. 멈추지 말고 옆으로 크게 돌아 피하세요.',icon:'↪ ↪'},
  beam:{title:'빔 공격',text:'길게 표시된 띠가 곧 위험해집니다. 띠를 가로질러 바깥으로 빠져나오세요.',icon:'║ →'},
  pool:{title:'독 분출',text:'빗금 친 구역에 독이 퍼집니다. 테두리 밖으로 이동하세요.',icon:'⊗ →'},
- phase:{title:'패턴 변화',text:'보스가 잠시 멈춘 뒤 더 많은 탄을 발사합니다. 다음 화살표를 확인하세요.',icon:'Ⅱ → ✦'},
+ phase:{title:'패턴 변화',text:'보스가 잠시 멈춘 뒤 공격이 강해집니다. 다음 방향·범위 예고를 확인하세요.',icon:'Ⅱ → ✦'},
  trap:{title:'연구소 함정',text:'노란 예고 뒤에 장치가 작동합니다. 적도 피해를 받으니 위험 구역으로 유인할 수 있어요.',icon:'⚠ →'},
 } as const;
 export type PatternId=keyof typeof PATTERN_HINTS;

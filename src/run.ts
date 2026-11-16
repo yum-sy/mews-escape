@@ -1,3 +1,4 @@
+import {bossForFloor} from './boss-roster';
 import {doorBlockReason} from './progression';
 import {generateDungeon,exitReady,enemyLayout,type DungeonRoom,type Direction} from './dungeon';
 import {composeAttack,MOVES} from './moves';
@@ -5,7 +6,7 @@ import {roomReward,itemOffers} from './rewards';
 import {difficulty} from './scaling';
 export class Run{
  keys=1;mapFound=false;rooms;current=0;moves:string[]=[];floor=6;
- constructor(public seed:number){this.rooms=generateDungeon(seed)}
+ constructor(public seed:number){this.rooms=roomsForFloor(seed,6)}
  get tuning(){return difficulty(this.floor)}
  ascend(){if(!this.canExit||this.floor<=1)return false;this.floor--;this.mapFound=false;this.current=0;this.rooms=roomsForFloor(this.seed,this.floor);return true}
  get room(){return this.rooms[this.current]}
@@ -24,7 +25,7 @@ export class Run{
 
 export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{
  if(floor===1)return[{id:0,x:0,y:0,kind:'boss',doors:{},visited:true,cleared:false,rewardTaken:false,seed}];
- return generateDungeon((seed+Math.imul(6-floor,0x9e3779b1))>>>0,difficulty(floor).combatCount);
+ const rooms=generateDungeon((seed+Math.imul(6-floor,0x9e3779b1))>>>0,difficulty(floor).combatCount);rooms.find(r=>r.kind==='boss')!.boss=bossForFloor(seed,floor);return rooms;
 }
 
 export function roomEnemies(room:DungeonRoom,floor:number):ReturnType<typeof enemyLayout>{

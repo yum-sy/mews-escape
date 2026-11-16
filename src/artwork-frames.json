@@ -79,5 +79,41 @@
       414,
       453
     ]
+  },
+  "weezing": {
+    "file": "weezing-artwork.png",
+    "bounds": [
+      22,
+      54,
+      453,
+      420
+    ]
+  },
+  "muk": {
+    "file": "muk-artwork.png",
+    "bounds": [
+      22,
+      128,
+      453,
+      346
+    ]
+  },
+  "houndoom": {
+    "file": "houndoom-artwork.png",
+    "bounds": [
+      32,
+      22,
+      443,
+      453
+    ]
+  },
+  "banette": {
+    "file": "banette-artwork.png",
+    "bounds": [
+      22,
+      34,
+      453,
+      440
+    ]
   }
 }

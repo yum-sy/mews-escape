@@ -79,5 +79,45 @@
     "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
     "file": "mewtwo-artwork.png",
     "sha256": "d99adeb9b4523073ca218a6f472ea5b602b047ccd8af8dea6fa7ae051f80366a"
+  },
+  {
+    "id": 110,
+    "name": "weezing",
+    "api": "https://pokeapi.co/api/v2/pokemon/110/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/110/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/110.png",
+    "file": "weezing-artwork.png",
+    "sha256": "2ea5a510c378b6fa2a0fe042bb2cb38ad13c0be17346fd3384acf46544cb9b34"
+  },
+  {
+    "id": 89,
+    "name": "muk",
+    "api": "https://pokeapi.co/api/v2/pokemon/89/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/89/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/89.png",
+    "file": "muk-artwork.png",
+    "sha256": "bbc4d735100cbfdb1e2cb17669d82430d930abe4b3d779de6b679590a68c15f6"
+  },
+  {
+    "id": 229,
+    "name": "houndoom",
+    "api": "https://pokeapi.co/api/v2/pokemon/229/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/229/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/229.png",
+    "file": "houndoom-artwork.png",
+    "sha256": "9e1244e7f417cbb7c45c35681544989da2f3fa7df3a9c7135e0cb55c711590f0"
+  },
+  {
+    "id": 354,
+    "name": "banette",
+    "api": "https://pokeapi.co/api/v2/pokemon/354/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/354/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/354.png",
+    "file": "banette-artwork.png",
+    "sha256": "87118eb5533d59b822014f09330221a4227c632b88a4241b764c45d5ef614b40"
   }
 ]

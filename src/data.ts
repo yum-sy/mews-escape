@@ -8,6 +8,10 @@ export const ENEMIES={
  houndour:{name:'델빌',hp:9,speed:94,radius:21,flying:false},
  shuppet:{name:'어둠대신',hp:7,speed:98,radius:19,flying:true},
  mewtwo:{name:'뮤츠',hp:600,speed:48,radius:36,flying:true},
+ weezing:{name:'또도가스',hp:220,speed:35,radius:30,flying:true},
+ muk:{name:'질뻐기',hp:220,speed:35,radius:30,flying:false},
+ houndoom:{name:'헬가',hp:220,speed:48,radius:30,flying:false},
+ banette:{name:'다크펫',hp:220,speed:48,radius:28,flying:true},
  gengar:{name:'팬텀',hp:220,speed:60,radius:32,flying:true},
 };
 export type Kind=keyof typeof ENEMIES;

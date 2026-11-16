@@ -97,5 +97,49 @@
       85,
       83
     ]
+  },
+  "weezing": {
+    "id": 110,
+    "heightDm": 12,
+    "weightHg": 95,
+    "bounds": [
+      22,
+      54,
+      453,
+      420
+    ]
+  },
+  "muk": {
+    "id": 89,
+    "heightDm": 12,
+    "weightHg": 300,
+    "bounds": [
+      22,
+      128,
+      453,
+      346
+    ]
+  },
+  "houndoom": {
+    "id": 229,
+    "heightDm": 14,
+    "weightHg": 350,
+    "bounds": [
+      32,
+      22,
+      443,
+      453
+    ]
+  },
+  "banette": {
+    "id": 354,
+    "heightDm": 11,
+    "weightHg": 125,
+    "bounds": [
+      22,
+      34,
+      453,
+      440
+    ]
   }
 }

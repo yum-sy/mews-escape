@@ -4,11 +4,11 @@ import {fusionLook} from './techniques';
 export function objective(run:Run,entryGrace=false):string{
  if(entryGrace&&!run.room.cleared)return'적이 뮤를 알아차리는 중 · 잠시 후 함께 움직입니다';
  if(run.floor===1)return run.room.cleared?'열린 문 너머로, 함께':'뮤츠를 넘어 지상으로';
- if(!run.room.cleared)return run.room.kind==='boss'?'팬텀을 진정시키고 승강기 확보':'방 안의 위협을 모두 제압';
+ if(!run.room.cleared)return run.room.kind==='boss'?'보스를 진정시키고 승강기 확보':'방 안의 위협을 모두 제압';
  if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 승강기':'승강기를 타고 B'+(run.floor-1)+'로';
  if(run.rewardPending&&run.rewardKind==='treasure')return run.room.opened?'중앙 캡슐에서 기술 확인':run.keys?'열쇠 1개로 중앙 캡슐 열기':'열쇠가 필요합니다 · 다른 방 탐험';
  const remaining=run.rooms.filter(r=>r.kind==='combat'&&!r.cleared).length;
- return remaining?`열린 문으로 탐험 · 남은 전투방 ${remaining}`:'팬텀 구역의 봉인이 풀렸습니다';
+ return remaining?`열린 문으로 탐험 · 남은 전투방 ${remaining}`:'보스 구역의 봉인이 풀렸습니다';
 }
 export function attackTraits(a:Attack):string[]{
  const traits=[`${a.count}갈래`,a.pierce?`관통 ${a.pierce}`:''];
