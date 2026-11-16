@@ -91,3 +91,12 @@ body #interact{border:1px solid #ccecd0a0;background:#244a43ec;color:#e8fff1;fon
 body.touch-ui #interact{left:auto;right:176px;bottom:110px;transform:none;width:72px;height:60px;max-width:none;padding:6px;flex-direction:column;gap:2px;font-size:11px;z-index:3}
 @media(pointer:coarse){body #interact{left:auto;right:176px;bottom:110px;transform:none;width:72px;height:60px;max-width:none;padding:6px;flex-direction:column;gap:2px;font-size:11px;z-index:3}}
 @media(orientation:portrait){body.touch-ui #interact{right:32px;bottom:180px}@media(pointer:coarse){body #interact{right:32px;bottom:180px}}}
+
+/* Painted attack miniatures share the field props' ink and cel shading. */
+.painted-tech{background-image:url('/assets/techniques-v3.webp');background-size:500% 500%;background-repeat:no-repeat;width:36px;height:36px;flex-shrink:0;filter:drop-shadow(0 1px 1px #0007)}
+body .loadout .move-icon,body.touch-ui .loadout .move-icon{width:64px;height:62px;display:flex;flex-direction:column;justify-content:center;gap:2px;border:0;background:transparent}
+.move-icon .painted-tech{width:42px;height:42px}.move-name{display:block!important;font-size:10px!important;white-space:nowrap;color:#f2e9d7!important;line-height:1.1}
+.tech-badge{width:40px;height:40px;border:0;background:#263b46a0;border-radius:50%}.tech-badge .painted-tech{width:34px;height:34px}
+#objective{bottom:78px}body .loadout{bottom:6px}.reward-card{background:linear-gradient(145deg,#33454d,#1a2b37);border:2px solid #aaa990;border-radius:14px}.reward-form{order:-1;background:radial-gradient(ellipse,#b6c8bd30,transparent 70%);min-height:84px}.reward-form .painted-tech{width:76px;height:76px}.reward-card strong{color:#fff0cd}.reward-delta{font-size:12px!important}
+@media(orientation:portrait){#objective{bottom:238px}body .loadout,body.touch-ui .loadout{bottom:170px}}
+@media(max-height:500px) and (orientation:landscape){.reward-form{min-height:64px}.reward-form .painted-tech{width:60px;height:60px}.reward-card{gap:5px}.reward-option .reward-card{min-height:0}}

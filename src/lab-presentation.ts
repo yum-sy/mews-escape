@@ -4,10 +4,11 @@ import {roomReward} from './rewards';
 import {DIRECTIONS,type DungeonRoom,type Direction} from './dungeon';
 import {floorTheme,breakableProps,roomEnvironment,type Interaction} from './environment';
 export class LabPresentation{
+ private props!:Phaser.GameObjects.Container;private items!:Phaser.GameObjects.Container;private consoleArt?:Phaser.GameObjects.Image;private rewardArt?:Phaser.GameObjects.Image;
  private rewardLabel:Phaser.GameObjects.Text;private doors:Phaser.GameObjects.Graphics;private doorText=new Map<Direction,Phaser.GameObjects.Text>();private neighbors:DungeonRoom[]=[];private moves:readonly string[]=[];private doorStamp='';private doorOpen=new Map<Direction,number>();
  private base:Phaser.GameObjects.Container;private live:Phaser.GameObjects.Graphics;private clock=0;private reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;private room!:DungeonRoom;private floor=6;private cracks:Phaser.GameObjects.Graphics;private beams:Phaser.GameObjects.Graphics;
- constructor(private scene:Phaser.Scene){this.rewardLabel=scene.add.text(560,420,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#efd5e5',backgroundColor:'#101d29'}).setOrigin(.5).setDepth(8);this.doors=scene.add.graphics().setDepth(7);for(const dir of DIRECTIONS)this.doorText.set(dir,scene.add.text(0,0,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#d4e8e1',align:'center',backgroundColor:'#101d29'}).setOrigin(.5).setDepth(8));this.base=scene.add.container(0,0).setDepth(2);this.cracks=scene.add.graphics().setDepth(4);this.live=scene.add.graphics().setDepth(6);this.beams=scene.add.graphics().setDepth(8)}
- build(room:DungeonRoom,floor:number){this.room=room;this.floor=floor;this.doorOpen.clear();this.doorStamp='';this.clock=0;this.base.removeAll(true);const t=floorTheme(floor),s=this.scene,g=s.add.graphics();this.base.add(g);
+ constructor(private scene:Phaser.Scene){this.props=scene.add.container(0,0).setDepth(6);this.items=scene.add.container(0,0).setDepth(7);this.rewardLabel=scene.add.text(560,420,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#efd5e5',backgroundColor:'#101d29'}).setOrigin(.5).setDepth(8);this.doors=scene.add.graphics().setDepth(7);for(const dir of DIRECTIONS)this.doorText.set(dir,scene.add.text(0,0,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#d4e8e1',align:'center',backgroundColor:'#101d29'}).setOrigin(.5).setDepth(8));this.base=scene.add.container(0,0).setDepth(2);this.cracks=scene.add.graphics().setDepth(4);this.live=scene.add.graphics().setDepth(6);this.beams=scene.add.graphics().setDepth(8)}
+ build(room:DungeonRoom,floor:number){this.room=room;this.floor=floor;this.doorOpen.clear();this.doorStamp='';this.clock=0;this.base.removeAll(true);this.items.removeAll(true);this.consoleArt=undefined;this.rewardArt=undefined;const t=floorTheme(floor),s=this.scene,g=s.add.graphics();this.base.add(g);
   g.fillStyle(t.floor,.48);g.fillRect(80,140,960,450);
   // Service lanes and inspection grates provide orientation without covering hazards.
   for(const x of [170,890]){g.fillStyle(0x060c13,.35);g.fillRect(x,148,60,432);g.lineStyle(1,t.light,.09);for(let y=150;y<580;y+=12)g.lineBetween(x,y,x+60,y)}
@@ -25,7 +26,8 @@ export class LabPresentation{
   if(floor<=3){g.lineStyle(3,0x080d15,.65);g.strokePoints([{x:820,y:560},{x:790,y:520},{x:815,y:492},{x:766,y:460},{x:784,y:425}],false);g.lineStyle(1,t.light,.15);g.lineBetween(815,492,850,475)}
   this.base.add(s.add.text(560,151,`B${floor} / ${t.sign}`,{fontFamily:'monospace',fontSize:'10px',color:'#b5c6d0'}).setOrigin(.5).setAlpha(.65));
   if(room.kind==='boss'&&floor>1){g.fillStyle(0x060a12,.8);g.fillRoundedRect(490,306,140,118,12);g.lineStyle(2,t.light,.35);g.strokeRoundedRect(490,306,140,118,12);for(let i=0;i<4;i++){g.lineStyle(1,0x66778a,.3);g.lineBetween(503,325+i*25,617,325+i*25)}}
-  if(room.kind==='combat')this.base.add(s.add.text(880,252,'ϟ',{fontFamily:'sans-serif',fontSize:'14px',color:'#e9ce96'}).setOrigin(.5));
+  if(room.kind==='combat'){this.consoleArt=s.add.image(880,200,'lab-props','0').setDisplaySize(116,116);this.items.add(this.consoleArt)}
+  const reward=roomReward(room,floor);if(reward!=='none'){this.rewardArt=s.add.image(560,365,'lab-props',reward==='heart'?'5':reward==='key'?'6':'4').setDisplaySize(reward==='heart'?78:100,reward==='heart'?78:100).setVisible(false);this.items.add(this.rewardArt)}
   this.refreshProps();
  }
  setDoors(rooms:DungeonRoom[],moves:readonly string[]=[]){this.neighbors=rooms;this.moves=moves;this.doorStamp=''}
@@ -47,20 +49,19 @@ export class LabPresentation{
    const q=point(0,dir==='left'||dir==='right'?100:67);label.setPosition(q.x,q.y);label.setText(!unlocked?'':({up:'↑',down:'↓',left:'←',right:'→'}[dir]));label.setColor(unlocked?'#b4f3d9':'#efb48b');
   }
  }
- refreshProps(){const g=this.cracks;g.clear();if(!this.room)return;const state=roomEnvironment(this.room);
+ refreshProps(){const g=this.cracks;g.clear();this.props.removeAll(true);if(!this.room)return;const state=roomEnvironment(this.room);
   for(const p of breakableProps(this.room)){if(state.broken&(1<<p.id)){g.fillStyle(0x04090f,.4);g.fillEllipse(p.x+5,p.y+20,68,25);for(let i=0;i<9;i++){const x=p.x+Math.sin(i*9+p.id)*30,y=p.y+Math.cos(i*7)*18;g.fillStyle(i%2?0x96b5b4:0x526373,.8);g.fillTriangle(x,y,x+10,y+4,x+3,y-7)}continue}
-   g.fillStyle(0x020609,.5);g.fillEllipse(p.x+12,p.y+29,74,27);
-   if(p.kind==='crate'){g.fillStyle(0x293d4e,1);g.fillPoints([{x:p.x-28,y:p.y-18},{x:p.x+20,y:p.y-25},{x:p.x+30,y:p.y-14},{x:p.x+30,y:p.y+27},{x:p.x-20,y:p.y+32},{x:p.x-28,y:p.y+20}],true);g.fillStyle(0x6c8791,1);g.fillRect(p.x-26,p.y-17,49,42);g.fillStyle(0x9aafb0,1);g.fillPoints([{x:p.x-28,y:p.y-18},{x:p.x-19,y:p.y-27},{x:p.x+30,y:p.y-27},{x:p.x+22,y:p.y-18}],true);g.lineStyle(4,0x384f60,1);g.lineBetween(p.x-22,p.y-12,p.x+18,p.y+20);g.lineBetween(p.x+18,p.y-12,p.x-22,p.y+20);g.lineStyle(2,0xc0d3cc,.6);g.strokeRect(p.x-26,p.y-17,49,42)}
-   else{g.fillStyle(0x365564,1);g.fillRect(p.x-24,p.y-22,48,49);g.fillEllipse(p.x,p.y+26,48,17);g.fillStyle(0x8faeaf,1);g.fillEllipse(p.x,p.y-22,48,18);g.lineStyle(3,0xb7d4cc,.7);g.strokeEllipse(p.x,p.y-22,48,18);g.lineStyle(3,0x213c4b,1);g.strokeEllipse(p.x,p.y+11,48,14);g.fillStyle(0xe8c57c,1);g.fillTriangle(p.x,p.y-11,p.x-12,p.y+9,p.x+12,p.y+9);g.lineStyle(3,0x3b3425,1);g.lineBetween(p.x,p.y-5,p.x,p.y+2)}
+   this.props.add(this.scene.add.image(p.x,p.y,'lab-props',p.kind==='crate'?'7':'8').setDisplaySize(78,78));
   }
  }
+
  update(dt:number,active:Interaction|undefined,pending:boolean,cleared:boolean){if(!this.room)return;this.clock+=dt;this.drawDoors(dt);const t=floorTheme(this.floor),state=roomEnvironment(this.room),g=this.live;g.clear();this.beams.clear();const pulse=.6+Math.sin(this.clock*2)*.15;
   for(const x of [155,350,770,965]){g.fillStyle(t.light,state.powerOff?.025:.055);g.fillTriangle(x-27,145,x-75,245,x+75,245);g.fillStyle(t.light,state.powerOff?.18:pulse*.75);g.fillRect(x-20,142,40,3)}
   // Dust drifts slowly; the array is fixed and independent of frame rate.
   if(!this.reducedMotion)for(let i=0;i<18;i++){const x=115+(i*137%870)+Math.sin(this.clock*.2+i)*9,y=180+(i*79+this.clock*4)%370;g.fillStyle(t.light,.16);g.fillCircle(x,y,1)}
-  if(this.room.kind==='combat'){g.fillStyle(0x07121c,.95);g.fillRoundedRect(851,163,58,70,5);g.lineStyle(2,state.powerOff?0x526774:0xe6bc79,.8);g.strokeRoundedRect(851,163,58,70,5);g.lineStyle(7,state.powerOff?0x526774:0xe6bc79,1);g.lineBetween(880,180,880,state.powerOff?215:198);g.fillStyle(state.powerOff?0x526774:0xf6d48b,1);g.fillRoundedRect(868,state.powerOff?211:192,24,10,3)}
-  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'+1',key:'⚿',treasure:this.room.opened?'◇':'⚿ 1 → ◇',boss:'⚿ 1 → ◇'}[reward]);
-  if(pending){const y=365+Math.sin(this.clock*3)*3;g.fillStyle(0x000000,.3);g.fillEllipse(560,398,90,24);g.lineStyle(2,0xf4b8df,pulse);g.strokeEllipse(560,398,88,24);g.fillStyle(0x203749,1);g.fillRoundedRect(525,y-29,70,58,16);g.lineStyle(2,0xf4b8df,.9);g.strokeRoundedRect(525,y-29,70,58,16);g.fillStyle(0xf4b8df,.85);if(reward==='key'){g.lineStyle(4,0xffd675,1);g.strokeCircle(550,y,8);g.lineBetween(558,y,578,y);g.lineBetween(570,y,570,y+7);g.lineBetween(577,y,577,y+7)}else if(reward==='heart'){g.fillStyle(0xf8a5bf,1);g.fillRect(555,y-13,10,26);g.fillRect(547,y-5,26,10)}else{g.fillCircle(560,y,11)}this.beams.fillStyle(0xf4b8df,.045);this.beams.fillTriangle(560,290,530,385,590,385)}
+  this.consoleArt?.setTint(state.powerOff?0x758589:0xffffff);
+  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'회복약',key:'연구소 키',treasure:this.room.opened?'기술머신':'기술머신 · 열쇠 1',boss:'기술머신'}[reward]);
+  this.rewardArt?.setVisible(pending);if(pending){this.rewardArt?.setY(365+(this.reducedMotion?0:Math.sin(this.clock*2)*2));g.lineStyle(2,0xe5d2a5,pulse*.55);g.strokeEllipse(560,400,82,18)}
   if(this.room.kind==='boss'&&cleared&&this.floor>1&&!pending){g.lineStyle(3,t.light,pulse);g.strokeRoundedRect(495,310,130,110,10);for(let i=0;i<3;i++){const y=333+((this.clock*24+i*25)%65);g.lineStyle(2,t.light,.55);g.strokePoints([{x:545,y:y+6},{x:560,y},{x:575,y:y+6}],false)}}
   if(active){g.lineStyle(2,0xf6ead3,.8);g.strokeEllipse(active.x,active.y+22,66,16)}
  }

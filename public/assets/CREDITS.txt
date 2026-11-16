@@ -53,3 +53,6 @@ No reuse license or artist permission was verified. Not covered by this project'
 2026-11-16: Original supplied artwork restored at user request; production icons use crop, background and resizing only, without edge cleanup.
 
 2026-11-16 gameplay artwork upgrade: all nine species now use 475x475 official-artwork PNGs from PokeAPI/sprites. Existing Mew/Mewtwo files retained; seven additional files downloaded directly from the official repository because REST returned 403. Exact URLs and SHA-256: artwork-sources.json. Alpha cropping preserves natural aspect ratio; original PNGs are unmodified. Character/artwork rights remain with their respective rights holders.
+
+2026-11-16 laboratory/technique art revision 3:
+lab-props-v3.png and techniques-v3.png are project-generated sprite atlases made with the built-in image_gen tool. Not official Pokemon assets. Prompts: docs/art-v3-prompts.json. Pokemon-inspired fan-game art; existing official character artwork and @hitofutarai icon remain unmodified. Original transparent PNGs retained; WebP delivery copies encoded at quality 90 by scripts/build-game-art-webp.py.
