@@ -80,3 +80,14 @@ body .loadout .move-icon,body.touch-ui .loadout .move-icon{width:40px;height:40p
 
 /* Short edge tabs show observed door directions without revealing destinations. */
 .map-cell{width:18px;height:18px;overflow:visible}.map-door{position:absolute;display:block;background:#add8cc;pointer-events:none;border-radius:1px;z-index:1}.map-door.up,.map-door.down{width:3px;height:6px;left:50%;transform:translateX(-50%)}.map-door.left,.map-door.right{width:6px;height:3px;top:50%;transform:translateY(-50%)}.map-door.up{top:-6px}.map-door.down{bottom:-6px}.map-door.left{left:-6px}.map-door.right{right:-6px}.map-cell.current .map-door{background:#ffe0ef}
+
+/* Clear roles: objective and learned moves are readouts; the labelled action is by the right thumb. */
+.hud-caption{font-size:10px!important;color:#a7bbc8;letter-spacing:0;white-space:nowrap}
+body .loadout>.hud-caption{display:inline!important}.loadout .move-icon,.tech-badge{border-style:dashed;background:#10202e66}
+#objective{font-size:11px;white-space:nowrap;gap:5px}#objective .hud-symbol{width:18px;height:18px}
+.attack-reticle{width:34px;height:34px;pointer-events:none;color:#ffe0f1;filter:drop-shadow(0 1px 2px #122133)}
+.stick.attack i{display:grid;place-items:center;background:#7d517b70;border-color:#f0c6e799}.stick.attack span{font-size:11px;opacity:.9}.stick.attack i>*{pointer-events:none}
+body #interact{border:1px solid #ccecd0a0;background:#244a43ec;color:#e8fff1;font-weight:600;touch-action:none;box-shadow:0 2px 10px #0005}
+body.touch-ui #interact{left:auto;right:176px;bottom:110px;transform:none;width:72px;height:60px;max-width:none;padding:6px;flex-direction:column;gap:2px;font-size:11px;z-index:3}
+@media(pointer:coarse){body #interact{left:auto;right:176px;bottom:110px;transform:none;width:72px;height:60px;max-width:none;padding:6px;flex-direction:column;gap:2px;font-size:11px;z-index:3}}
+@media(orientation:portrait){body.touch-ui #interact{right:32px;bottom:180px}@media(pointer:coarse){body #interact{right:32px;bottom:180px}}}
