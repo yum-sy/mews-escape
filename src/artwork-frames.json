@@ -206,24 +206,6 @@
       453
     ]
   },
-  "sandshrew": {
-    "file": "sandshrew-artwork.webp",
-    "bounds": [
-      41,
-      22,
-      434,
-      453
-    ]
-  },
-  "sandslash": {
-    "file": "sandslash-artwork.webp",
-    "bounds": [
-      22,
-      31,
-      453,
-      444
-    ]
-  },
   "abra": {
     "file": "abra-artwork.webp",
     "bounds": [
@@ -239,42 +221,6 @@
       53,
       22,
       421,
-      453
-    ]
-  },
-  "slowpoke": {
-    "file": "slowpoke-artwork.webp",
-    "bounds": [
-      22,
-      64,
-      453,
-      411
-    ]
-  },
-  "slowbro": {
-    "file": "slowbro-artwork.webp",
-    "bounds": [
-      42,
-      22,
-      433,
-      453
-    ]
-  },
-  "voltorb": {
-    "file": "voltorb-artwork.webp",
-    "bounds": [
-      22,
-      27,
-      453,
-      448
-    ]
-  },
-  "electrode": {
-    "file": "electrode-artwork.webp",
-    "bounds": [
-      23,
-      22,
-      452,
       453
     ]
   },
@@ -303,33 +249,6 @@
       55,
       453,
       420
-    ]
-  },
-  "porygon": {
-    "file": "porygon-artwork.webp",
-    "bounds": [
-      32,
-      22,
-      443,
-      453
-    ]
-  },
-  "wooper": {
-    "file": "wooper-artwork.webp",
-    "bounds": [
-      22,
-      47,
-      453,
-      427
-    ]
-  },
-  "quagsire": {
-    "file": "quagsire-artwork.webp",
-    "bounds": [
-      55,
-      22,
-      419,
-      453
     ]
   },
   "murkrow": {
@@ -368,21 +287,102 @@
       453
     ]
   },
-  "baltoy": {
-    "file": "baltoy-artwork.webp",
+  "skorupi": {
+    "file": "skorupi-artwork.webp",
     "bounds": [
       22,
-      22,
+      47,
       453,
+      428
+    ]
+  },
+  "drapion": {
+    "file": "drapion-artwork.webp",
+    "bounds": [
+      22,
+      116,
+      453,
+      358
+    ]
+  },
+  "stunky": {
+    "file": "stunky-artwork.webp",
+    "bounds": [
+      22,
+      51,
+      453,
+      424
+    ]
+  },
+  "skuntank": {
+    "file": "skuntank-artwork.webp",
+    "bounds": [
+      22,
+      82,
+      453,
+      393
+    ]
+  },
+  "spinarak": {
+    "file": "spinarak-artwork.webp",
+    "bounds": [
+      22,
+      107,
+      453,
+      368
+    ]
+  },
+  "ariados": {
+    "file": "ariados-artwork.webp",
+    "bounds": [
+      22,
+      42,
+      453,
+      432
+    ]
+  },
+  "trubbish": {
+    "file": "trubbish-artwork.webp",
+    "bounds": [
+      22,
+      38,
+      453,
+      437
+    ]
+  },
+  "garbodor": {
+    "file": "garbodor-artwork.webp",
+    "bounds": [
+      22,
+      49,
+      453,
+      425
+    ]
+  },
+  "spiritomb": {
+    "file": "spiritomb-artwork.webp",
+    "bounds": [
+      22,
+      34,
+      453,
+      440
+    ]
+  },
+  "inkay": {
+    "file": "inkay-artwork.webp",
+    "bounds": [
+      34,
+      22,
+      440,
       453
     ]
   },
-  "bronzor": {
-    "file": "bronzor-artwork.webp",
+  "malamar": {
+    "file": "malamar-artwork.webp",
     "bounds": [
-      65,
+      54,
       22,
-      410,
+      420,
       453
     ]
   }

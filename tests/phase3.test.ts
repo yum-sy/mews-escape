@@ -25,7 +25,7 @@ test('boss cannot be entered early and cannot be bypassed for ascent',()=>{
 test('all normal species have executable attacks across different roles; boss intensifies below half HP',()=>{
  const brain=():Brain=>({x:400,y:300,hp:100,cooldown:0,charge:0,dir:{x:0,y:0},phase:1}),p={x:560,y:450};
  const shotCounts:number[]=[];
- for(const kind of NORMAL_KINDS){const b=brain(),target=['zubat','sandshrew','sandslash','murkrow'].includes(kind)?{x:400,y:450}:p,first=stepBrain(kind,b,target,.016);assert.ok(Number.isFinite(first.v.x));let actions=[...first.actions];for(let i=0;i<60;i++)actions.push(...stepBrain(kind,b,target,.016).actions);assert.ok(actions.length>0,kind);shotCounts.push(actions.filter(a=>a.type==='shot').length)}
+ for(const kind of NORMAL_KINDS){const b=brain(),target=['zubat','skorupi','drapion','murkrow'].includes(kind)?{x:400,y:450}:p,first=stepBrain(kind,b,target,.016);assert.ok(Number.isFinite(first.v.x));let actions=[...first.actions];for(let i=0;i<60;i++)actions.push(...stepBrain(kind,b,target,.016).actions);assert.ok(actions.length>0,kind);shotCounts.push(actions.filter(a=>a.type==='shot').length)}
  assert.ok(new Set(shotCounts).size>2);
  assert.equal(bossPhase(180),1);assert.equal(bossPhase(49),2);
  const b=brain();b.hp=40;let actions=stepBrain('gengar',b,p,.016).actions;assert.equal(actions[0].type,'phase');for(let i=0;i<160;i++)actions.push(...stepBrain('gengar',b,p,.016).actions);assert.equal(actions.filter(a=>a.type==='shot').length,12);assert.ok(actions.some(a=>a.type==='pool'));assert.ok(actions.findIndex(a=>a.type==='warn')<actions.findIndex(a=>a.type==='blink'));

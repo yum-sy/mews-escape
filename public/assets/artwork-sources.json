@@ -261,7 +261,8 @@
     "sha256": "6d1a14b1b658a37e766951d75636fc96b95431c4faca96deb6b6f85dfa5fd31d",
     "runtimeFile": "sandshrew-artwork.webp",
     "runtimeSha256": "e445f7ffe5e924ef922b6843cdeb6672461291653a7072c62bc54e75d8e729d4",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 28,
@@ -274,7 +275,8 @@
     "sha256": "071c435e09ac91450bcc5404c9a454521137ed2508629a052f33ad6dac87429a",
     "runtimeFile": "sandslash-artwork.webp",
     "runtimeSha256": "701e47eac92b3da917a98513576d3305e8088984c01a03157ea90c84bc935c66",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 63,
@@ -313,7 +315,8 @@
     "sha256": "e0802e526e073469aabd520014267a22f6120ccdccd9e580c0271788cd246708",
     "runtimeFile": "slowpoke-artwork.webp",
     "runtimeSha256": "49e2b49d2db58d23af05f057306facac74ed3b0bbfaf875d5fdf18f7160e26e9",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 80,
@@ -326,7 +329,8 @@
     "sha256": "78c59860688ec9c386afce52097d4f6ede75401f2bbb492e1a63fd50a0517e95",
     "runtimeFile": "slowbro-artwork.webp",
     "runtimeSha256": "3ebfbdf5dc9861a101843f1b28b1a999be6c76e60f514d1a79c5f7a80b2901f5",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 100,
@@ -339,7 +343,8 @@
     "sha256": "1e56de55241bdef6e6cdaa54a6ded9a92ef053b9bbf3c2ab501e0543d0a64826",
     "runtimeFile": "voltorb-artwork.webp",
     "runtimeSha256": "4ffa9a774f45770016059a034a88b81a19ac37737f21665caf5bfbb3b6da882e",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 101,
@@ -352,7 +357,8 @@
     "sha256": "53ba2223c23ef051a83f7ee4849754be796dc88835036f853e3949bac28ef5d0",
     "runtimeFile": "electrode-artwork.webp",
     "runtimeSha256": "b6f0e188b4100df7f5f077f182b560c76e23836557ddbd2d124945865a95a629",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 102,
@@ -404,7 +410,8 @@
     "sha256": "28a6c05c13e2a1f19dd4fea6e7f89b9ed639421c0f5937e7d6d726b4ce754c5a",
     "runtimeFile": "porygon-artwork.webp",
     "runtimeSha256": "2e745bca0f5f31d2433b02cb365cd76210b14690b8dd418960c66c2460620e65",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 194,
@@ -417,7 +424,8 @@
     "sha256": "25911b07e4a73988baa0ed305559ac63f12bec2a8f538189aa58a3a84c646fc2",
     "runtimeFile": "wooper-artwork.webp",
     "runtimeSha256": "f93fb5c6a64bdb7ece2d29fce165936aeced14b071e89623c2caaad0400c6da6",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 195,
@@ -430,7 +438,8 @@
     "sha256": "20433eb75bbed9a1d113ae24ba2b60b5ed5241026ae61cbc75ceaaaf448e76f6",
     "runtimeFile": "quagsire-artwork.webp",
     "runtimeSha256": "c22b6978346384d1158b43e0dcf3e868dffbb09699b50914b4238fbb93add5d9",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 198,
@@ -495,7 +504,8 @@
     "sha256": "5af47dbf81b1f58860e76ba9b8e8d6100c5076c6174cd02084a9c5a54ebbd84d",
     "runtimeFile": "baltoy-artwork.webp",
     "runtimeSha256": "4b436da30adc2576f809909a80f8e522482fbf328dd8c81528a221a6ce605474",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 436,
@@ -508,6 +518,150 @@
     "sha256": "58bf0b092d36c213b7ef712280a818dc6d818ecfa097dbb2e1cc9b52019a170b",
     "runtimeFile": "bronzor-artwork.webp",
     "runtimeSha256": "0be6cdd55d3225d5fc873801f0bddaaf6c87c801b347464595da77c7431f1321",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
+  },
+  {
+    "id": 451,
+    "name": "skorupi",
+    "api": "https://pokeapi.co/api/v2/pokemon/451/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/451/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/451.png",
+    "file": "skorupi-artwork.png",
+    "sha256": "127072f50aaa33d5ee86a765186bbf06510e7c5e0040ef93d680510c9b762e4c",
+    "runtimeFile": "skorupi-artwork.webp",
+    "runtimeSha256": "b2ea97abd194bd8be26a1940d8fb366bfbc17ab0b34072c860a4b67b573c5d2d",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 452,
+    "name": "drapion",
+    "api": "https://pokeapi.co/api/v2/pokemon/452/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/452/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/452.png",
+    "file": "drapion-artwork.png",
+    "sha256": "7e796c40975f208ab004755bfd9e833e646d0fdc2df86631a7e3922435136ecc",
+    "runtimeFile": "drapion-artwork.webp",
+    "runtimeSha256": "233c304399ed65504e0a6ed85e707af5e132891e9270628365db857354743dba",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 434,
+    "name": "stunky",
+    "api": "https://pokeapi.co/api/v2/pokemon/434/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/434/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/434.png",
+    "file": "stunky-artwork.png",
+    "sha256": "85c2f784c2c175510e10a3dd3889bb5405c6f69140be1aa7669e63273b282c43",
+    "runtimeFile": "stunky-artwork.webp",
+    "runtimeSha256": "e461007880183ec0a50a9235100b99b0cb83066da4a90ab90dec6759a1df98d1",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 435,
+    "name": "skuntank",
+    "api": "https://pokeapi.co/api/v2/pokemon/435/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/435/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/435.png",
+    "file": "skuntank-artwork.png",
+    "sha256": "a2400385722f865a9826c59cbb7b0eeeff9ea6e1a5c62a90996c8fe5942467e3",
+    "runtimeFile": "skuntank-artwork.webp",
+    "runtimeSha256": "1e089fcca88bcdcfdeb50703079a5b7233a6449fe2167275b2d90d8f70b95e29",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 167,
+    "name": "spinarak",
+    "api": "https://pokeapi.co/api/v2/pokemon/167/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/167/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/167.png",
+    "file": "spinarak-artwork.png",
+    "sha256": "8b4c42335475db7039edf15cfd3687c1d674542f688b266b0a6ff82cb4528fca",
+    "runtimeFile": "spinarak-artwork.webp",
+    "runtimeSha256": "4a48fc730c427f2a8c48a96b6b849277ce8dfe52a82747e4fc33fad0314aa3ff",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 168,
+    "name": "ariados",
+    "api": "https://pokeapi.co/api/v2/pokemon/168/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/168/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/168.png",
+    "file": "ariados-artwork.png",
+    "sha256": "7f84c37209cbd24f5bb894359172669102cd297d87dfa6f2d8efe3c711c5657f",
+    "runtimeFile": "ariados-artwork.webp",
+    "runtimeSha256": "7da705600a7f1cf984a73ae2c06e5687a2bd92cca468dbabb3d8aeced596d669",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 568,
+    "name": "trubbish",
+    "api": "https://pokeapi.co/api/v2/pokemon/568/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/568/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/568.png",
+    "file": "trubbish-artwork.png",
+    "sha256": "0a432a2e3c7d06f73d897d5cdb7a3ac0921194042c91e410ca570c67d876a935",
+    "runtimeFile": "trubbish-artwork.webp",
+    "runtimeSha256": "bdcf1f633c5de0df02685ece16ecc09b1ddeeef16cbd9764cfe4170204d3c622",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 569,
+    "name": "garbodor",
+    "api": "https://pokeapi.co/api/v2/pokemon/569/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/569/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/569.png",
+    "file": "garbodor-artwork.png",
+    "sha256": "89e02355cedd4ad5877030179bf34c085d1bba5835baff001a8f3e27bc640e0d",
+    "runtimeFile": "garbodor-artwork.webp",
+    "runtimeSha256": "ea261bb4d68d3d2cae7392762b7ade57f16367c404d56844e7c320069741e87e",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 442,
+    "name": "spiritomb",
+    "api": "https://pokeapi.co/api/v2/pokemon/442/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/442/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/442.png",
+    "file": "spiritomb-artwork.png",
+    "sha256": "96fe269ba07f74ff7da7dd553684f99d26e4398710ed400bc7fc1f1968f700fd",
+    "runtimeFile": "spiritomb-artwork.webp",
+    "runtimeSha256": "bf1fc637c062b11a7629be41ba2af28b4cf8eb55849180dce185048157ddef90",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 686,
+    "name": "inkay",
+    "api": "https://pokeapi.co/api/v2/pokemon/686/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/686/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/686.png",
+    "file": "inkay-artwork.png",
+    "sha256": "5d2eb1f9387b64f31ae8e8d8f7459ab4036478906a45cbde12ce527f93870cdc",
+    "runtimeFile": "inkay-artwork.webp",
+    "runtimeSha256": "aee6d139356966164a933344a352d0f3e901e67078911ca2c4b201d66df75506",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 687,
+    "name": "malamar",
+    "api": "https://pokeapi.co/api/v2/pokemon/687/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/687/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/687.png",
+    "file": "malamar-artwork.png",
+    "sha256": "81cf08a03b9498a91fff50dff2593f5674d2f418ff3adb1c5b350914ed9e3278",
+    "runtimeFile": "malamar-artwork.webp",
+    "runtimeSha256": "4d3c14bd631089e2c5c492aaa663f7d05dab2ebed5370504ecd6b0cc374ea2cc",
     "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
   }
 ]

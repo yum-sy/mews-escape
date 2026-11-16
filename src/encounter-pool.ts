@@ -1,6 +1,6 @@
 import {NORMAL_KINDS,type Kind} from './data';
 import {rng} from './dungeon';
-export const UNLOCK_TIER:Partial<Record<Kind,number>>={"gastly": 0, "zubat": 0, "koffing": 1, "grimer": 0, "houndour": 1, "shuppet": 2, "drowzee": 1, "magnemite": 1, "cubone": 1, "misdreavus": 2, "ekans": 0, "arbok": 2, "sandshrew": 0, "sandslash": 3, "abra": 1, "kadabra": 3, "slowpoke": 0, "slowbro": 3, "voltorb": 1, "electrode": 3, "exeggcute": 1, "exeggutor": 4, "ditto": 2, "porygon": 2, "wooper": 0, "quagsire": 3, "murkrow": 2, "sneasel": 4, "sableye": 3, "duskull": 2, "baltoy": 2, "bronzor": 4};
+export const UNLOCK_TIER:Partial<Record<Kind,number>>={"gastly": 0, "zubat": 0, "koffing": 1, "grimer": 0, "houndour": 1, "shuppet": 2, "drowzee": 1, "magnemite": 1, "cubone": 1, "misdreavus": 2, "ekans": 0, "arbok": 2, "skorupi": 0, "drapion": 3, "abra": 1, "kadabra": 3, "stunky": 0, "skuntank": 3, "spinarak": 1, "ariados": 3, "exeggcute": 1, "exeggutor": 4, "ditto": 2, "spiritomb": 2, "trubbish": 0, "garbodor": 3, "murkrow": 2, "sneasel": 4, "sableye": 3, "duskull": 2, "inkay": 2, "malamar": 4};
 export function encounterWeights(floor:number,elite=false){
  const level=Math.max(0,Math.min(4,6-floor)),pool=NORMAL_KINDS.filter(kind=>UNLOCK_TIER[kind]!<=level);
  const current=elite?.95:.85,previous=level===1?1-current:elite?.04:.12,older=1-current-previous;

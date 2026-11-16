@@ -12,7 +12,7 @@
 | B3 | 29 | 0.6% |
 | B2 | 32 | 0.14% |
 
-B6 pool: Gastly, Zubat, Grimer, Ekans, Sandshrew, Slowpoke, Wooper. Each species has a declared unlock tier. Tier groups are normalized before species selection: current tier 85%, previous tier 12%, all older tiers 3%; at B5 the previous tier receives the full remaining 15%. Elite branches use 95% / 4% / 1% (95% / 5% at B5). Older tiers split their group with 0.25 exponential decay; species within each tier share equal weight. Draws are deterministic for room seed and spawn index. Enemy counts remain B6 2–3, B5 3–4 and the existing later-floor counts.
+B6 pool: Gastly, Zubat, Grimer, Ekans, Skorupi, Stunky, Trubbish. Each species has a declared unlock tier. Tier groups are normalized before species selection: current tier 85%, previous tier 12%, all older tiers 3%; at B5 the previous tier receives the full remaining 15%. Elite branches use 95% / 4% / 1% (95% / 5% at B5). Older tiers split their group with 0.25 exponential decay; species within each tier share equal weight. Draws are deterministic for room seed and spawn index. Enemy counts remain B6 2–3, B5 3–4 and the existing later-floor counts.
 
 Enemies reuse readable behavior families with species-specific visuals and timing: lane rush, aimed shot, fan, radial burst, poison trail, teleport ambush, cardinal/diagonal volleys, limited tracking, returning bones, and Ditto's mirrored movement. New attacks retain warnings. There are no blocking pattern tutorials. Directional wind-ups, landing cues and body poses run during live combat.
 
@@ -43,3 +43,11 @@ Dual boss openings are staggered. A phase change cancels the other boss's wind-u
 All first-pattern confirmation dialogs and runtime tutorial pausing were removed. Text attack labels were replaced by the existing ground/direction cues plus distinct rush/caster wind-up and recovery poses. First-contact exclamation marks remain. The minimap uses a monster face for uncleared combat, an empty square for cleared combat and claimed reward rooms, and retains the completed boss lift arrow.
 
 Latest validation: 138 tests and production build pass. New tests cover group-normalized tier probabilities, safe dual spawns, both-deaths-required scene progression, rare-only ordinary/boss rewards including exhaustion and old common offers, persistent alert including Mewtwo HP, live first warnings without input locks, and consumed map markers. Browser at 844×390 verified simultaneous Weezing/Magneton attacks with no tutorial pause, ordinary elite rare choices, alert 2→3 on claim, and all map states. Local screenshots: evidence/dual-boss-live.png and evidence/map-empty-monsters.png. This is targeted QA, not a full human campaign balance replay.
+
+## Laboratory-themed roster revision
+
+Replaced eleven ordinary species with Skorupi, Drapion, Stunky, Skuntank, Spinarak, Ariados, Trubbish, Garbodor, Spiritomb, Inkay and Malamar. All eleven have Poison, Ghost, Dark or Psychic typing in the acquired PokeAPI metadata. This emphasizes toxic, unsettling and hostile-looking research subjects while retaining official artwork, 32 species, unlock tiers, spawn weights and existing HP/speed roles. Technique colors, projectile shapes and sound families match the replacement designs. Boss selection is unchanged.
+
+Replaced Sandshrew, Sandslash, Slowpoke, Slowbro, Voltorb, Electrode, Wooper, Quagsire, Porygon, Baltoy and Bronzor. Their original source files and credits remain archived, but their artwork is excluded from the active manifests and offline precache. New PNG sources and pixel-identical lossless WebP runtime copies are recorded with hashes and source URLs.
+
+Validation: 139 tests, production build and diff check pass. Browser gallery inspection verified all eleven replacement images and attack visuals load. This is an asset/roster revision, not eleven entirely new AI families or a full campaign balance replay. Local evidence: evidence/themed-roster.png.
