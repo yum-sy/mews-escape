@@ -1,5 +1,35 @@
 import type {Kind} from './data';
-export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|'ember'|'gas'|'needle'|'sludge'|'flame'|'hex'|'psy';sound:'shadow'|'flame'|'sludge'|'dragon'|'psybeam'}>={
+export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|'ember'|'gas'|'needle'|'sludge'|'flame'|'hex'|'psy'|'water'|'leaf'|'rock';sound:'shadow'|'flame'|'sludge'|'dragon'|'psybeam'}>={
+ ekans:{name:'독침',color:0xb399ce,shape:'needle',sound:'sludge'},
+ arbok:{name:'독엄니',color:0xc087e6,shape:'needle',sound:'sludge'},
+ sandshrew:{name:'구르기',color:0xe6c58b,shape:'rock',sound:'dragon'},
+ sandslash:{name:'베어가르기',color:0xc9a76b,shape:'needle',sound:'dragon'},
+ abra:{name:'순간이동',color:0xf5dc95,shape:'psy',sound:'psybeam'},
+ kadabra:{name:'사이코빔',color:0xe9bc61,shape:'psy',sound:'psybeam'},
+ slowpoke:{name:'물대포',color:0xa7dcfa,shape:'water',sound:'psybeam'},
+ slowbro:{name:'물의파동',color:0x8ac2ed,shape:'water',sound:'psybeam'},
+ voltorb:{name:'스파크',color:0xffe788,shape:'psy',sound:'psybeam'},
+ electrode:{name:'방전',color:0xfff2b2,shape:'psy',sound:'psybeam'},
+ exeggcute:{name:'씨기관총',color:0xd0dc9c,shape:'leaf',sound:'sludge'},
+ exeggutor:{name:'씨폭탄',color:0xa6c96d,shape:'leaf',sound:'sludge'},
+ ditto:{name:'변신 잔상',color:0xe4b7e5,shape:'orb',sound:'shadow'},
+ porygon:{name:'트라이어택',color:0x9fd8de,shape:'hex',sound:'psybeam'},
+ wooper:{name:'진흙뿌리기',color:0xb0a3cf,shape:'sludge',sound:'sludge'},
+ quagsire:{name:'탁류',color:0x94c5cc,shape:'water',sound:'sludge'},
+ murkrow:{name:'날개치기',color:0xaaa9dc,shape:'needle',sound:'shadow'},
+ sneasel:{name:'얼음뭉치',color:0xa2e4f2,shape:'needle',sound:'dragon'},
+ sableye:{name:'속임수',color:0xca9ce8,shape:'hex',sound:'shadow'},
+ duskull:{name:'도깨비불',color:0xa1dbca,shape:'ember',sound:'shadow'},
+ baltoy:{name:'염동력',color:0xe5bfa1,shape:'psy',sound:'psybeam'},
+ bronzor:{name:'자이로볼',color:0x91c4d2,shape:'rock',sound:'psybeam'},
+ drowzee:{name:'염동력',color:0xf2d88b,shape:'psy',sound:'psybeam'},
+ magnemite:{name:'전기쇼크',color:0x9ee5f1,shape:'psy',sound:'psybeam'},
+ cubone:{name:'뼈다귀치기',color:0xe8dfbe,shape:'needle',sound:'dragon'},
+ misdreavus:{name:'원한',color:0x8ae4c7,shape:'hex',sound:'shadow'},
+ hypno:{name:'사이코키네시스',color:0xffdb73,shape:'psy',sound:'psybeam'},
+ magneton:{name:'방전',color:0x8bd9ff,shape:'psy',sound:'psybeam'},
+ marowak:{name:'뼈다귀부메랑',color:0xffe5ad,shape:'needle',sound:'dragon'},
+ mismagius:{name:'매지컬리프 · 저주',color:0xb9f59c,shape:'hex',sound:'shadow'},
  gastly:{name:'섀도볼',color:0xb299ed,shape:'orb',sound:'shadow'},
  zubat:{name:'날개치기',color:0x99dcf2,shape:'needle',sound:'dragon'},
  koffing:{name:'스모그',color:0xb8d574,shape:'gas',sound:'sludge'},
@@ -15,4 +45,4 @@ export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|
 };
 
 export const gasShellClosed=(e:{kind:string;charge:number;cooldown:number})=>e.kind==='koffing'&&e.charge<=0&&e.cooldown<1.1;
-export function enemyWarning(kind:Kind,cue?:string,tracking=false){const base=ENEMY_TECHNIQUES[kind].name.split(' · ')[0];return cue==='rush'?(kind==='houndoom'?'니트로차지':'날개치기 · 돌진'):cue==='pool'?(kind==='muk'?'독 늪':'오물 · 바닥 주의'):tracking?'저주 · 추적':base+(cue==='teleport'?' · 출현':'')}
+export function enemyWarning(kind:Kind,cue?:string,tracking=false){const base=ENEMY_TECHNIQUES[kind].name.split(' · ')[0];return (kind==='cubone'||kind==='marowak')?'뼈다귀 · 왕복':cue==='rush'?(kind==='houndoom'?'니트로차지':base+' · 돌진'):cue==='pool'?(kind==='muk'?'독 늪':'오물 · 바닥 주의'):tracking?base+' · 추적':base+(cue==='teleport'?' · 출현':'')}

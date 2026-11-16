@@ -1,3 +1,4 @@
+import {secretInteractions} from '../src/secret-route';
 import {isLabBoss} from '../src/boss-roster';
 import {warningPattern,PATTERN_HINTS,PatternHints} from '../src/pattern-hints';
 import {trapHits,trapPush,trapDamage,TRAP_RECOVERY} from '../src/traps';
@@ -29,7 +30,7 @@ function harness(){
  const declaration=source.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text==='LabScene')!;
  const js=ts.transpileModule(declaration.getText(source),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const elements=new Map<string,any>(),element=(id:string)=>{if(!elements.has(id))elements.set(id,{hidden:false,textContent:'',focus(){},classList:{remove(){},add(){}},offsetWidth:0});return elements.get(id)};
- const context={isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
+ const context={secretInteractions,isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
  vm.runInNewContext(js.replaceAll('import.meta.env.DEV','false'),context);
  const entity=(x=0,y=0)=>{const o:any={x,y,alive:true,destroy(){this.alive=false}};for(const method of ['setDisplaySize','setDepth','setAlpha','setAngle','setFlipX','setTint','clearTint'])o[method]=()=>o;o.setPosition=(x:number,y:number)=>{o.x=x;o.y=y;return o};return o};
  const scene:any=Object.create(context.exports.LabScene.prototype),timers:(()=>void)[]=[],notes:string[]=[];
@@ -72,4 +73,9 @@ test('active traps hurt and recoil both sides once, then respect recovery and di
 
 test('first-pattern help freezes play until confirmation and is not repeated in a new session',()=>{
  const data=new Map<string,string>(),storage={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v)},removeItem:(k:string)=>{data.delete(k)}};const {scene:s,element}=harness();s.hints=new PatternHints(storage);let updates=0;s.updateEnemies=()=>updates++;s.offerHint('beam');assert.equal(s.state,'hint');s.update(0,32);s.hurt({x:1,y:0});assert.equal(updates,0);assert.equal(s.hp,6);element('hint-confirm').onclick();assert.equal(s.state,'playing');assert.equal(element('pattern-hint').hidden,true);s.hints=new PatternHints(storage);s.offerHint('beam');assert.equal(s.state,'playing');
+});
+
+test('actual scene interaction enters cache and depth, then returns without advancing the main floor',()=>{
+ const {scene:s}=harness();s.run.floor=4;s.run.rooms=roomsForFloor(s.run.seed,4);s.run.keys=3;for(const r of s.run.rooms.slice(0,2)){r.visited=true;r.cleared=true;r.environment={broken:0,powerOff:false,recordRead:true}}
+ s.player.setPosition(230,200);s.interact();assert.equal(s.run.branch,'cache');assert.equal(s.state,'playing');assert.equal(s.enemies.length,0);s.run.openReward();s.run.choose(s.run.choices.find((m:any)=>m.id!=='survey').id);s.startDelay=0;s.player.setPosition(560,500);s.interact();assert.equal(s.run.branch,'depth');assert.equal(s.run.keys,2);assert.equal(s.state,'playing');s.startDelay=0;s.player.setPosition(230,200);s.interact();assert.equal(s.run.branch,null);assert.equal(s.run.floor,4);assert.equal(s.run.current,0);assert.equal(s.run.moves.length,1);assert.equal(s.run.secretAvailable,false);
 });

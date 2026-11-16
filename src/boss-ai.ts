@@ -14,12 +14,14 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
  if((e.dash??0)>0){e.dash=Math.max(0,e.dash!-dt);return{v:{x:e.dir.x*(phase===1?300:340),y:e.dir.y*(phase===1?300:340)},actions}}
  const volleyCount=phase===1?3:5,speed=p.speed;
  const gasDirections=()=>e.cycle!%2?radialDirections(p.count,e,e.aim!,e.cycle!):[...fan(e,e.aim!,3,.18),...fan(e,{x:e.x*2-e.aim!.x,y:e.y*2-e.aim!.y},3,.18)];
- const curseDirections=()=>e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
- const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed,homing:tracking})};
+ const curseDirections=()=>kind==='mismagius'?[...fan(e.dir,e.aim!,2,.35),...fan(e.dir,{x:e.dir.x*2-e.aim!.x,y:e.dir.y*2-e.aim!.y},2,.35)]:e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
+ const extraDirections=()=>kind==='magneton'?radialDirections(floor===6?4:8,e,e.aim!,e.cycle!):fan(e,e.aim!,kind==='hypno'?3:volleyCount,kind==='marowak'?.38:.24);
+ const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed,homing:tracking,returning:kind==='marowak'})};
  if(e.cooldown<=0&&e.charge<=0){
   e.cycle=(e.cycle??0)+1;e.aim={...player};e.charge=1.05;e.cooldown=p.interval+(kind==='muk'?.5:kind==='houndoom'?.2:0);
-  if(kind==='banette'){
-   e.dir=e.cycle%2?gengarDestination(e,player,e.cycle):{x:e.x,y:e.y};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:curseDirections()});
+  if(['hypno','magneton','marowak'].includes(kind)){actions.push({type:'warn',x:e.x,y:e.y,r:46,cue:kind==='magneton'?'burst':'aim',duration:1.05,directions:extraDirections(),tracking:kind==='hypno'&&phase===2,returning:kind==='marowak'})}
+  else if(kind==='banette'||kind==='mismagius'){
+   e.dir=kind==='mismagius'||e.cycle%2?gengarDestination(e,player,e.cycle):{x:e.x,y:e.y};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:curseDirections()});
   }else if(kind==='houndoom'&&e.cycle%2===0){e.dir=n;actions.push({type:'warn',x:e.x,y:e.y,r:42,cue:'rush',duration:1.05,directions:[e.dir]})}
   else if(kind==='weezing'){actions.push({type:'warn',x:e.x,y:e.y,r:48,cue:'burst',duration:1.05,directions:gasDirections()})}
   else if(kind==='muk'&&e.cycle%2===0){
@@ -31,7 +33,8 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
   }
  }
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){
-  if(kind==='banette'){actions.push({type:'blink',x:e.dir.x,y:e.dir.y});volley(curseDirections(),phase===2?.65:0)}
+  if(['hypno','magneton','marowak'].includes(kind))volley(extraDirections(),kind==='hypno'&&phase===2?.5:0);
+  else if(kind==='banette'||kind==='mismagius'){actions.push({type:'blink',x:e.dir.x,y:e.dir.y});volley(curseDirections(),phase===2?.65:0)}
   else if(kind==='houndoom'&&e.cycle!%2===0)e.dash=.48;
   else if(kind==='weezing'){volley(gasDirections());if(phase===2&&floor<6)actions.push({type:'pool',x:e.x,y:e.y,r:42})}
   else if(!(kind==='muk'&&e.cycle!%2===0))volley(fan(e,e.aim!,volleyCount));

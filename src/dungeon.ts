@@ -5,7 +5,7 @@ export const DIRECTIONS:Direction[]=['up','right','down','left'];
 export const DELTA:Record<Direction,[number,number]>={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
 export const OPPOSITE:Record<Direction,Direction>={up:'down',right:'left',down:'up',left:'right'};
 export type RoomKind='start'|'combat'|'reward'|'boss';
-export interface DungeonRoom{boss?:Kind;offer?:string[];opened?:boolean;environment?:EnvironmentState;id:number;x:number;y:number;kind:RoomKind;doors:Partial<Record<Direction,number>>;visited:boolean;cleared:boolean;rewardTaken:boolean;seed:number}
+export interface DungeonRoom{secret?:boolean;boss?:Kind;offer?:string[];opened?:boolean;environment?:EnvironmentState;id:number;x:number;y:number;kind:RoomKind;doors:Partial<Record<Direction,number>>;visited:boolean;cleared:boolean;rewardTaken:boolean;seed:number}
 export function rng(seed:number){let a=seed>>>0;return()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 export function shuffle<T>(items:T[],random:()=>number){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 export function generateDungeon(seed:number,combatCount=5):DungeonRoom[]{
@@ -27,7 +27,7 @@ export function enemyLayout(room:DungeonRoom):{kind:Kind;x:number;y:number}[]{
  if(room.cleared)return[];
  if(room.kind==='boss')return [{kind:room.boss??'gengar',x:560,y:290}];
  if(room.kind!=='combat')return[];
- const random=rng(room.seed),points=shuffle([{x:320,y:250},{x:800,y:250},{x:320,y:480},{x:800,y:480},{x:560,y:260},{x:560,y:460}],random);
+ const random=rng(room.seed),points=shuffle([{x:320,y:250},{x:800,y:250},{x:360,y:480},{x:800,y:480},{x:560,y:260},{x:560,y:460}],random);
  return points.slice(0,3+Math.floor(random()*3)).map((p,i)=>({...p,kind:NORMAL_KINDS[(room.id+i+Math.floor(random()*3))%NORMAL_KINDS.length]}));
 }
 export function exitReady(rooms:DungeonRoom[]){return rooms.every(r=>(r.kind!=='combat'&&r.kind!=='boss')||r.cleared)}

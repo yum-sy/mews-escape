@@ -65,3 +65,7 @@ Exact metadata/artwork URLs, local filenames and SHA-256 hashes are recorded in
 artwork-sources.json. Alpha bounds measured locally; PokéAPI height/weight retained.
 Pokémon artwork remains the property of its respective rights holders; no new
 license or affiliation is implied by inclusion in this unofficial fan game.
+
+Additional official artwork: Drowzee, Magnemite, Cubone, Misdreavus, Hypno, Magneton, Marowak, Mismagius. Downloaded unchanged from PokeAPI sprites; metadata from PokeAPI api-data. Exact URLs and hashes: artwork-sources.json. Pokémon characters/artwork belong to Nintendo / Creatures / GAME FREAK; no additional license is claimed.
+
+Additional official artwork: Ekans, Arbok, Sandshrew, Sandslash, Abra, Kadabra, Slowpoke, Slowbro, Voltorb, Electrode, Exeggcute, Exeggutor, Ditto, Porygon, Wooper, Quagsire, Murkrow, Sneasel, Sableye, Duskull, Baltoy, Bronzor. Downloaded unchanged from PokeAPI sprites; metadata from PokeAPI api-data. Exact URLs and hashes: artwork-sources.json. Pokémon characters/artwork belong to Nintendo / Creatures / GAME FREAK; no additional license is claimed.

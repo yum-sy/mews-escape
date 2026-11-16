@@ -141,5 +141,335 @@
       453,
       440
     ]
+  },
+  "drowzee": {
+    "id": 96,
+    "heightDm": 10,
+    "weightHg": 324,
+    "bounds": [
+      76,
+      22,
+      399,
+      453
+    ]
+  },
+  "magnemite": {
+    "id": 81,
+    "heightDm": 3,
+    "weightHg": 60,
+    "bounds": [
+      22,
+      120,
+      453,
+      355
+    ]
+  },
+  "cubone": {
+    "id": 104,
+    "heightDm": 4,
+    "weightHg": 65,
+    "bounds": [
+      56,
+      22,
+      419,
+      453
+    ]
+  },
+  "misdreavus": {
+    "id": 200,
+    "heightDm": 7,
+    "weightHg": 10,
+    "bounds": [
+      22,
+      40,
+      453,
+      435
+    ]
+  },
+  "hypno": {
+    "id": 97,
+    "heightDm": 16,
+    "weightHg": 756,
+    "bounds": [
+      35,
+      22,
+      439,
+      453
+    ]
+  },
+  "magneton": {
+    "id": 82,
+    "heightDm": 10,
+    "weightHg": 600,
+    "bounds": [
+      22,
+      41,
+      453,
+      434
+    ]
+  },
+  "marowak": {
+    "id": 105,
+    "heightDm": 10,
+    "weightHg": 450,
+    "bounds": [
+      59,
+      22,
+      416,
+      453
+    ]
+  },
+  "mismagius": {
+    "id": 429,
+    "heightDm": 9,
+    "weightHg": 44,
+    "bounds": [
+      95,
+      22,
+      380,
+      453
+    ]
+  },
+  "ekans": {
+    "id": 23,
+    "heightDm": 20,
+    "weightHg": 69,
+    "bounds": [
+      22,
+      24,
+      453,
+      451
+    ]
+  },
+  "arbok": {
+    "id": 24,
+    "heightDm": 35,
+    "weightHg": 650,
+    "bounds": [
+      44,
+      22,
+      430,
+      453
+    ]
+  },
+  "sandshrew": {
+    "id": 27,
+    "heightDm": 6,
+    "weightHg": 120,
+    "bounds": [
+      41,
+      22,
+      434,
+      453
+    ]
+  },
+  "sandslash": {
+    "id": 28,
+    "heightDm": 10,
+    "weightHg": 295,
+    "bounds": [
+      22,
+      31,
+      453,
+      444
+    ]
+  },
+  "abra": {
+    "id": 63,
+    "heightDm": 9,
+    "weightHg": 195,
+    "bounds": [
+      22,
+      86,
+      453,
+      389
+    ]
+  },
+  "kadabra": {
+    "id": 64,
+    "heightDm": 13,
+    "weightHg": 565,
+    "bounds": [
+      53,
+      22,
+      421,
+      453
+    ]
+  },
+  "slowpoke": {
+    "id": 79,
+    "heightDm": 12,
+    "weightHg": 360,
+    "bounds": [
+      22,
+      64,
+      453,
+      411
+    ]
+  },
+  "slowbro": {
+    "id": 80,
+    "heightDm": 16,
+    "weightHg": 785,
+    "bounds": [
+      42,
+      22,
+      433,
+      453
+    ]
+  },
+  "voltorb": {
+    "id": 100,
+    "heightDm": 5,
+    "weightHg": 104,
+    "bounds": [
+      22,
+      27,
+      453,
+      448
+    ]
+  },
+  "electrode": {
+    "id": 101,
+    "heightDm": 12,
+    "weightHg": 666,
+    "bounds": [
+      23,
+      22,
+      452,
+      453
+    ]
+  },
+  "exeggcute": {
+    "id": 102,
+    "heightDm": 4,
+    "weightHg": 25,
+    "bounds": [
+      22,
+      68,
+      453,
+      406
+    ]
+  },
+  "exeggutor": {
+    "id": 103,
+    "heightDm": 20,
+    "weightHg": 1200,
+    "bounds": [
+      22,
+      26,
+      453,
+      448
+    ]
+  },
+  "ditto": {
+    "id": 132,
+    "heightDm": 3,
+    "weightHg": 40,
+    "bounds": [
+      22,
+      55,
+      453,
+      420
+    ]
+  },
+  "porygon": {
+    "id": 137,
+    "heightDm": 8,
+    "weightHg": 365,
+    "bounds": [
+      32,
+      22,
+      443,
+      453
+    ]
+  },
+  "wooper": {
+    "id": 194,
+    "heightDm": 4,
+    "weightHg": 85,
+    "bounds": [
+      22,
+      47,
+      453,
+      427
+    ]
+  },
+  "quagsire": {
+    "id": 195,
+    "heightDm": 14,
+    "weightHg": 750,
+    "bounds": [
+      55,
+      22,
+      419,
+      453
+    ]
+  },
+  "murkrow": {
+    "id": 198,
+    "heightDm": 5,
+    "weightHg": 21,
+    "bounds": [
+      43,
+      22,
+      431,
+      453
+    ]
+  },
+  "sneasel": {
+    "id": 215,
+    "heightDm": 9,
+    "weightHg": 280,
+    "bounds": [
+      23,
+      22,
+      452,
+      453
+    ]
+  },
+  "sableye": {
+    "id": 302,
+    "heightDm": 5,
+    "weightHg": 110,
+    "bounds": [
+      22,
+      32,
+      453,
+      442
+    ]
+  },
+  "duskull": {
+    "id": 355,
+    "heightDm": 8,
+    "weightHg": 150,
+    "bounds": [
+      53,
+      22,
+      421,
+      453
+    ]
+  },
+  "baltoy": {
+    "id": 343,
+    "heightDm": 5,
+    "weightHg": 215,
+    "bounds": [
+      22,
+      22,
+      453,
+      453
+    ]
+  },
+  "bronzor": {
+    "id": 436,
+    "heightDm": 5,
+    "weightHg": 605,
+    "bounds": [
+      65,
+      22,
+      410,
+      453
+    ]
   }
 }

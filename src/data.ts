@@ -1,6 +1,37 @@
 export const ROOM={width:1120,height:700,left:78,right:1042,top:136,bottom:590};
 export const STATS={hp:6,speed:240,damage:1,shotInterval:.19,projectileSpeed:600,range:720,invulnerability:1.35,projectileCap:120};
 export const ENEMIES={
+ ekans:{name:'아보',hp:7,speed:64,radius:20,flying:false},
+ arbok:{name:'아보크',hp:12,speed:58,radius:20,flying:false},
+ sandshrew:{name:'모래두지',hp:7,speed:70,radius:20,flying:false},
+ sandslash:{name:'고지',hp:12,speed:80,radius:20,flying:false},
+ abra:{name:'캐이시',hp:6,speed:44,radius:20,flying:false},
+ kadabra:{name:'윤겔라',hp:12,speed:62,radius:20,flying:false},
+ slowpoke:{name:'야돈',hp:10,speed:35,radius:20,flying:false},
+ slowbro:{name:'야도란',hp:14,speed:40,radius:20,flying:false},
+ voltorb:{name:'찌리리공',hp:7,speed:65,radius:20,flying:false},
+ electrode:{name:'붐볼',hp:12,speed:90,radius:20,flying:false},
+ exeggcute:{name:'아라리',hp:8,speed:42,radius:20,flying:false},
+ exeggutor:{name:'나시',hp:15,speed:38,radius:20,flying:false},
+ ditto:{name:'메타몽',hp:9,speed:60,radius:20,flying:false},
+ porygon:{name:'폴리곤',hp:10,speed:64,radius:20,flying:true},
+ wooper:{name:'우파',hp:7,speed:52,radius:20,flying:false},
+ quagsire:{name:'누오',hp:14,speed:42,radius:20,flying:false},
+ murkrow:{name:'니로우',hp:8,speed:100,radius:20,flying:true},
+ sneasel:{name:'포푸니',hp:10,speed:98,radius:20,flying:false},
+ sableye:{name:'깜까미',hp:10,speed:74,radius:20,flying:false},
+ duskull:{name:'해골몽',hp:10,speed:58,radius:20,flying:true},
+ baltoy:{name:'오뚝군',hp:9,speed:58,radius:20,flying:true},
+ bronzor:{name:'동미러',hp:12,speed:44,radius:20,flying:true},
+
+ drowzee:{name:'슬리프',hp:10,speed:48,radius:22,flying:false},
+ magnemite:{name:'코일',hp:7,speed:55,radius:18,flying:true},
+ cubone:{name:'탕구리',hp:9,speed:65,radius:20,flying:false},
+ misdreavus:{name:'무우마',hp:8,speed:76,radius:20,flying:true},
+ hypno:{name:'슬리퍼',hp:220,speed:35,radius:28,flying:false},
+ magneton:{name:'레어코일',hp:220,speed:40,radius:28,flying:true},
+ marowak:{name:'텅구리',hp:220,speed:55,radius:28,flying:false},
+ mismagius:{name:'무우마직',hp:220,speed:48,radius:28,flying:true},
  gastly:{name:'고오스',hp:8,speed:76,radius:21,flying:true},
  zubat:{name:'주뱃',hp:5,speed:112,radius:19,flying:true},
  koffing:{name:'또가스',hp:10,speed:44,radius:22,flying:true},
@@ -15,5 +46,5 @@ export const ENEMIES={
  gengar:{name:'팬텀',hp:220,speed:60,radius:32,flying:true},
 };
 export type Kind=keyof typeof ENEMIES;
-export const NORMAL_KINDS:Kind[]=['gastly','zubat','koffing','grimer','houndour','shuppet'];
+export const NORMAL_KINDS:Kind[]=['gastly','zubat','koffing','grimer','houndour','shuppet','drowzee','magnemite','cubone','misdreavus','ekans','arbok','sandshrew','sandslash','abra','kadabra','slowpoke','slowbro','voltorb','electrode','exeggcute','exeggutor','ditto','porygon','wooper','quagsire','murkrow','sneasel','sableye','duskull','baltoy','bronzor'];
 export const SPAWNS:{kind:Kind,x:number,y:number}[]=[{kind:'gastly',x:200,y:190},{kind:'gastly',x:920,y:190},{kind:'gastly',x:900,y:510},{kind:'zubat',x:240,y:480},{kind:'zubat',x:810,y:360},{kind:'zubat',x:560,y:190}];

@@ -1,16 +1,23 @@
+import {NORMAL_VARIANTS} from './normal-patterns';
 import {gengarDestination,radialDirections} from './boss-position';
 import {gengarPattern} from './scaling';
 import {ENEMIES,type Kind} from './data';
 import {normalize,type Vec} from './combat';
-export interface Brain extends Vec{hp:number;cooldown:number;charge:number;dir:Vec;phase:number;cycle?:number;recovery?:number;aim?:Vec}
-export type Action={type:'shot';dir:Vec;homing?:number;speed?:number}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number;cue?:'rush'|'burst'|'teleport'|'aim'|'notice'|'phase'|'pool';tracking?:boolean;duration?:number;directions?:Vec[];kind?:Kind}|{type:'phase';x:number;y:number};
+export interface Brain extends Vec{hp:number;cooldown:number;charge:number;dir:Vec;phase:number;cycle?:number;recovery?:number;aim?:Vec;lastPlayer?:Vec}
+export type Action={type:'shot';dir:Vec;homing?:number;speed?:number;returning?:boolean}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number;cue?:'rush'|'burst'|'teleport'|'aim'|'notice'|'phase'|'pool';tracking?:boolean;returning?:boolean;duration?:number;directions?:Vec[];kind?:Kind}|{type:'phase';x:number;y:number};
 export function bossPhase(hp:number){return hp>ENEMIES.gengar.hp*.5?1:2}
 export function stepBrain(kind:Kind,e:Brain,player:Vec,dt:number,floor=2):{v:Vec;actions:Action[]}{
+ if(kind==='ditto'){const previous=e.lastPlayer??player;const intent=stepBrain('gastly',e,player,dt,floor);if(e.charge<=0&&(e.recovery??0)<=0&&dt>0){intent.v={x:Math.max(-100,Math.min(100,(previous.x-player.x)/dt)),y:Math.max(-100,Math.min(100,(previous.y-player.y)/dt))}}e.lastPlayer={...player};return intent}
+ const profile=NORMAL_VARIANTS[kind];if(profile){const before=e.charge,intent=stepBrain(profile.family,e,player,dt,floor);if(before<=0&&e.charge>0)e.cooldown*=profile.pace;for(const a of intent.actions){if(a.type==='warn'&&a.kind)a.kind=kind;if(['porygon','baltoy','bronzor'].includes(kind)){const angle=(e.cycle??0)%2*Math.PI/4,rotate=(v:Vec)=>({x:v.x*Math.cos(angle)-v.y*Math.sin(angle),y:v.x*Math.sin(angle)+v.y*Math.cos(angle)});if(a.type==='warn'&&a.directions)a.directions=a.directions.map(rotate);if(a.type==='shot')a.dir=rotate(a.dir)}}if(e.charge<=0&&(e.recovery??0)<=0){const v=intent.v,ratio=ENEMIES[kind].speed/ENEMIES[profile.family].speed;intent.v={x:(v.x-v.y*profile.strafe)*ratio,y:(v.y+v.x*profile.strafe)*ratio}}return intent}
  const actions:Action[]=[],n=normalize(player.x-e.x,player.y-e.y),distance=Math.hypot(player.x-e.x,player.y-e.y);let v={x:0,y:0};e.cooldown-=dt;
  if(kind!=='gengar'&&(e.recovery??0)>0){e.recovery=Math.max(0,e.recovery!-dt);return{v,actions}}
  const shot=(dir:Vec)=>actions.push({type:'shot',dir});
  const fan=(count:number,spread:number,angle=Math.atan2(n.y,n.x))=>{for(let i=0;i<count;i++){const a=angle+(i-(count-1)/2)*spread;shot({x:Math.cos(a),y:Math.sin(a)})}};
- if(kind==='gastly'||kind==='houndour'){
+ if(['drowzee','magnemite','cubone','misdreavus'].includes(kind)){
+  const hold=distance>260?1:distance<180?-1:0;v={x:n.x*ENEMIES[kind].speed*hold,y:n.y*ENEMIES[kind].speed*hold};
+  if(e.cooldown<=0&&e.charge<=0){e.cycle=(e.cycle??0)+1;e.aim={...player};e.dir=n;e.charge=.8;e.cooldown=kind==='magnemite'?2.8:2.5;const directions=kind==='magnemite'?Array.from({length:4},(_,i)=>({x:Math.cos(i*Math.PI/2),y:Math.sin(i*Math.PI/2)})):[n];actions.push({type:'warn',x:e.x,y:e.y,r:28,cue:'aim',duration:.8,directions,tracking:kind==='misdreavus',returning:kind==='cubone'})}
+  if(e.charge>0){v={x:0,y:0};e.charge-=dt;if(e.charge<=0){const directions=kind==='magnemite'?Array.from({length:4},(_,i)=>({x:Math.cos(i*Math.PI/2),y:Math.sin(i*Math.PI/2)})):[e.dir];for(const dir of directions)actions.push({type:'shot',dir,speed:kind==='cubone'?210:175,homing:kind==='misdreavus'?.6:0,returning:kind==='cubone'});e.recovery=.55}}
+ }else if(kind==='gastly'||kind==='houndour'){
   const sign=distance>270?1:distance<200?-1:0;v={x:n.x*ENEMIES[kind].speed*sign,y:n.y*ENEMIES[kind].speed*sign};
   if(e.cooldown<=0&&e.charge<=0){e.dir=n;e.charge=.6;e.cooldown=kind==='houndour'?2:1.7;const angle=Math.atan2(n.y,n.x),count=kind==='houndour'?3:1;actions.push({type:'warn',x:e.x,y:e.y,r:28,cue:'aim',duration:.6,directions:Array.from({length:count},(_,i)=>({x:Math.cos(angle+(i-(count-1)/2)*.22),y:Math.sin(angle+(i-(count-1)/2)*.22)}))})}
   if(e.charge>0){v={x:0,y:0};e.charge-=dt;if(e.charge<=0){fan(kind==='houndour'?3:1,.22,Math.atan2(e.dir.y,e.dir.x));e.recovery=.45}}
