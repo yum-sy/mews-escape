@@ -3,7 +3,7 @@ import {isLabBoss} from '../src/boss-roster';
 import {warningPattern,PATTERN_HINTS,PatternHints} from '../src/pattern-hints';
 import {trapHits,trapPush,trapDamage,TRAP_RECOVERY} from '../src/traps';
 import {poolPhase,hazardPhase} from '../src/scaling';
-import {intersects} from '../src/combat';
+import {intersects,normalize} from '../src/combat';
 import {floorLoot,takeFloorLoot} from '../src/floor-map';
 import {ENTRY_SECONDS,entryLayout} from '../src/encounter';
 import {availablePropLoot,takePropLoot} from '../src/prop-loot';
@@ -30,7 +30,7 @@ function harness(){
  const declaration=source.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text==='LabScene')!;
  const js=ts.transpileModule(declaration.getText(source),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const elements=new Map<string,any>(),element=(id:string)=>{if(!elements.has(id))elements.set(id,{hidden:false,textContent:'',focus(){},classList:{remove(){},add(){}},offsetWidth:0});return elements.get(id)};
- const context={secretInteractions,isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
+ const context={secretInteractions,isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,normalize,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
  vm.runInNewContext(js.replaceAll('import.meta.env.DEV','false'),context);
  const entity=(x=0,y=0)=>{const o:any={x,y,alive:true,destroy(){this.alive=false}};for(const method of ['setDisplaySize','setDepth','setAlpha','setAngle','setFlipX','setTint','clearTint'])o[method]=()=>o;o.setPosition=(x:number,y:number)=>{o.x=x;o.y=y;return o};return o};
  const scene:any=Object.create(context.exports.LabScene.prototype),timers:(()=>void)[]=[],notes:string[]=[];
@@ -84,3 +84,5 @@ test('both elite bosses must die before room clear and Mewtwo inherits alert HP'
  const {scene:s}=harness();s.run.floor=4;s.run.rooms=roomsForFloor(151,4);s.run.keys=4;for(const r of s.run.rooms.slice(0,2)){r.visited=true;r.cleared=true;r.environment={broken:0,recordRead:true,powerOff:false}}s.run.enterSecret();s.run.openReward();s.run.skipReward();s.run.enterDepth();s.run.current=2;s.run.room.visited=true;s.enterRoom('left');assert.equal(s.enemies.length,2);s.startDelay=0;s.hitEnemy(s.enemies[0],1e6);s.update(0,16);assert.equal(s.run.room.cleared,false);s.hitEnemy(s.enemies[0],1e6);s.update(0,16);assert.equal(s.run.room.cleared,true);
  s.run=new Run(151);s.run.threat=4;s.run.floor=1;s.run.rooms=roomsForFloor(151,1);s.finalPhase=1;s.enterRoom();assert.equal(s.enemies[0].maxHp,Math.round(FINAL_HP[0]*1.2));
 });
+
+test('research zones use normal hit recovery, slow web contact, and clear on room transitions',()=>{const {scene:s}=harness();s.toxic=0;s.toxicTick=1;s.hazardSlow=0;let cleared=false;const zones=[{style:'web',a:{x:540,y:350},b:{x:580,y:350}},{style:'gas',a:{x:540,y:350},b:{x:580,y:350}}];s.researchZones={update:()=>zones,clear(){cleared=true;zones.length=0}};const update=Object.getPrototypeOf(s).updateHazards.bind(s);update(.016);assert.equal(s.hp,5);assert.ok(s.hazardSlow>0);update(.016);assert.equal(s.hp,5);s.clearActors();assert.equal(cleared,true);assert.equal(zones.length,0)});

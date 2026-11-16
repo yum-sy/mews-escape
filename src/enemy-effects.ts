@@ -6,7 +6,9 @@ export function enemyProjectile(scene:Phaser.Scene,kind:Kind,x:number,y:number){
  const key=`hostile-${kind}`,t=ENEMY_TECHNIQUES[kind];
  if(!scene.textures.exists(key)){
   const g=scene.add.graphics(),c=t.color;g.setVisible(false);g.lineStyle(2,0x172031,1);g.fillStyle(c,1);
-  if(kind==='cubone'||kind==='marowak'){g.lineStyle(6,c);g.lineBetween(12,24,36,24);g.fillCircle(10,20,5);g.fillCircle(10,28,5);g.fillCircle(38,20,5);g.fillCircle(38,28,5);}
+  if(kind==='malamar'){g.lineStyle(5,0x29263f);g.strokePoints([{x:6,y:7},{x:26,y:13},{x:37,y:24},{x:26,y:35},{x:6,y:41}]);g.lineStyle(3,c);g.strokePoints([{x:6,y:7},{x:26,y:13},{x:37,y:24},{x:26,y:35},{x:6,y:41}]);g.lineStyle(1,0xf0edff);g.lineBetween(26,13,37,24);g.lineBetween(37,24,26,35)}
+  else if(kind==='spiritomb'){g.fillCircle(24,24,14);g.lineStyle(3,0x9ebd75);g.strokeCircle(24,24,14);g.fillStyle(0x30253d);g.fillTriangle(15,18,22,22,15,25);g.fillTriangle(33,18,26,22,33,25);g.lineStyle(2,0x30253d);g.lineBetween(19,31,29,29)}
+  else if(kind==='cubone'||kind==='marowak'){g.lineStyle(6,c);g.lineBetween(12,24,36,24);g.fillCircle(10,20,5);g.fillCircle(10,28,5);g.fillCircle(38,20,5);g.fillCircle(38,28,5);}
   else if(kind==='magnemite'||kind==='magneton'){g.lineStyle(5,0x17354b);g.strokePoints([{x:5,y:28},{x:19,y:14},{x:25,y:28},{x:42,y:15}]);g.lineStyle(3,c);g.strokePoints([{x:5,y:28},{x:19,y:14},{x:25,y:28},{x:42,y:15}]);}
   else if(kind==='mismagius'){g.fillEllipse(24,24,35,14);g.lineStyle(2,0xefffd2);g.lineBetween(9,24,39,24);g.lineBetween(24,24,18,19);g.lineBetween(29,24,24,29);}
   else if(t.shape==='water'){g.fillEllipse(25,24,26,20);g.fillTriangle(5,24,20,14,20,34);g.lineStyle(2,0xe3f9ff);g.strokeEllipse(28,24,17,12);}

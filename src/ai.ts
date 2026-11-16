@@ -1,12 +1,14 @@
+import {stepResearch,type ResearchZone} from './research-patterns';
 import {NORMAL_VARIANTS} from './normal-patterns';
 import {gengarDestination,radialDirections} from './boss-position';
 import {gengarPattern} from './scaling';
 import {ENEMIES,type Kind} from './data';
 import {normalize,type Vec} from './combat';
 export interface Brain extends Vec{hp:number;cooldown:number;charge:number;dir:Vec;phase:number;cycle?:number;recovery?:number;aim?:Vec;lastPlayer?:Vec}
-export type Action={type:'shot';dir:Vec;homing?:number;speed?:number;returning?:boolean}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number;cue?:'rush'|'burst'|'teleport'|'aim'|'notice'|'phase'|'pool';tracking?:boolean;returning?:boolean;duration?:number;directions?:Vec[];kind?:Kind}|{type:'phase';x:number;y:number};
+export type Action=ResearchZone|{type:'shot';dir:Vec;homing?:number;speed?:number;returning?:boolean}|{type:'pool';x:number;y:number;r:number}|{type:'blink';x:number;y:number}|{type:'warn';x:number;y:number;r:number;cue?:'rush'|'burst'|'teleport'|'aim'|'notice'|'phase'|'pool';tracking?:boolean;returning?:boolean;duration?:number;directions?:Vec[];kind?:Kind}|{type:'phase';x:number;y:number};
 export function bossPhase(hp:number){return hp>ENEMIES.gengar.hp*.5?1:2}
 export function stepBrain(kind:Kind,e:Brain,player:Vec,dt:number,floor=2):{v:Vec;actions:Action[]}{
+ const research=stepResearch(kind,e,player,dt);if(research)return research;
  if(kind==='ditto'){const previous=e.lastPlayer??player;const intent=stepBrain('gastly',e,player,dt,floor);if(e.charge<=0&&(e.recovery??0)<=0&&dt>0){intent.v={x:Math.max(-100,Math.min(100,(previous.x-player.x)/dt)),y:Math.max(-100,Math.min(100,(previous.y-player.y)/dt))}}e.lastPlayer={...player};return intent}
  const profile=NORMAL_VARIANTS[kind];if(profile){const before=e.charge,intent=stepBrain(profile.family,e,player,dt,floor);if(before<=0&&e.charge>0)e.cooldown*=profile.pace;for(const a of intent.actions){if(a.type==='warn'&&a.kind)a.kind=kind;if(['spiritomb','inkay','malamar'].includes(kind)){const angle=(e.cycle??0)%2*Math.PI/4,rotate=(v:Vec)=>({x:v.x*Math.cos(angle)-v.y*Math.sin(angle),y:v.x*Math.sin(angle)+v.y*Math.cos(angle)});if(a.type==='warn'&&a.directions)a.directions=a.directions.map(rotate);if(a.type==='shot')a.dir=rotate(a.dir)}}if(e.charge<=0&&(e.recovery??0)<=0){const v=intent.v,ratio=ENEMIES[kind].speed/ENEMIES[profile.family].speed;intent.v={x:(v.x-v.y*profile.strafe)*ratio,y:(v.y+v.x*profile.strafe)*ratio}}return intent}
  const actions:Action[]=[],n=normalize(player.x-e.x,player.y-e.y),distance=Math.hypot(player.x-e.x,player.y-e.y);let v={x:0,y:0};e.cooldown-=dt;

@@ -33,7 +33,8 @@ export function fusionLook(v:Presentation){
  if(fire&&toxic)return{name:'부식 화염',core:0xffab54,edge:0xcb80ed,recipe:'corrosive'};
  if(l.shadow&&(fire||cold))return{name:fire?'암흑 화염':'암흑 냉기',core:fire?0xffa272:0x9feaff,edge:0xa787e2,recipe:'shadow'};
  if(l.drain&&(toxic||electric))return{name:toxic?'독성 흡수':'전기 흡수',core:0xa6edb0,edge:toxic?0xcd8ee8:0xffe875,recipe:'siphon'};
- const other=Object.keys(l).find(id=>id in FORMS&&id!==v.form) as Form|undefined;
+ const other=Object.keys(l).sort().find(id=>id in FORMS&&id!==v.form) as Form|undefined;
+ if(!other&&(l.split||l.ricochet||l.focus))return{name:base.name+' 융합',core:base.core,edge:l.ricochet?0xade6df:l.focus?0xffdebd:0xd8c3ff,recipe:'fused'};
  return other?{name:FORMS[v.form].name+' 융합',core:base.core,edge:FORMS[other].color,recipe:'fused'}:base;
 }
 export const modifierGlyph:Record<string,string>={split:'⑂',agility:'»',focus:'⊕',ricochet:'◇',recover:'+'};
@@ -64,8 +65,38 @@ export function techniqueMarks(v:Presentation,time:number,r:number):Mark[]{
   case 'thunderbolt':for(const side of [-1,1]){const p:number[]=[r,0];for(let i=1;i<8;i++)p.push(-i*r,Math.sin(i*7+time*17)*r*.8+side*r*.45);line(p,0xffd64b,3);line(p,0xffffe8,1)}break;
   case 'flamethrower':for(let i=7;i>=0;i--){const x=-i*r*.65,y=Math.sin(time*14+i)*r*.22,rr=r*(.55+i*.16);circle(x,y,rr,i>3?0xef532c:0xffb43d,.8-i*.07)}poly([r,0,-r*2,-r*.5,-r*4,0,-r*2,r*.5],0xffe8a3,.9);break;
  }
- if(look.recipe!=='single'){circle(0,0,r*1.8,look.edge,.6,false,2);for(const side of [-1,1])line([-r*2.8,side*r*.9,-r,side*r*.6,r*.7,0],look.edge,2,.7)}
+ out.push(...fusionAccents(v,time,r));
  // Rank changes are geometric, not just a different tint.
  if(v.rank>1)for(const side of [-1,1])line([-r*2,side*r*(1.9+v.rank*.2),-r*.6,side*r*(1.4+v.rank*.2),r*.2,side*r*(1.8+v.rank*.2)],color,1.2,.6);
+ return out;
+}
+
+/** Integrated silhouettes: decorative only, never new damage paths or orbiting shots. */
+export function fusionAccents(v:Presentation,time:number,r:number):Mark[]{
+ const look=fusionLook(v),out:Mark[]=[];if(look.recipe==='single')return out;
+ const line=(points:number[],color=look.edge,width=2.5,alpha=.9)=>out.push({kind:'line' as const,points,color,width,alpha,fill:false});
+ const poly=(points:number[],color=look.edge,alpha=.85)=>out.push({kind:'polygon' as const,points,color,width:1,alpha,fill:true});
+ const circle=(x:number,y:number,size:number,color=look.edge,alpha=.75)=>out.push({kind:'circle' as const,points:[x,y,size],color,width:2,alpha,fill:false});
+ if(look.recipe==='thermal'){
+  for(const side of [-1,1]){poly([r,0,-r*.6,side*r*.5,-r*3.5,side*r*1.7,-r*2.3,side*r*.25],look.edge);poly([r*.6,0,-r,side*r*1.65,-r*1.5,side*r*.55],look.core);line([-r*3,side*r*.6,-r*2,side*r*.9,-r*.4,0],0xf0ffff,1.5)}
+ }else if(look.recipe==='conductive'){
+  for(const side of [-1,1])line([-r*3,side*r*.4,-r*2,side*r*1.3,-r*1.6,side*r*.2,-r*.4,side*r*1.5,r,0],look.edge,3);
+ }else if(look.recipe==='corrosive'){
+  for(const side of [-1,1]){poly([r*.5,0,-r*.7,side*r,-r*3.3,side*r*1.5,-r*2.3,0],look.edge,.7);circle(-r*2.4,side*r*(.7+Math.sin(time*9)*.2),r*.45);circle(-r*3.5,side*r*.4,r*.25)}
+ }else if(look.recipe==='shadow'){
+  poly([r*1.5,0,0,-r*2,-r*3,0,0,r*2],0x281735,.8);
+  for(const side of [-1,1])line([r,0,-r*.2,side*r*1.3,-r*2.8,side*r*.8,-r*1,0],look.edge,3);
+  poly([r,0,-r,-r*.5,-r*2,0,-r,r*.5],look.core);
+ }else if(look.recipe==='siphon'){
+  for(const side of [-1,1]){poly([-r*.3,0,-r*1.3,side*r*1.6,-r*2.2,side*r*.7,-r*2.8,0],look.edge);line([-r*2.5,0,-r*1.5,side*r*.6,-r*.5,0],look.core,2)}
+ }else{
+  for(const side of [-1,1])poly([r,0,-r,side*r*1.35,-r*3.4,side*r*.7,-r*1.7,0],look.edge,.7);
+ }
+ // Later ingredients remain visible even when the primary recipe wins precedence.
+ const l=v.levels;
+ if((l.spark||l.thunderbolt)&&look.recipe!=='conductive')line([-r*3,0,-r*2.1,-r*.7,-r*1.5,r*.5,r*.7,0],0xffe86b,2);
+ if((l.poison||l.sludge)&&look.recipe!=='corrosive'&&look.recipe!=='siphon')for(const side of [-1,1])circle(-r*2.3,side*r*.65,r*.35,0xd18bfa);
+ if(l.split)for(const side of [-1,1])line([-r*2.5,0,-r*3.8,side*r],look.edge,2);
+ if(l.ricochet)line([r*.3,-r*1.6,r*1.6,0,r*.3,r*1.6],0xade6df,2);
  return out;
 }

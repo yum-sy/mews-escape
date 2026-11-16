@@ -2,7 +2,7 @@ import type {Kind} from './data';
 export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|'ember'|'gas'|'needle'|'sludge'|'flame'|'hex'|'psy'|'water'|'leaf'|'rock';sound:'shadow'|'flame'|'sludge'|'dragon'|'psybeam'}>={
  ekans:{name:'독침',color:0xb399ce,shape:'needle',sound:'sludge'},
  arbok:{name:'독엄니',color:0xc087e6,shape:'needle',sound:'sludge'},
- skorupi:{name:'물기',color:0xc3acd6,shape:'needle',sound:'sludge'},
+ skorupi:{name:'독침',color:0xc3acd6,shape:'needle',sound:'sludge'},
  drapion:{name:'크로스포이즌',color:0xc487cf,shape:'needle',sound:'sludge'},
  abra:{name:'순간이동',color:0xf5dc95,shape:'psy',sound:'psybeam'},
  kadabra:{name:'사이코빔',color:0xe9bc61,shape:'psy',sound:'psybeam'},

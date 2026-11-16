@@ -1,15 +1,16 @@
 import type {WeaponPath} from './weapons';
 import Phaser from 'phaser';
 import type {Attack} from './moves';
-import {techniqueMarks,presentation,fusionLook,FORMS,type Mark,type Presentation} from './techniques';
+import {techniqueMarks,fusionAccents,presentation,fusionLook,FORMS,type Mark,type Presentation} from './techniques';
 type Point={x:number;y:number};
 export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;trail:Point[];critical:boolean;child?:boolean}
 type Particle={x:number;y:number;vx:number;vy:number;age:number;life:number;color:number;size:number;ring:boolean;shape?:string};
 export function effectPalette(a:Attack){return [...new Set([a.color,...(a.burn?[0xff843e]:[]),...(a.slow?[0x8deaff]:[]),...(a.chain?[0xffe568]:[]),...(a.poison?[0xc780ff]:[]),...(a.lifesteal?[0x8cf5b1]:[])])]}
 export class CombatEffects{
+ private stamps:{x:number;y:number;age:number;visual:Presentation}[]=[];
  private channelG:Phaser.GameObjects.Graphics;private channels:WeaponPath[]=[];private channelAge=0;private g:Phaser.GameObjects.Graphics;private particles:Particle[]=[];private clock=0;private links:{a:Point;b:Point;age:number;life:number;drain:boolean}[]=[];private awards:{x:number;y:number;age:number;visual:Presentation}[]=[];
  constructor(scene:Phaser.Scene){this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
- clear(){this.setChannels([]);this.particles=[];this.links=[];this.awards=[];this.g.clear()}
+ clear(){this.setChannels([]);this.particles=[];this.stamps=[];this.links=[];this.awards=[];this.g.clear()}
  setChannels(paths:WeaponPath[]){this.channels=paths;this.channelAge=0;this.drawChannels(1)}
  fadeChannels(dt:number){this.channelAge+=dt;this.drawChannels(Math.max(0,1-this.channelAge/.12))}
  private drawChannels(globalAlpha:number){let alpha=globalAlpha;
@@ -18,6 +19,7 @@ export class CombatEffects{
    for(let i=1;i<points.length;i++){const from=points[i-1],to=points[i],t=i/points.length,pulse=Math.sin(this.clock*24-i*.8);
     g.lineStyle(to.width*(look.recipe==='single'?2:3),look.edge,alpha*(flame?.07:.2));g.lineBetween(from.x,from.y,to.x,to.y);
     g.lineStyle(flame?to.width*1.3:arc?3:Math.max(look.recipe==='single'?2:4,to.width*.75),flame?look.edge:look.core,alpha*(flame?.15:.85));g.lineBetween(from.x,from.y,to.x,to.y);
+    if(look.recipe==='shadow'){g.lineStyle(Math.max(5,to.width*1.5),0x251633,alpha*.95);g.lineBetween(from.x,from.y,to.x,to.y)}
     if(!flame){g.lineStyle(arc?1:2,0xf3ffff,alpha*.85);const j=arc?pulse*6:0;g.lineBetween(from.x,from.y, to.x+j,to.y-j)}
 
     if(path.kind==='beam'&&i%7===0){g.lineStyle(1.5,0xcfffff,alpha*.8);const r=4+pulse*2;g.strokePoints([{x:to.x-r,y:to.y},{x:to.x,y:to.y-r},{x:to.x+r,y:to.y},{x:to.x,y:to.y+r}],true)}
@@ -25,8 +27,10 @@ export class CombatEffects{
     if(path.kind==='pulse'&&i%3===0){g.fillStyle(0xf8aaff,alpha*.7);g.fillCircle(to.x+pulse*5,to.y-pulse*5,3)}
     if(path.kind==='tether'&&i%6===Math.floor(this.clock*25)%6){g.fillStyle(0xccffa9,alpha);g.fillEllipse(to.x,to.y,8,4)}
     if(look.recipe!=='single'){
+     if(i%9===0)this.marks(fusionAccents(path.attack.visual,this.clock,Math.min(9,Math.max(5,to.width*.7))),to.x,to.y,Math.atan2(to.y-from.y,to.x-from.x),alpha*.85,g);
      const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy)||1,co=dx/length,si=dy/length,radius=Math.min(12,to.width+4);
-     for(const sign of [-1,1]){const side=Math.sin(this.clock*12-i*.45)*radius*sign,previous=Math.sin(this.clock*12-(i-1)*.45)*radius*sign,x=to.x-si*side,y=to.y+co*side;
+     const wave=(index:number)=>look.recipe==='conductive'?(index%3===0?1:index%3===1?.15:.75):look.recipe==='thermal'?.7+Math.sin(index*.4-this.clock*8)*.15:look.recipe==='corrosive'?.65+Math.sin(index*.7-this.clock*5)*.25:look.recipe==='shadow'?Math.sin(index*.22-this.clock*5)*.55:look.recipe==='siphon'?Math.sin(index*.36-this.clock*4)*.55:Math.sin(this.clock*12-index*.45);
+     for(const sign of [-1,1]){const side=wave(i)*radius*sign,previous=wave(i-1)*radius*sign,x=to.x-si*side,y=to.y+co*side;
       g.lineStyle(2.4,sign===1?look.edge:look.core,alpha*.8);g.lineBetween(from.x-si*previous,from.y+co*previous,x,y);
       if(look.recipe==='thermal'&&sign===1&&i%8===0){g.fillStyle(look.edge,alpha*.65);g.fillTriangle(x+co*8,y+si*8,x-co*5-si*4,y-si*5+co*4,x-co*5+si*4,y-si*5-co*4)}
      }
@@ -40,7 +44,8 @@ export class CombatEffects{
   }
  }
  impact(x:number,y:number,a:Attack,critical=false){
-  const colors=effectPalette(a),count=critical?16:9;
+  const look=fusionLook(a.visual),colors=effectPalette(a),count=critical?16:9;
+  if(look.recipe!=='single'){this.stamps.push({x,y,age:0,visual:a.visual});if(this.stamps.length>12)this.stamps.shift();this.add({x,y,vx:0,vy:0,age:0,life:.32,color:look.edge,size:critical?38:25,ring:true})}
   for(let i=0;i<count;i++){const angle=i/count*Math.PI*2+Math.random()*.3,speed=55+Math.random()*110;this.add({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,age:0,life:.22+Math.random()*.2,color:colors[i%colors.length],size:critical?4:2.5,ring:false,shape:FORMS[a.visual.form].shape})}
   this.add({x,y,vx:0,vy:0,age:0,life:.25,color:a.color,size:critical?32:18,ring:true});
  }
@@ -48,12 +53,13 @@ export class CombatEffects{
  private add(p:Particle){if(this.particles.length>=360)this.particles.shift();this.particles.push(p)}
  bolt(a:Point,b:Point){this.links.push({a:{x:a.x,y:a.y},b:{x:b.x,y:b.y},age:0,life:.2,drain:false});if(this.links.length>32)this.links.shift()}
  siphon(a:Point,b:Point){this.links.push({a:{x:a.x,y:a.y},b:{x:b.x,y:b.y},age:0,life:.45,drain:true});if(this.links.length>32)this.links.shift()}
- private marks(marks:Mark[],x:number,y:number,angle:number,alpha=1){const g=this.g,co=Math.cos(angle),si=Math.sin(angle),point=(u:number,v:number)=>({x:x+u*co-v*si,y:y+u*si+v*co});for(const m of marks){if(m.kind==='circle'){const p=point(m.points[0],m.points[1]);if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillCircle(p.x,p.y,m.points[2])}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokeCircle(p.x,p.y,m.points[2])}}else{const points:Point[]=[];for(let i=0;i<m.points.length;i+=2)points.push(point(m.points[i],m.points[i+1]));if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillPoints(points,true)}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokePoints(points,false)}}}}
+ private marks(marks:Mark[],x:number,y:number,angle:number,alpha=1,g=this.g){const co=Math.cos(angle),si=Math.sin(angle),point=(u:number,v:number)=>({x:x+u*co-v*si,y:y+u*si+v*co});for(const m of marks){if(m.kind==='circle'){const p=point(m.points[0],m.points[1]);if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillCircle(p.x,p.y,m.points[2])}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokeCircle(p.x,p.y,m.points[2])}}else{const points:Point[]=[];for(let i=0;i<m.points.length;i+=2)points.push(point(m.points[i],m.points[i+1]));if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillPoints(points,true)}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokePoints(points,false)}}}}
  render(dt:number,shots:VisualShot[],enemies:{sprite:Point;hp:number;burn:number;slow:number;poison:number;radius:number}[]){
   this.clock+=dt;const g=this.g;g.clear();
   for(const s of shots){if(s.hostile)continue;const a=s.attack,p=s.sprite,r=a.size+Math.min(5,(a.damage-1)*1.2+a.burn*.5+a.poison*.4+a.slow*2),angle=Math.atan2(s.v.y,s.v.x);
    s.trail.push({x:p.x,y:p.y});if(s.trail.length>9)s.trail.shift();
    for(let i=1;i<s.trail.length;i++){const t=i/s.trail.length,from=s.trail[i-1],to=s.trail[i];g.lineStyle(Math.max(1,r*t*.7),a.color,t*(s.child?.2:.45));g.lineBetween(from.x,from.y,to.x,to.y)}
+   const look=fusionLook(a.visual);if(look.recipe!=='single')for(let i=1;i<s.trail.length;i++){const from=s.trail[i-1],to=s.trail[i],t=i/s.trail.length,dx=to.x-from.x,dy=to.y-from.y,len=Math.hypot(dx,dy)||1,side=Math.sin(this.clock*15-i*.8)*r*.65;g.lineStyle(2,look.edge,t*.85);g.lineBetween(from.x-dy/len*side,from.y+dx/len*side,to.x-dy/len*side,to.y+dx/len*side)}
    g.fillStyle(a.color,s.child?.035:.1);g.fillCircle(p.x,p.y,r*2.5);
    this.marks(techniqueMarks(a.visual,this.clock,r),p.x,p.y,angle,s.child?.5:1);
    if(s.child)continue;
@@ -71,6 +77,7 @@ export class CombatEffects{
   for(const p of this.particles){p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const t=p.age/p.life;if(t>=1)continue;if(p.ring){g.lineStyle(2,p.color,1-t);g.strokeCircle(p.x,p.y,4+p.size*t)}else{g.fillStyle(p.color,1-t);const size=p.size*(1-t*.5);if(['ember','plume'].includes(p.shape??''))g.fillTriangle(p.x-size,p.y+size,p.x+size,p.y+size,p.x,p.y-size*2);else if(['snow','lance','needle'].includes(p.shape??''))g.fillPoints([{x:p.x,y:p.y-size*2},{x:p.x+size,y:p.y},{x:p.x,y:p.y+size*2},{x:p.x-size,y:p.y}],true);else if(['bolt','fork'].includes(p.shape??'')){g.lineStyle(1.5,p.color,1-t);g.lineBetween(p.x-size*2,p.y-size,p.x+size,p.y+size)}else if(p.shape==='leaf')g.fillEllipse(p.x,p.y,size*3,size);else g.fillCircle(p.x,p.y,size)}}
   for(const link of this.links){link.age+=dt;const progress=link.age/link.life;if(progress>=1)continue;const points:Point[]=[];for(let i=0;i<11;i++){const t=i/10,j=i===0||i===10?0:Math.sin(i*7.1+this.clock*10)*(link.drain?8:12);points.push({x:link.a.x+(link.b.x-link.a.x)*t+j,y:link.a.y+(link.b.y-link.a.y)*t-j})}g.lineStyle(link.drain?1:2,link.drain?0x9cf7b0:0xffea6d,(1-progress)*.8);g.strokePoints(points,false);if(link.drain){for(let i=0;i<3;i++){const t=Math.min(1,progress*1.4-i*.12);if(t<0)continue;g.fillStyle(0xc4ffaf,1-progress*.5);g.fillCircle(link.a.x+(link.b.x-link.a.x)*t,link.a.y+(link.b.y-link.a.y)*t,3)}}}
   this.links=this.links.filter(l=>l.age<l.life);
+  for(const stamp of this.stamps){stamp.age+=dt;this.marks(fusionAccents(stamp.visual,this.clock,9+stamp.age*18),stamp.x,stamp.y,-Math.PI/2,Math.max(0,1-stamp.age/.24))}this.stamps=this.stamps.filter(s=>s.age<.24);
   for(const award of this.awards){award.age+=dt;const t=award.age/1.05;if(t<1){this.marks(techniqueMarks(award.visual,this.clock,18),award.x,award.y-45-t*28,-Math.PI/2,1-t);g.lineStyle(2,FORMS[award.visual.form].color,(1-t)*.65);g.strokeCircle(award.x,award.y,15+t*58)}}this.awards=this.awards.filter(a=>a.age<1.05);
   this.particles=this.particles.filter(p=>p.age<p.life);
  }
