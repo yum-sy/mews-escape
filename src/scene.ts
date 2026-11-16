@@ -1,3 +1,4 @@
+import {doorBlockReason,thresholdDirection,progressionReport} from './progression';
 import ARTWORK from './artwork-frames.json';
 import {techniqueIcon,techniqueBadge,moveHint,stableMarkup} from './technique-icons';
 import {symbol,paintHealth} from './hud-symbols';
@@ -36,7 +37,7 @@ function nextSeed(){const raw=new URLSearchParams(location.search).get('seed');c
 const ROOM_NAME={start:'격리실',combat:'실험실',reward:'기술 보관실',boss:'승강기 제어실'};
 export class LabScene extends Phaser.Scene{
  terminal!:Phaser.GameObjects.Text;lab!:LabPresentation;effects!:CombatEffects;controls=new Controls(()=>this.state==='playing');audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
- enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;
+ enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;blockedDoor='';
  weaponTimers=new Map<string,number>();weaponBursts=new Map<string,{paths:WeaponPath[];life:number}>();
  run=new Run(nextSeed());finalPhase:FinalPhase=1;entry:Direction|null=null;stopStory=()=>{};saveStatus='';
  beams:{shape:Phaser.GameObjects.Rectangle;axis:'x'|'y';position:number;age:number}[]=[];
@@ -102,7 +103,7 @@ export class LabScene extends Phaser.Scene{
   if(target.kind==='record'){this.readRecord();return}
   if(target.kind==='reward'){if(this.run.rewardKind==='heart'&&this.hp>=STATS.hp){this.note('체력이 가득 찼습니다. 회복제는 이 방에 남겨둡니다.');return}const supply=this.run.claimSupply();if(supply){if(supply==='heart')this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.refreshRoom();this.updateHud();this.audioFX.environment('reward');this.note(supply==='heart'?'체력 1 회복':'열쇠 +1');return}if(!this.run.openReward()){this.note(this.run.keys<1?'열쇠 1개가 필요합니다.':'더 익힐 기술이 없습니다. 열쇠는 사용하지 않습니다.');return}this.checkpoint();this.audioFX.environment('reward');this.showReward();return}
   if(target.kind==='power'){roomEnvironment(this.run.room).powerOff=true;this.audioFX.environment('switch');this.note('시설 전원을 차단했습니다. 이 방의 레이저·가스·전기 장치가 정지합니다.');if(this.run.room.cleared)this.checkpoint();this.updateHud();return}
-  this.state='transition';document.getElementById('interact')!.hidden=true;this.controls.reset();this.clearShots();this.audioFX.mode='silent';this.audioFX.environment('lift');this.cameras.main.fadeOut(320,5,10,18);this.time.delayedCall(350,()=>{if(this.state!=='transition')return;if(this.run.ascend()){this.enterRoom();if(this.state==='transition')this.resume();this.cameras.main.fadeIn(450,5,10,18);this.note(`B${this.run.floor} · ${floorTheme(this.run.floor).name}`)}});
+  this.state='transition';document.getElementById('interact')!.hidden=true;this.controls.reset();this.clearShots();this.audioFX.mode='silent';this.audioFX.environment('lift');this.cameras.main.fadeOut(320,5,10,18);this.time.delayedCall(350,()=>{if(this.state!=='transition')return;if(this.run.ascend()){this.enterRoom();if(this.state==='transition')this.resume();this.cameras.main.fadeIn(450,5,10,18);this.note(`B${this.run.floor} · ${floorTheme(this.run.floor).name}`)}else{this.resume();this.cameras.main.fadeIn(250,5,10,18);this.updateHud();this.note('승강기 조건을 다시 확인해 주세요.')}});
  }
  hitScenery(points:{x:number;y:number;width:number}[]){const state=roomEnvironment(this.run.room);for(const prop of breakableProps(this.run.room)){if(state.broken&(1<<prop.id))continue;if(points.some((p,i)=>i>0&&distanceToSegment(prop,points[i-1],p)<=prop.radius+p.width)&&breakProp(state,prop.id)){this.blocks=[...obstacles(this.run.room),...sceneryBlocks(this.run.room)];this.lab.refreshProps();this.burst(prop.x,prop.y,prop.kind==='crate'?0x9faeaf:0xa2ddd1,8);this.audioFX.environment(prop.kind==='crate'?'crate':'glass');if(this.run.room.cleared)this.checkpoint()}}}
  note(text:string){document.getElementById('room-note')!.textContent=text;this.noteTime=4}
@@ -129,7 +130,7 @@ export class LabScene extends Phaser.Scene{
  }
  clearShots(){this.weaponTimers.clear();this.weaponBursts.clear();this.effects?.setChannels([]);this.shots.forEach(s=>{s.sprite.destroy();s.glow.destroy()});this.shots=[]}
  enterRoom(from?:Direction,preserveInput=false){
-  this.entry=from??null;
+  this.entry=from??null;this.blockedDoor='';
   this.clearActors();if(!preserveInput)this.controls.reset();this.inv=1.2;this.fire=0;this.startDelay=1.2;this.transitionDelay=.65;
   const spawn:Record<Direction,Vec>={up:{x:560,y:R.top+48},down:{x:560,y:R.bottom-48},left:{x:R.left+48,y:364},right:{x:R.right-48,y:364}};
   const pos=from?spawn[from]:{x:560,y:365};this.player.setPosition(pos.x,pos.y).setAlpha(1);this.shadow.setPosition(pos.x,pos.y+25);
@@ -163,7 +164,7 @@ export class LabScene extends Phaser.Scene{
   const list=document.createElement('div');list.className='inventory';
   for(const id of new Set(this.run.moves)){const move=MOVES.find(m=>m.id===id)!;const item=document.createElement('span');item.textContent=`${move.name} ×${this.run.moves.filter(m=>m===id).length}`;item.title=move.description;list.append(item)}
   if(!this.run.moves.length)list.textContent='아직 익힌 기술이 없습니다. 염동력으로 길을 여세요.';
-  if(new Set(this.run.moves).size>6){const details=document.createElement('details');details.className='inventory-details';const summary=document.createElement('summary');summary.textContent=`습득 기술 ${new Set(this.run.moves).size}종 · 목록 보기`;details.append(summary,list);host.append(details)}else host.append(list);const hint=document.createElement('small');hint.textContent='WASD 이동 · 방향키 공격 · E 상호작용 / 터치: 왼쪽 이동 · 오른쪽 조준';host.append(hint);
+  if(new Set(this.run.moves).size>6){const details=document.createElement('details');details.className='inventory-details';const summary=document.createElement('summary');summary.textContent=`습득 기술 ${new Set(this.run.moves).size}종 · 목록 보기`;details.append(summary,list);host.append(details)}else host.append(list);const hint=document.createElement('small');hint.textContent='WASD 이동 · 방향키 공격 · E 상호작용 / 터치: 왼쪽 이동 · 오른쪽 조준';host.append(hint);const diagnostic=document.createElement('details');diagnostic.className='progress-diagnostic';const label=document.createElement('summary');label.textContent='문제 확인용 진행 정보';const report=document.createElement('pre');report.textContent=progressionReport(this.run,this.state,this.player,this.enemies);diagnostic.append(label,report);host.append(diagnostic);
  }
  showReward(){
   this.state='reward';this.updateHud();this.controls.reset();this.clearShots();this.showModal(this.run.rewardKind==='boss'?'보스 보상':'봉인된 기술',this.run.rewardKind==='boss'?'강화 하나를 선택하거나 포기하세요. 열쇠 1개를 받습니다.':'하나를 습득하거나 포기하세요. 기술 습득으로 체력은 회복되지 않습니다.','');document.getElementById('primary')!.hidden=true;document.querySelector('.panel')!.classList.add('reward-panel');
@@ -172,11 +173,11 @@ export class LabScene extends Phaser.Scene{
   const skip=document.createElement('button');skip.className='reward-skip';skip.textContent=this.run.rewardKind==='boss'?'강화 포기 · 열쇠만 받기':'현재 조합 유지 · 습득 포기 (열쇠 반환 없음)';skip.onclick=()=>{if(this.state!=='reward'||!this.run.skipReward())return;this.checkpoint();this.resume();this.refreshRoom();this.updateHud();this.note('기술을 추가하지 않고 현재 조합을 유지합니다.')};container.append(skip);(container.querySelector('button') as HTMLButtonElement|null)?.focus();
  }
  tryTravel(move:Vec){
-  if(!this.run.room.cleared||this.transitionDelay>0)return false;
-  const p=this.player;let dir:Direction|undefined;
-  if(Math.abs(p.x-560)<48){if(p.y<=R.top+26&&move.y<0)dir='up';if(p.y>=R.bottom-26&&move.y>0)dir='down'}
-  if(Math.abs(p.y-364)<48){if(p.x<=R.left+22&&move.x<0)dir='left';if(p.x>=R.right-22&&move.x>0)dir='right'}
-  if(dir&&this.run.travel(dir)){this.enterRoom(OPPOSITE[dir],true);return true}return false;
+  if(this.transitionDelay>0)return false;
+  const dir=thresholdDirection(this.player,move);if(!dir)return false;
+  const reason=doorBlockReason(this.run.rooms,this.run.room,dir);
+  if(reason){const stamp=`${dir}:${reason}`;if(reason!=='missing'&&this.blockedDoor!==stamp){this.blockedDoor=stamp;this.note(reason==='combat'?'방 안의 적을 모두 제압하면 문이 열립니다.':`남은 전투방 ${this.run.rooms.filter(r=>r.kind==='combat'&&!r.cleared).length}개를 정리하면 봉인이 풀립니다.`)}return false}
+  if(this.run.travel(dir)){this.enterRoom(OPPOSITE[dir],true);return true}return false;
  }
  update(_time:number,delta:number){
   if(this.state!=='playing')return;

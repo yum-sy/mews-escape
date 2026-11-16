@@ -1,3 +1,4 @@
+import {doorBlockReason} from './progression';
 import {generateDungeon,exitReady,enemyLayout,type DungeonRoom,type Direction} from './dungeon';
 import {composeAttack,MOVES} from './moves';
 import {roomReward,itemOffers} from './rewards';
@@ -10,7 +11,7 @@ export class Run{
  get room(){return this.rooms[this.current]}
  get attack(){return composeAttack(this.moves)}
  get canExit(){return exitReady(this.rooms)}
- travel(direction:Direction){const id=this.room.doors[direction];if(!this.room.cleared||id===undefined)return false;if(this.rooms[id].kind==='boss'&&!this.rooms.filter(r=>r.kind==='combat').every(r=>r.cleared))return false;this.current=id;this.room.visited=true;return true}
+ travel(direction:Direction){if(doorBlockReason(this.rooms,this.room,direction))return false;this.current=this.room.doors[direction]!;this.room.visited=true;return true}
  clear(){this.room.cleared=true}
  get rewardKind(){return roomReward(this.room,this.floor)}
  get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&this.rewardKind!=='none'}

@@ -1,3 +1,4 @@
+import {doorBlockReason} from './progression';
 import Phaser from 'phaser';
 import {roomReward} from './rewards';
 import {DIRECTIONS,type DungeonRoom,type Direction} from './dungeon';
@@ -28,9 +29,9 @@ export class LabPresentation{
   this.refreshProps();
  }
  setDoors(rooms:DungeonRoom[],moves:readonly string[]=[]){this.neighbors=rooms;this.moves=moves;this.doorStamp=''}
- private drawDoors(dt:number){const stamp=[this.room.cleared,...this.neighbors.map(r=>`${r.visited}:${r.cleared}`),this.moves.includes('survey')].join('|');const moving=[...this.doorOpen.values()].some(p=>p>0&&p<1);if(stamp===this.doorStamp&&!moving)return;this.doorStamp=stamp;const g=this.doors;g.clear();const left=this.neighbors.filter(r=>r.kind==='combat'&&!r.cleared).length;
+ private drawDoors(dt:number){const stamp=[this.room.cleared,...this.neighbors.map(r=>`${r.visited}:${r.cleared}`),this.moves.includes('survey')].join('|');const moving=[...this.doorOpen.values()].some(p=>p>0&&p<1);if(stamp===this.doorStamp&&!moving)return;this.doorStamp=stamp;const g=this.doors;g.clear();
   for(const dir of DIRECTIONS){const next=this.room.doors[dir],label=this.doorText.get(dir)!;label.setVisible(next!==undefined);if(next===undefined)continue;const dest=this.neighbors[next];if(!dest)continue;
-   const unlocked=this.room.cleared&&!(dest.kind==='boss'&&left>0),progress=this.doorOpen.get(dir)??(unlocked?1:0),p=Phaser.Math.Clamp(progress+(unlocked?1:-1)*dt*2.5,0,1);this.doorOpen.set(dir,p);
+   const unlocked=!doorBlockReason(this.neighbors,this.room,dir),progress=this.doorOpen.get(dir)??(unlocked?1:0),p=Phaser.Math.Clamp(progress+(unlocked?1:-1)*dt*2.5,0,1);this.doorOpen.set(dir,p);
    const center={up:{x:560,y:136},down:{x:560,y:590},left:{x:78,y:364},right:{x:1042,y:364}}[dir],angle={up:0,down:Math.PI,left:-Math.PI/2,right:Math.PI/2}[dir],co=Math.cos(angle),si=Math.sin(angle);
    const point=(u:number,v:number)=>({x:center.x+u*co-v*si,y:center.y+u*si+v*co});
    const rect=(x:number,y:number,w:number,h:number,color:number,alpha=1)=>{g.fillStyle(color,alpha);g.fillPoints([point(x,y),point(x+w,y),point(x+w,y+h),point(x,y+h)],true)};
