@@ -23,7 +23,8 @@ export function rewardComparison(ids:string[],id:string){
  const direct=(a:Attack)=>a.damage*a.count/a.interval*(1+a.crit*.6);
  const delta=Math.round((direct(after)/direct(before)-1)*100);
  const rank=ids.filter(x=>x===id).length+1;
- return {rank,delta,caption:id==='survey'?'지도·방 종류 공개 · 화력 유지':delta===0?'직접 화력 유지':`직접 화력 ${delta>0?'+':''}${delta}%`,name:fusionLook(after.visual).name,traits:attackTraits(after),carrier:MOVES.find(m=>m.id===after.visual.form)?.name??'염동력'};
+ const utility:Record<string,string>={flame:`화상 ${after.burn.toFixed(2)}/초 · 2초`,poison:`중독 ${after.poison.toFixed(2)}/초 · 2초`,ice:`둔화 ${Math.round(after.slow*100)}%`,spark:`연쇄 ${after.chain}명`,split:'적중 시 분열 2발',dragon:`넉백 ${after.knockback}px`,drain:`직접 피해 ${Math.round(1/after.lifesteal)}당 체력 1`,ricochet:`벽 반사 ${after.bounce}회`,sludge:'주변 65px 폭발',water:`사거리 ${after.range}px`,icebeam:`관통 ${after.pierce}명 · 둔화 ${Math.round(after.slow*100)}%`};
+ return {rank,delta,caption:id==='survey'?'현재 층 지도 공개 · 화력 유지':delta===0?(utility[id]??'직접 화력 유지'):`직접 화력 ${delta>0?'+':''}${delta}%`,name:fusionLook(after.visual).name,traits:attackTraits(after),carrier:MOVES.find(m=>m.id===after.visual.form)?.name??'염동력'};
 }
 export function formatDuration(seconds:number){const n=Math.max(0,Math.floor(seconds));return `${Math.floor(n/60)}분 ${String(n%60).padStart(2,'0')}초`}
 

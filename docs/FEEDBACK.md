@@ -6,3 +6,5 @@
 - **방 진입 무적 중 선제공격 — 전체 밸런스 점검에서 처리.** 2026-11-16 추가 요청에 따라 미정리 방 입장 시 0.65초 동안 플레이어와 적이 함께 대기하고, 적의 인식 동작 뒤 동시에 행동합니다. 선제공격으로 대기를 해제할 수 없습니다. 정리한 방은 대기 없이 이동합니다. 피격 후 무적은 1.35초로 별도 유지합니다.
 
 The subsequent fusion/economy request supersedes the automatic HP recovery on technique selection: normal rooms now drop supplies probabilistically, and item acquisition never heals. See FUSION-ECONOMY.md.
+
+2026-11-16 추가 요청: 기술 보상을 기본 두 선택지로 변경하고, 일반 전투방 기술 캡슐 확률 8%와 희귀 가중치를 조정했습니다. 층별 지도, 첫 패턴 힌트, 양측 함정 피해·넉백 및 상층 난이도 검증은 ASCENT-DISCOVERY-QA.md를 참고하세요.

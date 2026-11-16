@@ -8,13 +8,13 @@ export function mewtwoVolley(phase:FinalPhase,cycle:number,origin:Vec,target:Vec
  const shots:Extract<Action,{type:'shot'}>[]=[],angle=Math.atan2(target.y-origin.y,target.x-origin.x);
  const fan=(count:number,spread:number,homing=0)=>{for(let i=0;i<count;i++){const a=angle+(i-(count-1)/2)*spread;shots.push({type:'shot',dir:{x:Math.cos(a),y:Math.sin(a)},homing,speed:phase===3?275:245})}};
  if(phase===1){fan(5,.23);if(cycle%2===0)for(let i=0;i<10;i++){const a=i*Math.PI/5+.15;shots.push({type:'shot',dir:{x:Math.cos(a),y:Math.sin(a)},speed:205})}}
- else if(phase===2){fan(3,.45,1.15);if(cycle%2===0)fan(7,.28)}
+ else if(phase===2){fan(3,.45,.85);if(cycle%2===0)fan(7,.28)}
  else for(let i=0;i<12;i++){const a=i*Math.PI/6+cycle*.2;shots.push({type:'shot',dir:{x:Math.cos(a),y:Math.sin(a)},speed:255})}
  return shots;
 }
 export function stepMewtwo(e:Brain&{cycle:number},player:Vec,phase:FinalPhase,dt:number):{v:Vec;actions:FinalAction[]}{
  const actions:FinalAction[]=[];e.cooldown-=dt;const n=normalize(player.x-e.x,player.y-e.y);
- if(e.cooldown<=0&&e.charge<=0){e.cooldown=phase===1?2.4:phase===2?2.1:1.85;e.charge=phase===3?1:.9;e.dir={x:player.x<560?820:300,y:player.y<360?460:250};e.aim={...player};const origin=phase===1?e:e.dir;actions.push({type:'warn',x:origin.x,y:origin.y,r:55,cue:phase===1?'aim':'teleport',duration:e.charge,kind:phase===1?undefined:'mewtwo',directions:mewtwoVolley(phase,e.cycle+1,origin,e.aim).map(s=>s.dir)})}
+ if(e.cooldown<=0&&e.charge<=0){e.cooldown=phase===1?2.4:phase===2?2.1:1.85;e.charge=1.05;e.dir={x:player.x<560?820:300,y:player.y<360?460:250};e.aim={...player};const origin=phase===1?e:e.dir;actions.push({type:'warn',x:origin.x,y:origin.y,r:55,tracking:phase===2,cue:phase===1?'aim':'teleport',duration:e.charge,kind:phase===1?undefined:'mewtwo',directions:mewtwoVolley(phase,e.cycle+1,origin,e.aim).map(s=>s.dir)})}
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){e.cycle++;
   if(phase>1)actions.push({type:'blink',x:e.dir.x,y:e.dir.y});
   actions.push(...mewtwoVolley(phase,e.cycle,phase>1?e.dir:e,e.aim??player));

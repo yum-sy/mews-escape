@@ -1,3 +1,8 @@
+import {warningPattern,PATTERN_HINTS,PatternHints} from '../src/pattern-hints';
+import {trapHits,trapPush,trapDamage,TRAP_RECOVERY} from '../src/traps';
+import {poolPhase,hazardPhase} from '../src/scaling';
+import {intersects} from '../src/combat';
+import {floorLoot,takeFloorLoot} from '../src/floor-map';
 import {ENTRY_SECONDS,entryLayout} from '../src/encounter';
 import {availablePropLoot,takePropLoot} from '../src/prop-loot';
 import {damage} from '../src/combat';
@@ -22,13 +27,13 @@ function harness(){
  const source=ts.createSourceFile('scene.ts',readFileSync(new URL('../src/scene.ts',import.meta.url),'utf8'),ts.ScriptTarget.Latest,true);
  const declaration=source.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text==='LabScene')!;
  const js=ts.transpileModule(declaration.getText(source),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
- const elements=new Map<string,any>(),element=(id:string)=>{if(!elements.has(id))elements.set(id,{hidden:false,textContent:'',classList:{remove(){},add(){}},offsetWidth:0});return elements.get(id)};
- const context={ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
+ const elements=new Map<string,any>(),element=(id:string)=>{if(!elements.has(id))elements.set(id,{hidden:false,textContent:'',focus(){},classList:{remove(){},add(){}},offsetWidth:0});return elements.get(id)};
+ const context={warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
  vm.runInNewContext(js.replaceAll('import.meta.env.DEV','false'),context);
  const entity=(x=0,y=0)=>{const o:any={x,y,alive:true,destroy(){this.alive=false}};for(const method of ['setDisplaySize','setDepth','setAlpha','setAngle','setFlipX','setTint','clearTint'])o[method]=()=>o;o.setPosition=(x:number,y:number)=>{o.x=x;o.y=y;return o};return o};
  const scene:any=Object.create(context.exports.LabScene.prototype),timers:(()=>void)[]=[],notes:string[]=[];
  Object.assign(scene,{run:new Run(151),player:entity(560,365),shadow:entity(),enemies:[],loot:[],shots:[],beams:[],pools:[],blocks:[],env:[],state:'playing',finalPhase:1,hp:6,kills:0,elapsed:0,fire:0,inv:0,startDelay:0,transitionDelay:0,roomClock:0,noteTime:0,hudTime:0,weaponTimers:new Map(),weaponBursts:new Map(),controls:{reset(){},movement:()=>({x:0,y:0}),attack:()=>({x:0,y:0})},audioFX:{setScene(){},environment(){},play(){}},effects:{clear(){},setChannels(){},render(){}},lab:{update(){}},cameras:{main:{fadeOut(){},fadeIn(){scene.fadedIn=true}}},time:{delayedCall:(_n:number,f:()=>void)=>timers.push(f)},add:{image:entity,ellipse:entity,rectangle:entity},note:(s:string)=>notes.push(s),checkpoint:()=>{scene.saved=true},refreshRoom(){},updateHud(){},decorateRoom(){},updateHazards(){},updateEnemies(){},updateShots(){},burst(){},finalDialogue(){scene.state='story'},playEnding(){scene.state='won'},showReward(){scene.state='reward'}});
- return {scene,timers,notes};
+ return {scene,timers,notes,element};
 }
 
 test('last enemy death clears the room on the next update and all existing return doors work',()=>{
@@ -57,4 +62,13 @@ test('arrival blocks movement, weapons, hazards and contact together, then relea
 test('firing cannot cancel arrival and repeated hits cannot consume multiple hearts during recovery',()=>{
  const {scene:s}=harness();s.startDelay=ENTRY_SECONDS;s.controls.attack=()=>({x:1,y:0});s.fireWeapon(.016);assert.equal(s.startDelay,ENTRY_SECONDS);assert.equal(s.shots.length,0);s.interaction=()=>{throw Error('interaction ran during arrival')};s.interact();
  s.startDelay=0;s.hurt({x:0,y:0});assert.equal(s.hp,5);for(let i=0;i<100;i++)s.hurt({x:0,y:0});assert.equal(s.hp,5);assert.equal(s.inv,STATS.invulnerability);s.inv=0;s.hurt({x:0,y:0});assert.equal(s.hp,4);
+});
+
+test('active traps hurt and recoil both sides once, then respect recovery and disabled power',()=>{
+ const {scene:s}=harness();s.run.current=s.run.rooms.find((r:any)=>r.kind==='combat').id;s.roomClock=1.2;s.toxic=0;s.toxicTick=1;s.hazardSlow=0;s.player.setPosition(560,350);const shape:any={setAlpha(){return this},setStrokeStyle(){return this}};s.env=[{shape,kind:'electric',x:560,y:350,r:50,offset:0}];const sprite:any={x:565,y:350,setPosition(x:number,y:number){this.x=x;this.y=y}};const enemy={sprite,hp:50,maxHp:50,radius:20,trapInv:0};s.enemies=[enemy];s.hitEnemy=(e:any,n:number)=>e.hp-=n;const update=Object.getPrototypeOf(s).updateHazards.bind(s);
+ update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);assert.notEqual(s.player.y,350);assert.ok(sprite.x>565);s.player.setPosition(560,350);sprite.setPosition(565,350);for(let i=0;i<30;i++)update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);roomEnvironment(s.run.room).powerOff=true;s.inv=0;enemy.trapInv=0;update(.016);assert.equal(s.hp,5);assert.equal(enemy.hp,41);
+});
+
+test('first-pattern help freezes play until confirmation and is not repeated in a new session',()=>{
+ const data=new Map<string,string>(),storage={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v)},removeItem:(k:string)=>{data.delete(k)}};const {scene:s,element}=harness();s.hints=new PatternHints(storage);let updates=0;s.updateEnemies=()=>updates++;s.offerHint('beam');assert.equal(s.state,'hint');s.update(0,32);s.hurt({x:1,y:0});assert.equal(updates,0);assert.equal(s.hp,6);element('hint-confirm').onclick();assert.equal(s.state,'playing');assert.equal(element('pattern-hint').hidden,true);s.hints=new PatternHints(storage);s.offerHint('beam');assert.equal(s.state,'playing');
 });

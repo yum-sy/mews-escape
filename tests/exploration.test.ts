@@ -5,8 +5,8 @@ import {roomKnown,roomLabel,mapSymbol} from '../src/exploration';
 import {composeAttack} from '../src/moves';
 import {itemOffers,itemWeight} from '../src/rewards';
 import {Run} from '../src/run';
-test('unvisited room types stay hidden until survey is acquired',()=>{
- for(const r of generateDungeon(3)){r.visited=false;assert.equal(roomKnown(r,[]),false);assert.equal(roomLabel(r,[]),'미탐험');assert.equal(mapSymbol(r,[]),'?');assert.ok(roomKnown(r,['survey']));assert.notEqual(roomLabel(r,['survey']),'미탐험');r.visited=true;assert.ok(roomKnown(r,[]))}
+test('unvisited room types stay hidden until the current floor map is acquired',()=>{
+ for(const r of generateDungeon(3)){r.visited=false;assert.equal(roomKnown(r,[]),false);assert.equal(roomLabel(r,[]),'미탐험');assert.equal(mapSymbol(r,[]),'?');assert.ok(roomKnown(r,[],true));assert.notEqual(roomLabel(r,[],true),'미탐험');r.visited=true;assert.ok(roomKnown(r,[]))}
 });
 test('survey spends a treasure opportunity without changing combat stats or carrier',()=>{
  const a=composeAttack(['icebeam','poison']),b=composeAttack(['icebeam','poison','survey']);

@@ -25,3 +25,7 @@ test('fusion labels retain the actual carrier when inherited effects name the re
  assert.equal(attackLabel(composeAttack([])),'염동력');
  assert.match(attackLabel(composeAttack(['poison','drain','icebeam'])),/^냉동빔 · 독성 흡수$/);
 });
+
+test('utility rewards name the actual effect rather than only unchanged direct damage',()=>{
+ assert.match(rewardComparison([],'flame').caption,/화상 0.75/);assert.match(rewardComparison([],'icebeam').caption,/관통.*둔화/);assert.match(rewardComparison([],'survey').caption,/현재 층/);
+});
