@@ -1,7 +1,7 @@
 """Resize/crop user-supplied fan art; attribution in art-source/README.md."""
 from PIL import Image
 from pathlib import Path
-source=Image.open('art-source/mew-mewtwo-hitofutarai.png').convert('RGBA')
+source=Image.open('art-source/mew-mewtwo-hitofutarai-clean.png').convert('RGBA')
 faces=source.crop((0,0,350,350))
 def icon(size,padding):
  out=Image.new('RGBA',(512,512),'#182336')
