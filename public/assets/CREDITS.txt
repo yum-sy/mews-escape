@@ -50,4 +50,4 @@ User supplied the image and requested reuse on 2026-11-15.
 Adaptation: square crop, dark background, resizing; no generative redraw.
 No reuse license or artist permission was verified. Not covered by this project's code or Kenney licenses. Pokémon is third-party intellectual property.
 
-2026-11-16 icon adaptation: alpha-only outer white-fringe cleanup with Python; original colors/illustration retained.
+2026-11-16: Original supplied artwork restored at user request; production icons use crop, background and resizing only, without edge cleanup.
