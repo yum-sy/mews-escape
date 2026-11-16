@@ -13,23 +13,28 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
  if((e.recovery??0)>0){e.recovery=Math.max(0,e.recovery!-dt);return{v:still,actions}}
  if((e.dash??0)>0){e.dash=Math.max(0,e.dash!-dt);return{v:{x:e.dir.x*(phase===1?300:340),y:e.dir.y*(phase===1?300:340)},actions}}
  const volleyCount=phase===1?3:5,speed=p.speed;
+ const gasDirections=()=>e.cycle!%2?radialDirections(p.count,e,e.aim!,e.cycle!):[...fan(e,e.aim!,3,.18),...fan(e,{x:e.x*2-e.aim!.x,y:e.y*2-e.aim!.y},3,.18)];
+ const curseDirections=()=>e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
  const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed,homing:tracking})};
  if(e.cooldown<=0&&e.charge<=0){
   e.cycle=(e.cycle??0)+1;e.aim={...player};e.charge=1.05;e.cooldown=p.interval+(kind==='muk'?.5:kind==='houndoom'?.2:0);
   if(kind==='banette'){
-   e.dir=gengarDestination(e,player,e.cycle);actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:fan(e.dir,e.aim,volleyCount,.3)});
+   e.dir=e.cycle%2?gengarDestination(e,player,e.cycle):{x:e.x,y:e.y};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:curseDirections()});
   }else if(kind==='houndoom'&&e.cycle%2===0){e.dir=n;actions.push({type:'warn',x:e.x,y:e.y,r:42,cue:'rush',duration:1.05,directions:[e.dir]})}
-  else if(kind==='weezing'){actions.push({type:'warn',x:e.x,y:e.y,r:48,cue:'burst',duration:1.05,directions:radialDirections(p.count,e,e.aim,e.cycle)})}
-  else{
+  else if(kind==='weezing'){actions.push({type:'warn',x:e.x,y:e.y,r:48,cue:'burst',duration:1.05,directions:gasDirections()})}
+  else if(kind==='muk'&&e.cycle%2===0){
+   // A locked line of individually warned sludge eruptions, not a bullet fan.
+   const length=Math.min(330,Math.hypot(player.x-e.x,player.y-e.y));for(let i=1;i<=3;i++)actions.push({type:'pool',x:e.x+n.x*length*i/3,y:e.y+n.y*length*i/3,r:floor===6?28:34});
+  }else{
    actions.push({type:'warn',x:e.x,y:e.y,r:42,cue:'aim',duration:1.05,directions:fan(e,e.aim,volleyCount)});
    if(kind==='muk'){actions.push({type:'pool',x:e.aim.x,y:e.aim.y,r:floor===6?36:42});if(phase===2&&floor<6){const side={x:Math.max(150,Math.min(970,player.x-n.y*110)),y:Math.max(190,Math.min(525,player.y+n.x*110))};actions.push({type:'pool',...side,r:38})}}
   }
  }
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){
-  if(kind==='banette'){actions.push({type:'blink',x:e.dir.x,y:e.dir.y});volley(fan(e.dir,e.aim!,volleyCount,.3),phase===2?.65:0)}
+  if(kind==='banette'){actions.push({type:'blink',x:e.dir.x,y:e.dir.y});volley(curseDirections(),phase===2?.65:0)}
   else if(kind==='houndoom'&&e.cycle!%2===0)e.dash=.48;
-  else if(kind==='weezing'){volley(radialDirections(p.count,e,e.aim!,e.cycle!));if(phase===2&&floor<6)actions.push({type:'pool',x:e.x,y:e.y,r:42})}
-  else volley(fan(e,e.aim!,volleyCount));
+  else if(kind==='weezing'){volley(gasDirections());if(phase===2&&floor<6)actions.push({type:'pool',x:e.x,y:e.y,r:42})}
+  else if(!(kind==='muk'&&e.cycle!%2===0))volley(fan(e,e.aim!,volleyCount));
  }return{v:still,actions}}
  const distance=Math.hypot(player.x-e.x,player.y-e.y),advance=distance>230?1:distance<160?-1:0;
  const v=kind==='muk'?{x:n.x*(30+level*2),y:n.y*(30+level*2)}:kind==='weezing'?{x:(n.x*advance-n.y*.6)*35,y:(n.y*advance+n.x*.6)*35}:{x:n.x*advance*48,y:n.y*advance*48};

@@ -2,6 +2,7 @@ import type {StoragePort} from './save';
 import type {Warning} from './telegraphs';
 export const HINT_KEY='mews-escape.pattern-hints.v1';
 export const PATTERN_HINTS={
+ guard:{title:'가스 껍질',text:'또가스가 짙어지면 피해를 덜 받습니다. 공격하려고 밝아질 때 집중해서 공격하세요.',icon:'◉ → ◎'},
  rush:{title:'돌진',text:'화살표 방향으로 곧 돌진합니다. 옆으로 비켜 주세요.',icon:'→ ↗'},
  burst:{title:'방사 공격',text:'잔상이 출현 위치입니다. 화살표 사이의 빈틈으로 이동하세요.',icon:'↖ ↑ ↗'},
  teleport:{title:'순간이동',text:'잔상 위치로 나타납니다. 그 자리와 발사 화살표에서 벗어나세요.',icon:'◇ → ◇'},

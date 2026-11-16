@@ -1,0 +1,11 @@
+# Enemy identities and Isaac-inspired response patterns
+
+Reference behavior: Charger attacks on lane alignment; Host alternates covered and exposed states. Sources: https://bindingofisaacrebirth.wiki.gg/wiki/Monsters and https://bindingofisaacrebirth.wiki.gg/wiki/Host . These are design references, not imported art or copied implementation.
+
+Adaptation: Zubat locks a cardinal rush after 0.6 seconds of warning, then recovers for 0.65 seconds. Koffing is stationary, closes its gas shell between attacks (35% direct-hit reduction), and opens on its own timer regardless of incoming fire. It is never invulnerable. Gastly/Houndour pause for 0.45 seconds after firing. Grimer retains area-denial sludge; Shuppet uses a warned ambush. First-time shell explanation is persisted with existing pattern hints.
+
+Boss species remain excluded from normal spawn pools. Gengar alternates encircling and focused shadow volleys. Weezing alternates radial gas and opposing fans. Muk alternates aimed sludge with a locked, warned line of three poison pools. Houndoom alternates fire fans with a locked rush. Banette alternates flanking and stationary curse volleys, with limited tracking in its later phase. Mewtwo's three phases remain intact.
+
+Enemy shots now use cached, small transparent textures with species-specific silhouettes and palettes; no new external artwork or per-projectile particle emitters. Contact rushes leave bounded short-lived streaks. Poison pool colors, attack names and procedural sound families follow the source species. Collision sizes remain unchanged; decorations extend beyond the damaging core.
+
+Validation: 123 automated tests passed; production build passed. Added checks cover boss/normal separation, visual identities, alternating boss warnings, locked Zubat rush and recovery, and Koffing opening without attack-triggered timer resets. Existing progression, saves, trap damage, Mewtwo and reward tests pass. Browser checked a 844x390 development effects gallery and an actual Weezing volley captured through the scene's shoot method. Local evidence: evidence/enemy-effects-mobile.png. This was not a full campaign replay or a physical-device performance/audio listening test.

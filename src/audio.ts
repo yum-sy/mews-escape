@@ -1,3 +1,5 @@
+import {ENEMY_TECHNIQUES} from './enemy-techniques';
+import type {Kind} from './data';
 import type {Attack} from './moves';
 import {attackSound,techniqueSound,type SoundVoice} from './game-sound';
 import {FORMS,type Form} from './techniques';
@@ -35,6 +37,7 @@ export class AudioFX{
  reward(id:string,a:Attack){const at=this.ctx?.currentTime??0;this.play('win');const form=id in FORMS?id as Form:a.visual.form;for(const v of techniqueSound(form))this.voice({...v,gain:v.gain*.8,delay:v.delay+.12},at,'fx')}
  proc(kind:'chain'|'split'|'bounce'|'heal'){const now=this.ctx?.currentTime??0;if(now-(this.procTime.get(kind)??-1)<.12)return;this.procTime.set(kind,now);const form:Form={chain:'spark',split:'swift',bounce:'ice',heal:'drain'}[kind] as Form;for(const v of techniqueSound(form,true))this.voice({...v,gain:v.gain*.6},now,'fx')}
  play(kind:'shoot'|'hit'|'hurt'|'win'|'clear'|'alarm'|'read',_color=0){const f={shoot:620,hit:230,hurt:100,win:660,clear:523.25,alarm:140,read:520}[kind],now=this.ctx?.currentTime??0;this.voice({wave:kind==='hurt'?'triangle':'sine',from:f,to:kind==='hurt'?55:f,duration:.18,gain:.04,pan:0,delay:0},now,'fx');if(kind==='win'||kind==='clear')for(let i=1;i<=2;i++)this.voice({wave:'sine',from:f*[1,1.25,1.5][i],to:f*[1,1.25,1.5][i],duration:.35,gain:.026,pan:0,delay:i*.075},now,'fx')}
+ enemy(kind:Kind){const now=this.ctx?.currentTime??0;if(now-(this.procTime.get('enemy')??-1)<.15)return;this.procTime.set('enemy',now);for(const v of techniqueSound(ENEMY_TECHNIQUES[kind].sound))this.voice({...v,gain:v.gain*.45},now,'fx')}
  environment(kind:'door'|'switch'|'glass'|'lift'|'crate'|'reward'){const now=this.ctx?.currentTime??0;if(now-(this.procTime.get('env')??-1)<.08)return;this.procTime.set('env',now);const form:Form={door:'shadow',switch:'spark',glass:'ice',lift:'dragon',crate:'sludge',reward:'swift'}[kind] as Form;for(const v of techniqueSound(form))this.voice({...v,gain:v.gain*.7,duration:v.duration*(kind==='lift'?2:1)},now,'fx')}
  dispose(){this.token++;this.enabled=false;window.clearInterval(this.timer);this.stop();if(this.listening)document.removeEventListener('visibilitychange',this.visibility);this.listening=false;void this.ctx?.close()}
 }
