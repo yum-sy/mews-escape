@@ -1,3 +1,6 @@
+import {Telegraphs,type Warning} from './telegraphs';
+import {ENTRY_SECONDS,entryLayout} from './encounter';
+import {availablePropLoot,takePropLoot,type PropLoot} from './prop-loot';
 import {lightProp,PROP_SIZE} from './prop-lighting';
 import {doorBlockReason,thresholdDirection,progressionReport} from './progression';
 import ARTWORK from './artwork-frames.json';
@@ -30,12 +33,13 @@ import {knockbackPosition,obstacles,debris,moveWithWalls,overlapsBlock,type Bloc
 import {stepBrain} from './ai';
 import {SPECIES,speciesSize,hazardPhase} from './scaling';
 
-type Enemy={id:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;bar:Phaser.GameObjects.Rectangle;kind:Kind;hp:number;cooldown:number;charge:number;dir:Vec;flash:number;burn:number;slow:number;statusTime:number;poison:number;phase:number;maxHp:number;radius:number;cycle:number};
+type Enemy={id:number;sprite:Phaser.GameObjects.Image;shadow:Phaser.GameObjects.Ellipse;bar:Phaser.GameObjects.Rectangle;kind:Kind;hp:number;cooldown:number;charge:number;dir:Vec;flash:number;burn:number;slow:number;statusTime:number;poison:number;phase:number;maxHp:number;radius:number;cycle:number;recovery:number;aim?:Vec};
 type Shot={sprite:Phaser.GameObjects.Arc;glow:Phaser.GameObjects.Arc;v:Vec;life:number;hostile:boolean;attack:Attack;hit:Set<number>;remaining:number;child:boolean;bounces:number;trail:Vec[];critical:boolean;procAvailable:boolean;tracking:number;speed:number};
 type State='ready'|'playing'|'paused'|'reward'|'record'|'won'|'lost'|'story'|'transition';
 function nextSeed(){const raw=new URLSearchParams(location.search).get('seed');const value=Number(raw);return raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(value)&&value>=0&&value<=0xffffffff?value:crypto.getRandomValues(new Uint32Array(1))[0]}
 const ROOM_NAME={start:'격리실',combat:'실험실',reward:'기술 보관실',boss:'승강기 제어실'};
 export class LabScene extends Phaser.Scene{
+ telegraphs!:Telegraphs;loot:{id:number;kind:PropLoot;sprite:Phaser.GameObjects.Image}[]=[];
  terminal!:Phaser.GameObjects.Text;lab!:LabPresentation;effects!:CombatEffects;controls=new Controls(()=>this.state==='playing');audioFX=new AudioFX();player!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
  enemies:Enemy[]=[];shots:Shot[]=[];hp=STATS.hp;inv=0;fire=0;elapsed=0;state:State='ready';kills=0;startDelay=1.2;hudTime=0;transitionDelay=0;blockedDoor='';
  weaponTimers=new Map<string,number>();weaponBursts=new Map<string,{paths:WeaponPath[];life:number}>();
@@ -49,7 +53,8 @@ export class LabScene extends Phaser.Scene{
   const fit=()=>{const v=arenaView(this.scale.width,this.scale.height);this.cameras.main.setZoom(v.zoom).centerOn(v.x,v.y);document.documentElement.style.setProperty('--arena-inset',`${v.left}px`)};fit();this.scale.on('resize',fit);this.events.once('shutdown',()=>this.scale.off('resize',fit));
   for(const [key,data] of Object.entries(ARTWORK)){const [x,y,right,bottom]=data.bounds;this.textures.get(key).add('body',0,x,y,right-x,bottom-y)}
   const props=this.textures.get('lab-props');for(let i=0;i<9;i++)props.add(String(i),0,i%3*418,Math.floor(i/3)*418,418,418);
-  this.buildRoom();this.lab=new LabPresentation(this);this.effects=new CombatEffects(this);this.roomDecor=this.add.container(0,0).setDepth(3);
+  const damageOverlay=document.createElement('div');damageOverlay.id='damage-flash';damageOverlay.setAttribute('aria-hidden','true');document.getElementById('app')!.append(damageOverlay);
+  this.buildRoom();this.lab=new LabPresentation(this);this.effects=new CombatEffects(this);this.telegraphs=new Telegraphs(this);this.roomDecor=this.add.container(0,0).setDepth(3);
 
   this.terminal=this.add.text(560,410,'',{fontFamily:'sans-serif',fontSize:'15px',color:'#a6dfd5',align:'center'}).setOrigin(.5).setDepth(6);
   this.shadow=this.add.ellipse(560,385,40,14,0x000000,.4).setDepth(8);this.player=this.add.image(560,360,'mew','body').setDisplaySize(speciesSize('mew').width,speciesSize('mew').height).setDepth(17);
@@ -100,18 +105,22 @@ export class LabScene extends Phaser.Scene{
   }
  }
  interaction(){return nearestInteraction(this.player,roomInteractions(this.run.room,this.run.floor,this.run.canExit))}
- interact(){if(this.state!=='playing')return;const target=this.interaction();if(!target)return;
+ interact(){if(this.state!=='playing'||this.startDelay>0)return;const target=this.interaction();if(!target)return;
   if(target.kind==='record'){this.readRecord();return}
   if(target.kind==='reward'){if(this.run.rewardKind==='heart'&&this.hp>=STATS.hp){this.note('체력이 가득 찼습니다. 회복제는 이 방에 남겨둡니다.');return}const supply=this.run.claimSupply();if(supply){if(supply==='heart')this.hp=Math.min(STATS.hp,this.hp+1);this.checkpoint();this.refreshRoom();this.updateHud();this.audioFX.environment('reward');this.note(supply==='heart'?'체력 1 회복':'열쇠 +1');return}if(!this.run.openReward()){this.note(this.run.keys<1?'열쇠 1개가 필요합니다.':'더 익힐 기술이 없습니다. 열쇠는 사용하지 않습니다.');return}this.checkpoint();this.audioFX.environment('reward');this.showReward();return}
   if(target.kind==='power'){roomEnvironment(this.run.room).powerOff=true;this.audioFX.environment('switch');this.note('시설 전원을 차단했습니다. 이 방의 레이저·가스·전기 장치가 정지합니다.');if(this.run.room.cleared)this.checkpoint();this.updateHud();return}
   this.state='transition';document.getElementById('interact')!.hidden=true;this.controls.reset();this.clearShots();this.audioFX.mode='silent';this.audioFX.environment('lift');this.cameras.main.fadeOut(320,5,10,18);this.time.delayedCall(350,()=>{if(this.state!=='transition')return;if(this.run.ascend()){this.enterRoom();if(this.state==='transition')this.resume();this.cameras.main.fadeIn(450,5,10,18);this.note(`B${this.run.floor} · ${floorTheme(this.run.floor).name}`)}else{this.resume();this.cameras.main.fadeIn(250,5,10,18);this.updateHud();this.note('승강기 조건을 다시 확인해 주세요.')}});
  }
- hitScenery(points:{x:number;y:number;width:number}[]){const state=roomEnvironment(this.run.room);for(const prop of breakableProps(this.run.room)){if(state.broken&(1<<prop.id))continue;if(points.some((p,i)=>i>0&&distanceToSegment(prop,points[i-1],p)<=prop.radius+p.width)&&breakProp(state,prop.id)){this.blocks=[...obstacles(this.run.room),...sceneryBlocks(this.run.room)];this.lab.refreshProps();this.burst(prop.x,prop.y,prop.kind==='crate'?0x9faeaf:0xa2ddd1,8);this.audioFX.environment(prop.kind==='crate'?'crate':'glass');if(this.run.room.cleared)this.checkpoint()}}}
+ hitScenery(points:{x:number;y:number;width:number}[]){const state=roomEnvironment(this.run.room);for(const prop of breakableProps(this.run.room)){if(state.broken&(1<<prop.id))continue;if(points.some((p,i)=>i>0&&distanceToSegment(prop,points[i-1],p)<=prop.radius+p.width)&&breakProp(state,prop.id)){this.blocks=[...obstacles(this.run.room),...sceneryBlocks(this.run.room)];this.lab.refreshProps();this.burst(prop.x,prop.y,prop.kind==='crate'?0x9faeaf:0xa2ddd1,8);this.audioFX.environment(prop.kind==='crate'?'crate':'glass');this.syncLoot(prop.id);this.checkpoint()}}}
  note(text:string){document.getElementById('room-note')!.textContent=text;this.noteTime=4}
  readRecord(){if(this.state!=='playing'||!this.run.room.cleared||!intersects(this.player,{x:230,y:200},80))return;roomEnvironment(this.run.room).recordRead=true;this.checkpoint();this.state='record';this.controls.reset();this.effects.setChannels([]);this.audioFX.mode='silent';this.audioFX.play('read');const recordIndex=(this.run.current+this.run.tuning.level)%LAB_RECORDS.length,record=LAB_RECORDS[recordIndex];if(!rememberRecord(browserStorage,recordIndex))this.note('기록 보관함 저장에 실패했습니다.');this.showModal(record.title,record.text,'기록 닫기')}
- warn(x:number,y:number,r:number){const ring=this.add.circle(x,y,r,0xe4ad7d,.04).setStrokeStyle(2,0xffc294,.65).setDepth(4);this.tweens.add({targets:ring,alpha:.1,duration:650,onComplete:()=>ring.destroy()})}
+ syncLoot(popId?:number){for(const item of this.loot)item.sprite.destroy();this.loot=availablePropLoot(this.run.room).map(item=>{const sprite=this.add.image(item.x,item.y,'lab-props',item.kind==='heart'?'5':'6').setDisplaySize(36,36).setDepth(10).setTint(0xc0d7cd);if(item.id===popId)this.tweens.add({targets:sprite,y:item.y-18,duration:180,yoyo:true,ease:'Sine.easeOut'});return{id:item.id,kind:item.kind,sprite}})}
+ collectLoot(){for(const item of this.loot){if(Math.hypot(this.player.x-item.sprite.x,this.player.y-item.sprite.y)>30)continue;const kind=takePropLoot(this.run.room,item.id,this.hp,STATS.hp);if(!kind)continue;if(kind==='heart')this.hp=Math.min(STATS.hp,this.hp+1);else this.run.keys++;this.audioFX.environment('reward');this.checkpoint();this.updateHud();this.syncLoot();break}}
+ warn(x:number,y:number,r:number,options:Partial<Warning>={}){this.telegraphs?.show({type:'warn',x,y,r,...options})}
+ phaseShift(e:Enemy){this.telegraphs?.clear();this.shots=this.shots.filter(s=>{if(s.hostile){s.sprite.destroy();s.glow.destroy();return false}return true});this.pools.forEach(p=>p.shape.destroy());this.pools=[];this.toxic=0;this.warn(e.sprite.x,e.sprite.y,e.radius+12,{cue:'phase',duration:1.2});this.note('팬텀의 공격이 바뀝니다. 다음 예고 방향을 확인하세요.');this.audioFX.play('alarm')}
+
  addPool(x:number,y:number,r:number){if(this.pools.length>=12)return;const shape=this.add.circle(x,y,r,0x95bd64,.06).setStrokeStyle(1,0xc5d389,.5).setDepth(4);this.pools.push({shape,x,y,r,age:0})}
- addBeam(axis:'x'|'y',position:number){if(this.beams.length>=4)return;const shape=this.add.rectangle(axis==='x'?position:560,axis==='y'?position:363,axis==='x'?26:964,axis==='y'?26:454,0xffcd9b,.1).setStrokeStyle(2,0xffc696,.9).setDepth(7);this.beams.push({shape,axis,position,age:0})}
+ addBeam(axis:'x'|'y',position:number){if(this.beams.length>=4)return;const shape=this.add.rectangle(axis==='x'?position:560,axis==='y'?position:363,axis==='x'?26:964,axis==='y'?26:454,0xffcd9b,.1).setStrokeStyle(2,0xffc696,.9).setDepth(7);this.beams.push({shape,axis,position,age:0});this.warn(axis==='x'?position:560,axis==='y'?position:363,20,{cue:'aim',label:'빔 예고',duration:1,directions:axis==='x'?[{x:0,y:1},{x:0,y:-1}]:[{x:1,y:0},{x:-1,y:0}]})}
  updateHazards(dt:number){
   for(const b of this.beams){b.age+=dt;const phase=beamPhase(b.age);b.shape.setFillStyle(phase==='active'?0xffe4fd:0xffb579,phase==='active'?.9:.12).setStrokeStyle(phase==='warning'?2:0,0xffbd86,.85);if(phase==='active'&&this.startDelay<=0&&beamHits(b.axis,b.position,this.player))this.hurt({x:0,y:0});if(this.state!=='playing')return}
   this.beams=this.beams.filter(b=>{if(beamPhase(b.age)==='expired'){b.shape.destroy();return false}return true});
@@ -125,6 +134,7 @@ export class LabScene extends Phaser.Scene{
   }
  }
  clearActors(){
+  this.telegraphs?.clear();this.loot?.forEach(l=>l.sprite.destroy());this.loot=[];
   this.effects?.clear();this.beams.forEach(b=>b.shape.destroy());this.beams=[];
   this.enemies.forEach(e=>{e.sprite.destroy();e.shadow.destroy();e.bar.destroy()});this.enemies=[];
   this.clearShots();this.pools.forEach(p=>p.shape.destroy());this.pools=[];
@@ -132,14 +142,15 @@ export class LabScene extends Phaser.Scene{
  clearShots(){this.weaponTimers.clear();this.weaponBursts.clear();this.effects?.setChannels([]);this.shots.forEach(s=>{s.sprite.destroy();s.glow.destroy()});this.shots=[]}
  enterRoom(from?:Direction,preserveInput=false){
   this.entry=from??null;this.blockedDoor='';
-  this.clearActors();if(!preserveInput)this.controls.reset();this.inv=1.2;this.fire=0;this.startDelay=1.2;this.transitionDelay=.65;
+  this.clearActors();if(!preserveInput)this.controls.reset();this.inv=0;this.fire=0;this.startDelay=this.run.room.cleared?0:ENTRY_SECONDS;this.transitionDelay=.65;
   const spawn:Record<Direction,Vec>={up:{x:560,y:R.top+48},down:{x:560,y:R.bottom-48},left:{x:R.left+48,y:364},right:{x:R.right-48,y:364}};
   const pos=from?spawn[from]:{x:560,y:365};this.player.setPosition(pos.x,pos.y).setAlpha(1);this.shadow.setPosition(pos.x,pos.y+25);
   this.roomClock=0;this.toxic=0;this.toxicTick=0;this.hazardSlow=0;this.decorateRoom();
-  const layout=roomEnemies(this.run.room,this.run.floor);
+  const layout=entryLayout(roomEnemies(this.run.room,this.run.floor),this.player,this.blocks,this.run.room.doors);
   layout.forEach((spawn,i)=>{const size=speciesSize(spawn.kind),maxHp=spawn.kind==='mewtwo'?FINAL_HP[this.finalPhase-1]:spawn.kind==='gengar'?this.run.tuning.bossHp:ENEMIES[spawn.kind].hp*this.run.tuning.hp;
-   this.enemies.push({id:i,kind:spawn.kind,hp:maxHp,maxHp,radius:size.radius,sprite:this.add.image(spawn.x,spawn.y,spawn.kind,'body').setDisplaySize(size.width,size.height).setDepth(spawn.kind==='mewtwo'?16:9),shadow:this.add.ellipse(spawn.x,spawn.y+size.height*.4,size.width*.6,12,0x000000,.3).setDepth(8),bar:this.add.rectangle(spawn.x,spawn.y-size.height*.6,30,3,0xca8eb3).setDepth(12),cooldown:.5+i*.15,charge:0,dir:{x:0,y:0},flash:0,burn:0,slow:0,statusTime:0,poison:0,phase:spawn.kind==='mewtwo'?this.finalPhase:1,cycle:0});
+   this.enemies.push({id:i,kind:spawn.kind,hp:maxHp,maxHp,radius:size.radius,sprite:this.add.image(spawn.x,spawn.y,spawn.kind,'body').setDisplaySize(size.width,size.height).setDepth(spawn.kind==='mewtwo'?16:9),shadow:this.add.ellipse(spawn.x,spawn.y+size.height*.4,size.width*.6,12,0x000000,.3).setDepth(8),bar:this.add.rectangle(spawn.x,spawn.y-size.height*.6,30,3,0xca8eb3).setDepth(12),cooldown:.5+i*.15,charge:0,dir:{x:0,y:0},flash:0,burn:0,slow:0,statusTime:0,poison:0,phase:spawn.kind==='mewtwo'?this.finalPhase:1,cycle:0,recovery:0});
   });
+  for(const e of this.enemies){e.sprite.setFlipX(this.player.x>e.sprite.x);this.warn(e.sprite.x,e.sprite.y-speciesSize(e.kind).height*.7,0,{cue:'notice',duration:ENTRY_SECONDS})}this.syncLoot();
   this.audioFX.setScene(this.run.floor,this.finalPhase);this.audioFX.mode=this.run.room.kind==='boss'&&!this.run.room.cleared?'boss':this.run.room.cleared?'ambient':'combat';
 
   this.refreshRoom();this.updateHud();this.checkpoint();if(this.run.floor===1){if(this.run.room.cleared)this.playEnding();else this.finalDialogue();return}if(this.run.rewardPending)this.note('중앙 보상에 다가가 E 또는 상호작용 버튼으로 확인하세요.');
@@ -182,9 +193,9 @@ export class LabScene extends Phaser.Scene{
  }
  update(_time:number,delta:number){
   if(this.state!=='playing')return;
-  const dt=Math.min(delta/1000,.033);this.elapsed+=dt;this.inv=Math.max(0,this.inv-dt);this.fire-=dt;this.startDelay-=dt;this.transitionDelay-=dt;this.roomClock+=dt;this.noteTime-=dt;if(this.noteTime<=0)document.getElementById('room-note')!.textContent='';
+  const dt=Math.min(delta/1000,.033);this.telegraphs?.update(dt);if(this.startDelay>0){this.startDelay=Math.max(0,this.startDelay-dt);this.player.setAlpha(1);for(const e of this.enemies)e.sprite.setAngle(Math.sin((ENTRY_SECONDS-this.startDelay)/ENTRY_SECONDS*Math.PI)*-6);this.updateHud();return}this.collectLoot();this.elapsed+=dt;this.inv=Math.max(0,this.inv-dt);this.fire-=dt;this.startDelay-=dt;this.transitionDelay-=dt;this.roomClock+=dt;this.noteTime-=dt;if(this.noteTime<=0)document.getElementById('room-note')!.textContent='';
   const move=this.controls.movement(),position=moveWithWalls(this.player,{x:move.x*STATS.speed*dt*(this.hazardSlow>0?.6:1),y:move.y*STATS.speed*dt*(this.hazardSlow>0?.6:1)},this.blocks,speciesSize('mew').radius);this.player.x=Phaser.Math.Clamp(position.x,R.left+18,R.right-18);this.player.y=Phaser.Math.Clamp(position.y,R.top+22,R.bottom-22);if(move.x)this.player.setFlipX(move.x>0);
-  this.player.setAlpha(this.inv>0?(Math.floor(this.inv*16)%2?.4:1):1);this.player.setAngle(move.x*5);this.shadow.setPosition(this.player.x,this.player.y+25);
+  this.player.setAlpha(this.inv>0?.75+Math.sin(this.elapsed*14)*.25:1);this.player.setAngle(move.x*5);this.shadow.setPosition(this.player.x,this.player.y+25);
   if(this.tryTravel(move))return;
   if(this.run.rewardPending&&['heart','key'].includes(this.run.rewardKind)&&Math.hypot(this.player.x-560,this.player.y-365)<28&&(this.run.rewardKind!=='heart'||this.hp<STATS.hp))this.interact();
 
@@ -202,10 +213,10 @@ export class LabScene extends Phaser.Scene{
    if(e.hp<=0)continue;
    if(e.statusTime>0){e.statusTime-=dt;if(e.burn+e.poison>0)this.hitEnemy(e,(e.burn+e.poison)*dt);if(e.hp<=0)continue}else{e.burn=0;e.slow=0;e.poison=0}
    e.flash-=dt;
-   if(this.startDelay<=0){const brain={x:e.sprite.x,y:e.sprite.y,hp:e.hp/e.maxHp*ENEMIES[e.kind].hp,cooldown:e.cooldown,charge:e.charge,dir:e.dir,phase:e.phase,cycle:e.cycle};const intent=e.kind==='mewtwo'?stepMewtwo(brain,this.player,this.finalPhase,dt):stepBrain(e.kind,brain,this.player,dt);e.cycle=brain.cycle;e.cooldown=brain.cooldown;e.charge=brain.charge;e.dir=brain.dir;e.phase=brain.phase;
+   if(this.startDelay<=0){const brain={x:e.sprite.x,y:e.sprite.y,hp:e.hp/e.maxHp*ENEMIES[e.kind].hp,cooldown:e.cooldown,charge:e.charge,dir:e.dir,phase:e.phase,cycle:e.cycle,recovery:e.recovery,aim:e.aim};const intent=e.kind==='mewtwo'?stepMewtwo(brain,this.player,this.finalPhase,dt):stepBrain(e.kind,brain,this.player,dt,this.run.floor);e.cycle=brain.cycle;e.cooldown=brain.cooldown;e.charge=brain.charge;e.dir=brain.dir;e.phase=brain.phase;e.recovery=brain.recovery??0;e.aim=brain.aim;
     const v={x:intent.v.x*(1-e.slow*(e.kind==='mewtwo'?.35:1))*dt*(e.kind==='mewtwo'?1:this.run.tuning.speed),y:intent.v.y*(1-e.slow*(e.kind==='mewtwo'?.35:1))*dt*(e.kind==='mewtwo'?1:this.run.tuning.speed)};const p=ENEMIES[e.kind].flying?{x:e.sprite.x+v.x,y:e.sprite.y+v.y}:moveWithWalls(e.sprite,v,this.blocks,e.radius);
     e.sprite.setPosition(Phaser.Math.Clamp(p.x,R.left+e.radius,R.right-e.radius),Phaser.Math.Clamp(p.y,R.top+e.radius,R.bottom-e.radius));
-    for(const action of intent.actions){if(action.type==='shot')this.shoot(e.sprite.x,e.sprite.y,action.dir,true,undefined,false,undefined,action.homing??0,action.speed);else if(action.type==='beam')this.addBeam(action.axis,action.position);else if(action.type==='pool')this.addPool(action.x,action.y,action.r);else if(action.type==='blink'){this.burst(e.sprite.x,e.sprite.y,0xac8be8,8);e.sprite.setPosition(action.x,action.y);this.burst(action.x,action.y,0xac8be8,8)}else this.warn(action.x,action.y,action.r)}
+    for(const action of intent.actions){if(action.type==='shot')this.shoot(e.sprite.x,e.sprite.y,action.dir,true,undefined,false,undefined,action.homing??0,action.speed);else if(action.type==='beam')this.addBeam(action.axis,action.position);else if(action.type==='pool')this.addPool(action.x,action.y,action.r);else if(action.type==='blink'){this.burst(e.sprite.x,e.sprite.y,0xac8be8,8);e.sprite.setPosition(action.x,action.y);this.burst(action.x,action.y,0xac8be8,8)}else if(action.type==='phase')this.phaseShift(e);else this.warn(action.x,action.y,action.r,action)}
    }
    e.sprite.setFlipX(this.player.x>e.sprite.x).setAngle(Math.sin(this.elapsed*7+e.id)*4);e.sprite.setTint(e.flash>0?0xffffff:e.charge>.48?0xff8b92:e.slow>0?0x91e6fa:e.poison>0?0xbb8fe8:e.burn>0?0xffaf71:0xffffff);e.sprite.setAlpha(e.flash>0?.65:1);e.shadow.setPosition(e.sprite.x,e.sprite.y+speciesSize(e.kind).height*.4);e.bar.setPosition(e.sprite.x,e.sprite.y-speciesSize(e.kind).height*.6).setDisplaySize(30*e.hp/e.maxHp,3);
    if(this.startDelay<=0&&intersects(this.player,e.sprite,e.radius+speciesSize('mew').radius-4))this.hurt(normalize(this.player.x-e.sprite.x,this.player.y-e.sprite.y));if(this.state!=='playing')return;
@@ -240,7 +251,7 @@ export class LabScene extends Phaser.Scene{
  }
  fireWeapon(dt:number){
   const aim=this.controls.attack();if(!aim.x&&!aim.y){this.weaponBursts.clear();this.effects.setChannels([]);for(const [key,value] of this.weaponTimers)this.weaponTimers.set(key,Math.max(0,value-dt));return}
-  if(this.startDelay>0){this.startDelay=0;this.inv=0}
+  if(this.startDelay>0)return;
   const layers=fusionLayers(this.run.attack),angle=Math.atan2(aim.y,aim.x),paths:WeaponPath[]=[];
   const targets=this.enemies.filter(e=>e.hp>0).map(e=>({id:e.id,x:e.sprite.x,y:e.sprite.y,radius:e.radius}));
   for(const [layerIndex,attack] of layers.entries()){
@@ -279,7 +290,7 @@ export class LabScene extends Phaser.Scene{
   this.shots.push({sprite:this.add.circle(x,y,r,color).setStrokeStyle(2,hostile?0xffe0b6:0xffeaff).setDepth(hostile?20:13).setVisible(hostile),glow:this.add.circle(x,y,r*2.5,color,.09).setDepth(hostile?19:12).setVisible(hostile),v:{x:dir.x*speed,y:dir.y*speed},life:hostile?5:attack.range/speed,hostile,attack,hit:new Set(ignore===undefined?[]:[ignore]),remaining:attack.pierce,child,bounces:attack.bounce,trail:[],critical,procAvailable:!child,tracking,speed});
  }
  hitEnemy(e:Enemy,amount:number){if(e.hp<=0)return;e.hp=Math.max(0,e.hp-amount);e.flash=.1;if(e.hp===0){if(e.kind!=='mewtwo'||this.finalPhase===3)this.kills++;this.burst(e.sprite.x,e.sprite.y,0xc29fed,10);e.sprite.destroy();e.bar.destroy();e.shadow.destroy()}}
- hurt(dir:Vec){const result=damage(this.hp,this.inv);if(!result.hit)return;this.hp=result.hp;this.inv=result.invulnerable;const pushed=knockbackPosition(this.player,dir,this.blocks,speciesSize('mew').radius);this.player.setPosition(pushed.x,pushed.y);this.cameras.main.shake(100,.004);this.audioFX.play('hurt');this.burst(this.player.x,this.player.y,0xf9a1b7,8);this.updateHud();if(this.hp<=0)this.finish(false)}
+ hurt(dir:Vec){if(this.startDelay>0||this.state!=='playing')return;const result=damage(this.hp,this.inv);if(!result.hit)return;this.hp=result.hp;this.inv=result.invulnerable;const pushed=knockbackPosition(this.player,dir,this.blocks,speciesSize('mew').radius);this.player.setPosition(pushed.x,pushed.y);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)this.cameras.main.shake(150,.005);const flash=document.getElementById('damage-flash');if(flash){flash.classList.remove('hit');void flash.offsetWidth;flash.classList.add('hit')}this.audioFX.play('hurt');this.burst(this.player.x,this.player.y,0xf9a1b7,8);this.updateHud();if(this.hp<=0)this.finish(false)}
  burst(x:number,y:number,color:number,count:number){for(let i=0;i<count;i++){const p=this.add.rectangle(x,y,3,3,color).setDepth(15),angle=Math.random()*Math.PI*2;this.tweens.add({targets:p,x:x+Math.cos(angle)*35,y:y+Math.sin(angle)*35,alpha:0,duration:280,onComplete:()=>p.destroy()})}}
  checkpoint(){
   const save:Checkpoint={version:1,keys:this.run.keys,seed:this.run.seed,floor:this.run.floor,current:this.run.current,moves:[...this.run.moves],rooms:this.run.rooms.map(({visited,cleared,rewardTaken,environment,offer,opened})=>({visited,cleared,rewardTaken,offer,opened,environment:environment?{...environment}:undefined})),hp:this.hp,kills:this.kills,elapsed:this.elapsed,drain:this.drain,entry:this.entry,phase:this.finalPhase,ending:this.run.floor===1&&this.run.room.cleared,savedAt:Date.now()};
@@ -290,7 +301,7 @@ export class LabScene extends Phaser.Scene{
   this.state='story';this.controls.reset();this.audioFX.mode='silent';this.clearShots();const script=MEWTWO_SCRIPT[this.finalPhase-1];
   const shots=this.finalPhase===1?[{id:'reunion',tag:'B1 · 지상 출입 구역',title:'문 앞에서 기다리던 존재',text:'문틈으로 햇빛이 비쳤다. 뮤는 반가운 듯 고개를 들고 그쪽으로 날아갔다. 문 앞의 뮤츠가 천천히 손을 펼쳤다. 출구가, 다시 어두워졌다.'}]:[];
   shots.push({id:this.finalPhase===1?'awakening':this.finalPhase===2?'jealousy':'abandonment',tag:`MEWTWO / ${this.finalPhase}단계 · ${script.emotion}`,title:script.emotion,text:script.line+'<br><small>'+script.direction+'</small>'});
-  this.stopStory=showStory(shots,()=>{this.resume();this.inv=1.2;this.startDelay=1.2;this.audioFX.play('alarm')});
+  this.stopStory=showStory(shots,()=>{this.resume();this.inv=0;this.startDelay=ENTRY_SECONDS;this.audioFX.play('alarm')});
  }
  playEnding(){this.audioFX.setScene(6,1);this.state='story';this.controls.reset();this.clearActors();document.getElementById('modal')!.hidden=true;this.audioFX.mode='ambient';this.stopStory=showStory(ENDING,()=>this.finish(true),'탈출 기록 보기');}
  finish(won:boolean){if(this.state==='won'||this.state==='lost')return;const archived=finishProfile(browserStorage,won,this.run.floor,this.kills,this.elapsed);if(!archived)this.note('탈출 통계 저장에 실패했습니다.');this.audioFX.setScene(6,1);this.state=won?'won':'lost';this.audioFX.mode='ambient';this.controls.reset();this.clearShots();const removed=removeCheckpoint(browserStorage);if(won)this.audioFX.play('win');const learned=this.run.moves.length;this.updateHud();this.showModal(won?'탈출 성공 · 새로운 아침':'아직, 하늘에 닿지 못했다',`B${this.run.floor} · ${this.kills}마리 제압 · 기술 ${learned}회 습득 · ${formatDuration(this.elapsed)}. ${won?'뮤는 빛 앞에서 기다렸다. 이번 탈출은 여기서 끝났지만, 두 포켓몬의 이야기는 이제 시작이다.':'이번 판은 끝났습니다. 새로운 탈출을 시작할 수 있습니다.'}${removed?'':' 저장소에 접근할 수 없어 이전 기록을 지우지 못했습니다.'}`,'다시 탈출하기');}
@@ -299,14 +310,14 @@ export class LabScene extends Phaser.Scene{
   const cleared=this.run.rooms.filter(r=>r.kind==='combat'&&r.cleared).length;
   document.getElementById('counter')!.textContent=`B${this.run.floor} · ${this.run.floor===1?'뮤츠 '+this.finalPhase+'/3단계':'전투방 '+cleared+'/'+this.run.tuning.combatCount} · ${this.kills} 처치 · ${Math.floor(this.elapsed)}s`;
   const goal=document.getElementById('objective')!,grace=this.state==='playing'&&this.startDelay>0&&!this.run.room.cleared,remaining=this.run.rooms.filter(r=>r.kind==='combat'&&!r.cleared).length;
-  const goalText=objective(this.run,grace);goal.title=goalText;goal.dataset.hint=goalText;goal.setAttribute('aria-label',goalText);goal.innerHTML=`<span class="hud-caption">목표</span>${grace?symbol('shield'):!this.run.room.cleared?symbol('combat'):this.run.room.kind==='boss'?(this.run.rewardPending?symbol('reward'):symbol('up')):symbol('open')}<span>${grace?'진입 보호':!this.run.room.cleared?'적 제압':this.run.room.kind==='boss'?(this.run.rewardPending?'보상 확인':'위층으로'):'방 탐험'}</span>`;
+  const goalText=objective(this.run,grace);goal.title=goalText;goal.dataset.hint=goalText;goal.setAttribute('aria-label',goalText);goal.innerHTML=`<span class="hud-caption">목표</span>${grace?symbol('shield'):!this.run.room.cleared?symbol('combat'):this.run.room.kind==='boss'?(this.run.rewardPending?symbol('reward'):symbol('up')):symbol('open')}<span>${grace?'전투 준비':!this.run.room.cleared?'적 제압':this.run.room.kind==='boss'?(this.run.rewardPending?'보상 확인':'위층으로'):'방 탐험'}</span>`;
   const supplies=document.getElementById('supplies')!;supplies.innerHTML=symbol('key')+`<b>${this.run.keys}</b>`;supplies.setAttribute('aria-label',`열쇠 ${this.run.keys}`);supplies.dataset.hint='열쇠 · 봉인된 기술 캡슐을 여는 데 1개 사용';
 
   const status=document.getElementById('status')!;status.innerHTML=this.toxic>0?'☣':this.hazardSlow>0?'ϟ':'';status.setAttribute('aria-label',this.toxic>0?'중독':this.hazardSlow>0?'감전':'이상 상태 없음');
   document.getElementById('seed')!.textContent=`SEED ${this.run.seed.toString(16).toUpperCase()}`;
   const boss=this.enemies.find(e=>(e.kind==='gengar'||e.kind==='mewtwo')&&e.hp>0);document.getElementById('boss-hud')!.hidden=!boss;if(boss){document.getElementById('boss-name')!.textContent=boss.kind==='mewtwo'?`뮤츠 ${'●'.repeat(this.finalPhase)}${'○'.repeat(3-this.finalPhase)}`:`팬텀`;document.getElementById('boss-fill')!.style.width=`${boss.hp/boss.maxHp*100}%`}
   document.querySelector('.map>span')!.textContent=`B${this.run.floor}`;
-  const target=this.interaction(),button=document.getElementById('interact')!;button.hidden=!target||this.state!=='playing';if(target){button.innerHTML=symbol(({record:'read',reward:'reward',power:'power',lift:'up'} as Record<string,string>)[target.kind]??'up')+`<span>${({record:'조사',reward:this.run.rewardKind==='heart'?'회복':this.run.rewardKind==='key'?'줍기':'보상',power:'전원 차단',lift:'위층으로'} as Record<string,string>)[target.kind]}</span>`+(document.body.classList.contains('touch-ui')||matchMedia('(pointer:coarse)').matches?'':'<kbd>E</kbd>');button.title=target.label;button.dataset.hint=target.label;button.setAttribute('aria-label',target.label)};
+  const target=this.interaction(),button=document.getElementById('interact')!;button.hidden=!target||this.state!=='playing'||this.startDelay>0;if(target){button.innerHTML=symbol(({record:'read',reward:'reward',power:'power',lift:'up'} as Record<string,string>)[target.kind]??'up')+`<span>${({record:'조사',reward:this.run.rewardKind==='heart'?'회복':this.run.rewardKind==='key'?'줍기':'보상',power:'전원 차단',lift:'위층으로'} as Record<string,string>)[target.kind]}</span>`+(document.body.classList.contains('touch-ui')||matchMedia('(pointer:coarse)').matches?'':'<kbd>E</kbd>');button.title=target.label;button.dataset.hint=target.label;button.setAttribute('aria-label',target.label)};
   const attack=this.run.attack,form=FORMS[attack.visual.form];stableMarkup(document.getElementById('build-info')!,[...new Set(this.run.moves)].filter(id=>id!==attack.visual.form).slice(-4).map(techniqueBadge).join(''));document.getElementById('build-info')!.title=`공격 ${attack.damage.toFixed(1)} · 발사 간격 ${attack.interval.toFixed(2)}초 · ${this.run.moves.length} 강화`;const icon=document.querySelector('.move-icon') as HTMLElement;stableMarkup(icon,techniqueIcon(attack.visual.form)+`<span class="move-name">${MOVES.find(m=>m.id===attack.visual.form)?.name??'염동력'}</span>`);icon.dataset.hint=moveHint(attack.visual.form);icon.setAttribute('tabindex','0');icon.setAttribute('aria-label',moveHint(attack.visual.form));icon.style.color='#'+form.color.toString(16);document.querySelector('.loadout small')!.textContent=`주 기술 / ${MOVES.find(m=>m.id===attack.visual.form)?.type??'에스퍼'} · 효과 누적`;document.getElementById('sound')!.title=this.audioFX.snapshot.title;
   const counts=new Map<string,number>();for(const id of this.run.moves)counts.set(id,(counts.get(id)??0)+1);
   document.getElementById('build-list')!.textContent=counts.size?[...counts].map(([id,n])=>`${MOVES.find(m=>m.id===id)!.name}${n>1?' ×'+n:''}`).join(' · '):'염동력 · 기술을 모아 효과를 조합하세요';

@@ -1,7 +1,7 @@
 import {roomReward} from './rewards';
 import type {DungeonRoom} from './dungeon';
 import type {Vec} from './combat';
-export interface EnvironmentState{broken:number;powerOff:boolean;recordRead:boolean}
+export interface EnvironmentState{broken:number;lootTaken?:number;powerOff:boolean;recordRead:boolean}
 export const freshEnvironment=():EnvironmentState=>({broken:0,powerOff:false,recordRead:false});
 export function roomEnvironment(room:DungeonRoom){return room.environment??(room.environment=freshEnvironment())}
 export const FLOOR_THEMES=[

@@ -1,5 +1,5 @@
 export const ROOM={width:1120,height:700,left:78,right:1042,top:136,bottom:590};
-export const STATS={hp:6,speed:240,damage:1,shotInterval:.19,projectileSpeed:600,range:720,invulnerability:1.1,projectileCap:120};
+export const STATS={hp:6,speed:240,damage:1,shotInterval:.19,projectileSpeed:600,range:720,invulnerability:1.35,projectileCap:120};
 export const ENEMIES={
  gastly:{name:'고오스',hp:8,speed:76,radius:21,flying:true},
  zubat:{name:'주뱃',hp:5,speed:112,radius:19,flying:true},

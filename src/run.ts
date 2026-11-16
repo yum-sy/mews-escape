@@ -29,5 +29,6 @@ export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{
 
 export function roomEnemies(room:DungeonRoom,floor:number):ReturnType<typeof enemyLayout>{
  if(room.cleared)return[];if(floor===1)return[{kind:'mewtwo',x:560,y:260}];const layout=enemyLayout(room),level=6-floor;
+ if(room.kind==='combat'&&floor>=5)return layout.slice(0,floor===6?2+room.seed%2:3+room.seed%2);
  if(room.kind==='combat'&&level>=2)layout.push({kind:level>=3?'koffing':'houndour',x:560,y:365});return layout;
 }

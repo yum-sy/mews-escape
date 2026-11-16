@@ -27,7 +27,6 @@ test('split children preserve identity but cannot multiply secondary hits or hea
  for(const key of ['chain','blast','pierce','split','bounce','lifesteal'] as const)assert.equal(b[key],0);
  assert.ok(1+PIERCE_RETAIN+PIERCE_RETAIN**2<2.5,'piercing does not repeat full damage');
 });
-test('unupgraded early enemies survive the entry grace and ranged enemies apply pressure',()=>{
- const base=composeAttack([]);const availableHits=Math.ceil(1.2/base.interval);assert.ok(ENEMIES.gastly.hp>availableHits*base.damage);assert.ok(ENEMIES.koffing.hp>availableHits*base.damage);
+test('ranged enemies still apply pressure after the mutual arrival lock',()=>{
  const e:Brain={x:300,y:300,hp:ENEMIES.gastly.hp,cooldown:0,charge:0,dir:{x:0,y:0},phase:1};let shots=0;for(let i=0;i<300;i++)shots+=stepBrain('gastly',e,{x:560,y:360},1/60).actions.filter(a=>a.type==='shot').length;assert.equal(shots,3);
 });

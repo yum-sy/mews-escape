@@ -28,7 +28,7 @@ test('six normal species have distinct executable attacks; boss intensifies belo
  for(const kind of NORMAL_KINDS){const b=brain(),first=stepBrain(kind,b,p,.016);assert.ok(Number.isFinite(first.v.x));let actions=[...first.actions];for(let i=0;i<60;i++)actions.push(...stepBrain(kind,b,p,.016).actions);assert.ok(actions.length>0,kind);shotCounts.push(actions.filter(a=>a.type==='shot').length)}
  assert.ok(new Set(shotCounts).size>2);
  assert.equal(bossPhase(180),1);assert.equal(bossPhase(49),2);
- const b=brain();b.hp=40;let actions=stepBrain('gengar',b,p,.016).actions;for(let i=0;i<60;i++)actions.push(...stepBrain('gengar',b,p,.016).actions);assert.equal(actions.filter(a=>a.type==='shot').length,12);assert.ok(actions.some(a=>a.type==='pool'));assert.ok(actions.findIndex(a=>a.type==='warn')<actions.findIndex(a=>a.type==='blink'));
+ const b=brain();b.hp=40;let actions=stepBrain('gengar',b,p,.016).actions;assert.equal(actions[0].type,'phase');for(let i=0;i<160;i++)actions.push(...stepBrain('gengar',b,p,.016).actions);assert.equal(actions.filter(a=>a.type==='shot').length,12);assert.ok(actions.some(a=>a.type==='pool'));assert.ok(actions.findIndex(a=>a.type==='warn')<actions.findIndex(a=>a.type==='blink'));
 });
 test('obstacles preserve entry corridors, center and spawn positions for all templates',()=>{
  for(let seed=0;seed<50;seed++)for(const room of generateDungeon(seed)){const blocks=obstacles(room);for(const p of [...enemyLayout(room),{x:560,y:184},{x:560,y:542},{x:126,y:364},{x:994,y:364},{x:560,y:365}])assert.ok(!blocks.some(b=>overlapsBlock(p,28,b)));}

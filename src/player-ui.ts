@@ -2,7 +2,7 @@ import type {Run} from './run';
 import {composeAttack,MOVES,type Attack} from './moves';
 import {fusionLook} from './techniques';
 export function objective(run:Run,entryGrace=false):string{
- if(entryGrace&&!run.room.cleared)return'진입 보호 중 · 공격하면 해제됩니다';
+ if(entryGrace&&!run.room.cleared)return'적이 뮤를 알아차리는 중 · 잠시 후 함께 움직입니다';
  if(run.floor===1)return run.room.cleared?'열린 문 너머로, 함께':'뮤츠를 넘어 지상으로';
  if(!run.room.cleared)return run.room.kind==='boss'?'팬텀을 진정시키고 승강기 확보':'방 안의 위협을 모두 제압';
  if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 승강기':'승강기를 타고 B'+(run.floor-1)+'로';
