@@ -77,3 +77,6 @@ body .loadout .move-icon,body.touch-ui .loadout .move-icon{width:40px;height:40p
 #hold-help{position:fixed;z-index:200;max-width:min(300px,calc(100vw - 24px));padding:10px 13px;background:#0b172af2;border:1px solid #98b8c880;border-radius:9px;color:#e3edf3;font-size:12px;line-height:1.65;box-shadow:0 8px 25px #0007;pointer-events:none}#hold-help[hidden]{display:none}
 
 .progress-diagnostic{grid-column:1/-1;font-size:10px;color:#8ca3b8}.progress-diagnostic pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:110px;overflow:auto;user-select:text;font-size:10px;line-height:1.5}
+
+/* Short edge tabs show observed door directions without revealing destinations. */
+.map-cell{width:18px;height:18px;overflow:visible}.map-door{position:absolute;display:block;background:#add8cc;pointer-events:none;border-radius:1px;z-index:1}.map-door.up,.map-door.down{width:3px;height:6px;left:50%;transform:translateX(-50%)}.map-door.left,.map-door.right{width:6px;height:3px;top:50%;transform:translateY(-50%)}.map-door.up{top:-6px}.map-door.down{bottom:-6px}.map-door.left{left:-6px}.map-door.right{right:-6px}.map-cell.current .map-door{background:#ffe0ef}
