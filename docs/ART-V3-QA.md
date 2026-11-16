@@ -16,3 +16,12 @@ Verification:
 - WebP delivery copies total about 1 MB (PNG originals about 3.7 MB); existing offline-cache filtering excludes PNGs with WebP counterparts. No physical-device performance benchmark was performed.
 
 Reproduction: built-in image_gen prompts in art-v3-prompts.json; lossily encoded delivery copies generated with scripts/build-game-art-webp.py, preserving transparency and original source files. Asset credits in public/assets/CREDITS.txt.
+
+## Scale and ambient-light follow-up
+
+- Original illustrations retained; no additional downloads.
+- World sizes: console 116→78, TM 100→66, potion 78→44, keycard 100→50, crate/canister 78→64, emitters 72→54, floor devices 110→86.
+- Shared top/bottom ambient tint integrates ivory surfaces with blue-grey laboratory lighting; powered-off devices retain a separate darker palette.
+- Contact shadows anchor crates, console and rewards. Rewards no longer bob or display a large glowing ellipse; proximity highlight remains.
+- Hazard damage footprints and collision geometry unchanged. Laser effects render beneath their emitter housings.
+- 93 tests and build passed; 844×390 room/reward inspection completed. Evidence: evidence/lab-props-fitted.png and evidence/reward-fitted.png.
