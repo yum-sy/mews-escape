@@ -7,11 +7,13 @@ export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;t
 type Particle={x:number;y:number;vx:number;vy:number;age:number;life:number;color:number;size:number;ring:boolean;shape?:string};
 export function effectPalette(a:Attack){return [...new Set([a.color,...(a.burn?[0xff843e]:[]),...(a.slow?[0x8deaff]:[]),...(a.chain?[0xffe568]:[]),...(a.poison?[0xc780ff]:[]),...(a.lifesteal?[0x8cf5b1]:[])])]}
 export class CombatEffects{
+ private aimG:Phaser.GameObjects.Graphics;
  private activeG:Phaser.GameObjects.Graphics;
  private stamps:{x:number;y:number;age:number;visual:Presentation}[]=[];
  private channelG:Phaser.GameObjects.Graphics;private channels:WeaponPath[]=[];private channelAge=0;private g:Phaser.GameObjects.Graphics;private particles:Particle[]=[];private clock=0;private links:{a:Point;b:Point;age:number;life:number;drain:boolean}[]=[];private awards:{x:number;y:number;age:number;visual:Presentation}[]=[];
- constructor(scene:Phaser.Scene){this.activeG=scene.add.graphics().setDepth(18);this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
- clear(){this.activeG.clear();this.setChannels([]);this.particles=[];this.stamps=[];this.links=[];this.awards=[];this.g.clear()}
+ constructor(scene:Phaser.Scene){this.aimG=scene.add.graphics().setDepth(18);this.activeG=scene.add.graphics().setDepth(18);this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
+ clear(){this.aimG.clear();this.activeG.clear();this.setChannels([]);this.particles=[];this.stamps=[];this.links=[];this.awards=[];this.g.clear()}
+ aim(p:Point,v:Point){const g=this.aimG;g.clear();if(!v.x&&!v.y)return;const a={x:p.x+v.x*32,y:p.y+v.y*32},b={x:p.x+v.x*60,y:p.y+v.y*60};g.lineStyle(3,0x14202d,.85);g.lineBetween(a.x,a.y,b.x,b.y);g.lineStyle(1.5,0xffdfef,.9);g.lineBetween(a.x,a.y,b.x,b.y);g.strokePoints([{x:b.x-v.x*9-v.y*5,y:b.y-v.y*9+v.x*5},b,{x:b.x-v.x*9+v.y*5,y:b.y-v.y*9-v.x*5}],false)}
  active(kind:'reflector'|'decoy',p:Point,left:number){
   const g=this.activeG;g.clear();if(left<=0)return;const ratio=Math.min(1,left/(kind==='reflector'?2:2.8)),alpha=Math.min(1,left*4);
   if(kind==='reflector'){

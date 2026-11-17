@@ -11,6 +11,6 @@ export function installHoldHelp(){
  document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
  document.addEventListener('click',e=>{if(held&&e.target instanceof Node&&held.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();held=null}},true);
  document.addEventListener('contextmenu',e=>{if((e.target as Element).closest('[data-hint]'))e.preventDefault()});
- document.addEventListener('focusin',e=>{const el=(e.target as Element).closest<HTMLElement>('.tech-badge[data-hint]');if(el&&pointer===-1){target=el;show(el)}});
+ document.addEventListener('focusin',e=>{const el=(e.target as Element).closest<HTMLElement>('.tech-badge[data-hint],.tech-overflow[data-hint]');if(el&&pointer===-1){target=el;show(el)}});
  document.addEventListener('focusout',hide);document.addEventListener('keydown',e=>{if(e.key==='Escape')hide()});window.addEventListener('blur',()=>{cancel();hide();pointer=-1;held=null});window.addEventListener('resize',()=>{cancel();hide();pointer=-1;held=null});
 }
