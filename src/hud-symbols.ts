@@ -18,5 +18,9 @@ const paths:Record<string,string>={
  sound:'M3 9h4l6-5v16l-6-5H3zM17 8q6 4 0 8',
  mute:'M3 9h4l6-5v16l-6-5H3zM17 9l5 6m0-6-5 6',
 };
-export function symbol(name:string){return `<svg class="hud-symbol" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]??paths.reward}"/></svg>`}
+const solidMarkers:Record<string,string>={
+ boss:'M12 1C5 1 2 5 2 11c0 4 2 6 5 7v5h3v-4h1v4h2v-4h1v4h3v-5c3-1 5-3 5-7C22 5 19 1 12 1ZM5 9v5h5V9H5Zm9 0v5h5V9h-5Zm-2 6-2 3h4l-2-3Z',
+ combat:'M1 1 10 3 7 6 23 21 21 23 6 7 3 10 1 1Zm22 0-2 9-3-3-5 5-2-2 5-4-3-3 10-2ZM9 13l2 2-8 8-2-2 8-8Z',
+};
+export function symbol(name:string){if(solidMarkers[name])return `<svg class="hud-symbol solid-marker" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none"><path fill-rule="evenodd" d="${solidMarkers[name]}"/></svg>`;return `<svg class="hud-symbol" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]??paths.reward}"/></svg>`}
 export function paintHealth(el:HTMLElement,hp:number,max:number){const h=healthState(hp,max);el.dataset.tone=h.tone;el.setAttribute('role','meter');el.setAttribute('aria-label','체력');el.setAttribute('aria-valuemin','0');el.setAttribute('aria-valuemax',String(max));el.setAttribute('aria-valuenow',String(h.value));el.setAttribute('aria-valuetext',`${h.value} / ${max}`);el.title=`체력 ${h.value} / ${max}`;el.innerHTML=Array.from({length:max},(_,i)=>`<i class="hp-segment${i<h.value?' filled':''}" aria-hidden="true"></i>`).join('')}

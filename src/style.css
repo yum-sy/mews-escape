@@ -204,3 +204,7 @@ body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointe
 .map-cell.cleared{background:#2b494766;border-color:#75b7a899}
 .map-cell.current{background:#76516c99;border-color:#f9c4e2;color:#fff}
 .map-cell:not(.current)>.hud-symbol,.map-cell:not(.current)>.map-door{opacity:.75}
+
+/* Room backing stays translucent, but recognition-critical symbols retain contrast. */
+.map-cell>.hud-symbol.solid-marker{width:18px;height:18px;opacity:1;filter:drop-shadow(0 1px 1px #071016);color:#eef5e9}
+.map-cell[data-kind=boss]>.solid-marker{color:#ffd3df}
