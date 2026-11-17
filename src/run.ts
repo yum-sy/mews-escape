@@ -1,3 +1,4 @@
+import {emptyActiveStock,collectActive} from './active-items';
 import {entryLayout} from './encounter';
 import {obstacles} from './lab';
 import {roomEnvironment,sceneryBlocks} from './environment';
@@ -11,7 +12,11 @@ import {composeAttack,MOVES} from './moves';
 import {roomReward,itemOffers,rareCombatReward} from './rewards';
 import {difficulty} from './scaling';
 export class Run{
- unlocks:Unlock[]=[];activeSkill:ActiveSkill='reflector';activeCharge=3;
+ unlocks:Unlock[]=[];activeSkill:ActiveSkill='reflector';activeStock=emptyActiveStock();
+ get activeItem(){return this.activeStock[this.activeSkill]}
+ get activeCharge(){return this.activeItem.count*3}
+ set activeCharge(value:number){this.activeItem.count=Math.max(0,Math.min(this.activeItem.capacity,Math.floor(value/3)))}
+ collectActive(kind:ActiveSkill){return collectActive(this.activeStock,kind)}
  threat=0;
  get alert(){return{hp:1+this.threat*.06,boss:1+this.threat*.05,speed:1+this.threat*.01,shot:1+this.threat*.015}}
  secretUsed=false;branch:SecretMode|null=null;origin:Origin|null=null;
@@ -27,10 +32,10 @@ export class Run{
  get attack(){return composeAttack(this.moves)}
  get canExit(){return exitReady(this.rooms)}
  travel(direction:Direction){if(doorBlockReason(this.rooms,this.room,direction))return false;this.current=this.room.doors[direction]!;this.room.visited=true;return true}
- clear(){if(!this.room.cleared&&['combat','boss'].includes(this.room.kind))this.activeCharge=Math.min(3,this.activeCharge+1);this.room.cleared=true}
+ clear(){this.room.cleared=true}
  claimRecovery(hp:number,max=6){if(this.room.service!=='medical'||!this.room.opened||!this.rewardPending||hp>=max)return null;this.room.rewardTaken=true;return Math.min(max,hp+2)}
- stabilize(hp:number,max=6){const state=roomEnvironment(this.room);if(this.room.kind!=='start'||!this.unlocks.includes('sanctuary')||state.stabilized||this.keys<2||(hp>=max&&this.activeCharge===3))return null;this.keys-=2;this.activeCharge=3;state.stabilized=true;return Math.min(max,hp+2)}
- useActive(){if(this.activeCharge<3)return false;this.activeCharge=0;return true}
+ stabilize(hp:number,max=6){const state=roomEnvironment(this.room);if(this.room.kind!=='start'||!this.unlocks.includes('sanctuary')||state.stabilized||this.keys<2||(hp>=max&&this.activeItem.count===this.activeItem.capacity))return null;this.keys-=2;this.activeItem.count=Math.min(this.activeItem.capacity,this.activeItem.count+1);state.stabilized=true;return Math.min(max,hp+2)}
+ useActive(){if(this.activeItem.count===0)return false;this.activeItem.count--;return true}
  get rewardKind(){return roomReward(this.room,this.floor)}
  get rewardPending(){return this.room.cleared&&!this.room.rewardTaken&&this.rewardKind!=='none'}
  get choices(){if(this.room.elite&&(!this.room.offer||this.room.offer.some(id=>!rareCombatReward(id))))return itemOffers(this.room.seed,this.moves,this.floor,'rare',3);if(this.room.secret&&!this.room.offer)return itemOffers(this.room.seed,this.mapFound?[...this.moves,'survey']:this.moves,this.floor,'treasure',3);return this.room.offer?this.room.offer.map(id=>MOVES.find(m=>m.id===id)!).filter(m=>this.moves.filter(id=>id===m.id).length<m.max&&(m.id!=='survey'||!this.mapFound)):['treasure','boss'].includes(this.rewardKind)?itemOffers(this.room.seed,this.mapFound?[...this.moves,'survey']:this.moves,this.floor,this.rewardKind as 'treasure'|'boss',2,this.room.service,this.unlocks.includes('resonance')):[]}

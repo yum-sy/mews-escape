@@ -1,3 +1,4 @@
+import {ACTIVE_LIMITS} from './active-items';
 import {rng,type DungeonRoom} from './dungeon';
 import {breakableProps,roomEnvironment} from './environment';
 import {availablePropLoot,takePropLoot} from './prop-loot';
@@ -9,9 +10,9 @@ export function mapCache(rooms:DungeonRoom[],floor:number,seed:number){
  if(!eligible.length)return null;const random=rng(seed^Math.imul(floor,0x73a91));const room=eligible[Math.floor(random()*eligible.length)],props=breakableProps(room),prop=props[Math.floor(random()*props.length)];return{roomId:room.id,propId:prop.id};
 }
 export function floorLoot(run:Run){const cache=mapCache(run.rooms,run.floor,run.seed),here=cache?.roomId===run.current;
- const ordinary=availablePropLoot(run.room).filter(p=>!here||p.id!==cache!.propId);
+ const ordinary=availablePropLoot(run.room).filter(p=>!here||p.id!==cache!.propId).map(p=>p.kind==='decoy'&&!run.unlocks.includes('decoy')?{...p,kind:'reflector' as const}:p);
  const prop=here?breakableProps(run.room).find(p=>p.id===cache!.propId):undefined;
  const map=prop&&!run.mapFound&&(roomEnvironment(run.room).broken&(1<<prop.id))?[{...prop,kind:'map' as const}]:[];
  return [...ordinary,...map];
 }
-export function takeFloorLoot(run:Run,id:number,hp:number,maxHp:number){const item=floorLoot(run).find(p=>p.id===id);if(!item)return null;if(item.kind!=='map')return takePropLoot(run.room,id,hp,maxHp);run.mapFound=true;return'map'}
+export function takeFloorLoot(run:Run,id:number,hp:number,maxHp:number){const item=floorLoot(run).find(p=>p.id===id);if(!item)return null;if((item.kind==='reflector'||item.kind==='decoy')&&run.activeStock[item.kind].count>=ACTIVE_LIMITS[item.kind])return null;if(item.kind!=='map'){const taken=takePropLoot(run.room,id,hp,maxHp);if(taken&&(item.kind==='reflector'||item.kind==='decoy')){run.collectActive(item.kind);return item.kind}return taken;}run.mapFound=true;return'map'}
