@@ -1,3 +1,4 @@
+import {stairLanding} from './stairs';
 import {roomDesign} from './room-designs';
 import {lightProp,PROP_SIZE} from './prop-lighting';
 import {doorBlockReason} from './progression';
@@ -28,7 +29,6 @@ export class LabPresentation{
   for(const offset of [5,0]){g.lineStyle(offset?5:2,offset?0x000000:t.accent,offset?.22:.55);g.strokePoints([{x:88+offset,y:245+offset},{x:140+offset,y:249+offset},{x:180+offset,y:232+offset},{x:205+offset,y:258+offset}],false)}
   if(floor<=3){g.lineStyle(3,0x080d15,.65);g.strokePoints([{x:820,y:560},{x:790,y:520},{x:815,y:492},{x:766,y:460},{x:784,y:425}],false);g.lineStyle(1,t.light,.15);g.lineBetween(815,492,850,475)}
   this.base.add(s.add.text(560,151,`B${floor} / ${room.kind==='combat'?roomDesign(room.seed).name:room.service==='medical'?'의무실':t.sign}`,{fontFamily:'monospace',fontSize:'10px',color:'#b5c6d0'}).setOrigin(.5).setAlpha(.65));
-  if(room.kind==='boss'&&floor>1){g.fillStyle(0x060a12,.8);g.fillRoundedRect(490,306,140,118,12);g.lineStyle(2,t.light,.35);g.strokeRoundedRect(490,306,140,118,12);for(let i=0;i<4;i++){g.lineStyle(1,0x66778a,.3);g.lineBetween(503,325+i*25,617,325+i*25)}}
   if(room.kind==='combat'){g.fillStyle(0x040c12,.35);g.fillEllipse(884,229,65,13);this.consoleArt=lightProp(s.add.image(880,199,'lab-props','0').setDisplaySize(PROP_SIZE.console,PROP_SIZE.console));this.items.add(this.consoleArt)}
   const reward=roomReward(room,floor);if(reward!=='none'){const size=reward==='heart'?PROP_SIZE.potion:reward==='key'?PROP_SIZE.key:PROP_SIZE.tm;this.rewardArt=lightProp(s.add.image(560,365,'lab-props',reward==='heart'||room.service==='medical'?'5':reward==='key'?'6':'4').setDisplaySize(size,size).setVisible(false));this.items.add(this.rewardArt)}
   this.refreshProps();
@@ -58,14 +58,42 @@ export class LabPresentation{
   }
  }
 
- update(dt:number,active:Interaction|undefined,pending:boolean,cleared:boolean){if(!this.room)return;this.clock+=dt;this.drawDoors(dt);const t=floorTheme(this.floor),state=roomEnvironment(this.room),g=this.live;g.clear();this.beams.clear();const pulse=.6+Math.sin(this.clock*2)*.15;
+ private drawStairs(g:Phaser.GameObjects.Graphics,ready:boolean){
+  const {x,y}=stairLanding(this.room),light=ready?0xa4e0cf:0xb8a57e;
+  // Recessed metal flight rising away from the landing, matching the lab's door palette.
+  g.fillStyle(0x02070c,.45);g.fillEllipse(x+10,y+8,146,40);
+  g.fillStyle(0x111c26);g.fillPoints([{x:x-62,y:y+7},{x:x-62,y:y-100},{x:x+62,y:y-100},{x:x+62,y:y+7}],true);
+  g.fillStyle(0x405761);g.fillRect(x-57,y-105,114,108);
+  g.fillStyle(0x0a131c);g.fillRect(x-47,y-104,94,28);
+  g.fillStyle(light,.14);g.fillRect(x-43,y-102,86,23);
+  for(let i=0;i<7;i++){
+   const sy=y-76+i*11;
+   g.fillStyle(i%2?0x5b7078:0x53666f);g.fillRect(x-46,sy,92,7);
+   g.fillStyle(0x263843);g.fillRect(x-46,sy+7,92,4);
+   g.lineStyle(1,0x98afb1,.75);g.lineBetween(x-45,sy,x+45,sy);
+   g.lineStyle(1,0x172b35,.45);for(let j=0;j<8;j++)g.lineBetween(x-38+j*10,sy+3,x-34+j*10,sy+3);
+  }
+  g.fillStyle(0x677a80);g.fillRect(x-50,y+1,100,10);
+  g.lineStyle(2,0xa8b9b7,.8);g.lineBetween(x-49,y+1,x+49,y+1);
+  for(const side of [-1,1]){
+   const sx=x+side*54;
+   g.lineStyle(5,0x142530);g.lineBetween(sx+3,y-105,sx+3,y+1);
+   g.lineStyle(3,0x92a9ae);g.lineBetween(sx,y-106,sx,y-11);
+   for(const dy of [-91,-51,-11]){g.lineStyle(3,0x71888f);g.lineBetween(sx,y+dy,sx,y+dy+12)}
+   g.fillStyle(light,.9);g.fillRect(sx-2,y-103,4,8);
+  }
+  g.lineStyle(3,light,.95);g.strokePoints([{x:x-10,y:y-90},{x,y:y-99},{x:x+10,y:y-90}],false);
+  if(ready){g.fillStyle(light,.08);g.fillEllipse(x,y+15,98,22);g.lineStyle(2,light,.65);g.lineBetween(x-32,y+12,x+32,y+12)}
+ }
+
+ update(dt:number,active:Interaction|undefined,pending:boolean,cleared:boolean,mainFloor=true){if(!this.room)return;this.clock+=dt;this.drawDoors(dt);const t=floorTheme(this.floor),state=roomEnvironment(this.room),g=this.live;g.clear();this.beams.clear();const pulse=.6+Math.sin(this.clock*2)*.15;
   for(const x of [155,350,770,965]){g.fillStyle(t.light,state.powerOff?.025:.055);g.fillTriangle(x-27,145,x-75,245,x+75,245);g.fillStyle(t.light,state.powerOff?.18:pulse*.75);g.fillRect(x-20,142,40,3)}
   // Dust drifts slowly; the array is fixed and independent of frame rate.
   if(!this.reducedMotion)for(let i=0;i<18;i++){const x=115+(i*137%870)+Math.sin(this.clock*.2+i)*9,y=180+(i*79+this.clock*4)%370;g.fillStyle(t.light,.16);g.fillCircle(x,y,1)}
   if(this.consoleArt)lightProp(this.consoleArt,state.powerOff);
   const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'회복약',key:'연구소 키',treasure:this.room.service==='medical'?'의무실 · 열쇠 1':this.room.opened?'기술머신':'기술머신 · 열쇠 1',boss:'기술머신'}[reward]);
   this.rewardArt?.setVisible(pending);if(pending){g.fillStyle(0x020a10,.3);g.fillEllipse(563,388,reward==='heart'?31:48,10);if(active?.kind==='reward'){g.lineStyle(1,0xc6d3b5,.55);g.strokeEllipse(560,389,56,12)}}
-  if(this.room.kind==='boss'&&cleared&&this.floor>1&&!pending){g.lineStyle(3,t.light,pulse);g.strokeRoundedRect(495,310,130,110,10);for(let i=0;i<3;i++){const y=333+((this.clock*24+i*25)%65);g.lineStyle(2,t.light,.55);g.strokePoints([{x:545,y:y+6},{x:560,y},{x:575,y:y+6}],false)}}
-  if(active){g.lineStyle(2,0xf6ead3,.8);g.strokeEllipse(active.x,active.y+22,66,16)}
+  if(mainFloor&&this.room.kind==='boss'&&cleared&&this.floor>1)this.drawStairs(g,!pending);
+  if(active&&active.kind!=='lift'){g.lineStyle(2,0xf6ead3,.8);g.strokeEllipse(active.x,active.y+22,66,16)}
  }
 }

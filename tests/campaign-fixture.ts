@@ -1,3 +1,4 @@
+import {stairLanding} from '../src/stairs';
 import {Run,roomsForFloor} from '../src/run';
 // Development-only automated player. It supplies normal movement/aim/interact/reward
 // input. Normal mode never supplies health, invulnerability, enemy damage or a build.
@@ -72,7 +73,7 @@ export function installCampaign(scene:LabScene){
    if(damage!==progressDamage){progressDamage=damage;progressAt=scene.elapsed}
    scene.controls.move=best;if(scene.interaction()?.kind==='power')scene.interact();
   }else{
-   scene.controls.aim={x:0,y:0};if(available(scene.run.room)||scene.run.room.kind==='boss'&&scene.run.canExit){scene.controls.move=navigate({x:560,y:365});if(scene.interaction()?.kind==='reward'||scene.interaction()?.kind==='lift')scene.interact()}
+   scene.controls.aim={x:0,y:0};if(available(scene.run.room)||scene.run.room.kind==='boss'&&scene.run.canExit){scene.controls.move=navigate(scene.run.room.kind==='boss'&&scene.run.room.rewardTaken?stairLanding(scene.run.room):{x:560,y:365});if(scene.interaction()?.kind==='reward'||scene.interaction()?.kind==='lift')scene.interact()}
    else{const dir=nextDoor();if(dir){const goal={up:{x:560,y:130},down:{x:560,y:595},left:{x:70,y:364},right:{x:1050,y:364}}[dir];const close=Math.hypot(p.x-goal.x,p.y-goal.y)<80;scene.controls.move=close?normalize(goal.x-p.x,goal.y-p.y):navigate(goal)}else scene.controls.move={x:0,y:0}}
   }
   if(scene.elapsed>3600){enabled=false;scene.controls.reset()}

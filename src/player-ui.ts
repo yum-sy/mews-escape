@@ -6,8 +6,8 @@ export function objective(run:Run,entryGrace=false):string{
  if(run.branch)return !run.room.cleared?'폐쇄 실험층 · 적을 제압하세요':run.rewardPending?(run.room.elite?'희귀 기술 보장 · 습득하면 경계 상승':'숨겨진 기술 · 3개 중 하나 선택'):'단말에서 본층 복귀 · 폐쇄층은 선택 도전';
  if(run.secretAvailable&&run.room.cleared)return '연구 단말에 숨겨진 보관실 통로가 열렸습니다';
  if(run.floor===1)return run.room.cleared?'열린 문 너머로, 함께':'뮤츠를 넘어 지상으로';
- if(!run.room.cleared)return run.room.kind==='boss'?'보스를 진정시키고 승강기 확보':'방 안의 위협을 모두 제압';
- if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 승강기':'승강기를 타고 B'+(run.floor-1)+'로';
+ if(!run.room.cleared)return run.room.kind==='boss'?'보스를 진정시키고 계단 확보':'방 안의 위협을 모두 제압';
+ if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 계단':'계단으로 B'+(run.floor-1)+'로';
  if(run.rewardPending&&run.rewardKind==='treasure')return run.room.opened?'중앙 캡슐에서 기술 확인':run.keys?'열쇠 1개로 중앙 캡슐 열기':'열쇠가 필요합니다 · 다른 방 탐험';
  const remaining=run.rooms.filter(r=>r.kind==='combat'&&!r.cleared).length;
  return remaining?'보스 구역을 찾거나 선택 탐험으로 보강하세요':'탐험 완료 · 보스 구역으로';

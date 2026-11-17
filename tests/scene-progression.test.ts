@@ -1,3 +1,4 @@
+import {stairLanding,onStairLanding} from '../src/stairs';
 import {fusionRules,thermalBank} from '../src/fusion-rules';
 import {gasShellClosed} from '../src/enemy-techniques';
 import {composeAttack,CHAIN_DAMAGE} from '../src/moves';
@@ -35,7 +36,7 @@ function harness(){
  const declaration=source.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text==='LabScene')!;
  const js=ts.transpileModule(declaration.getText(source),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const elements=new Map<string,any>(),element=(id:string)=>{if(!elements.has(id))elements.set(id,{hidden:false,textContent:'',focus(){},classList:{remove(){},add(){}},offsetWidth:0});return elements.get(id)};
- const context={fusionRules,thermalBank,gasShellClosed,CHAIN_DAMAGE,actorMotion,grantUnlock,browserStorage:{getItem:()=>null,setItem(){},removeItem(){}},secretInteractions,isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,normalize,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Distance:{Between:(x:number,y:number,a:number,b:number)=>Math.hypot(x-a,y-b)},Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
+ const context={onStairLanding,fusionRules,thermalBank,gasShellClosed,CHAIN_DAMAGE,actorMotion,grantUnlock,browserStorage:{getItem:()=>null,setItem(){},removeItem(){}},secretInteractions,isLabBoss,warningPattern,PATTERN_HINTS,trapHits,trapPush,trapDamage,TRAP_RECOVERY,poolPhase,hazardPhase,intersects,normalize,floorLoot,takeFloorLoot,ENTRY_SECONDS,entryLayout,availablePropLoot,takePropLoot,damage,knockbackPosition,matchMedia:()=>({matches:true}),exports:{} as any,Phaser:{Scene:class{},Math:{Distance:{Between:(x:number,y:number,a:number,b:number)=>Math.hypot(x-a,y-b)},Clamp:(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))}},R:ROOM,STATS,ENEMIES,Run,roomEnemies,speciesSize,OPPOSITE,doorBlockReason,thresholdDirection,roomEnvironment,roomInteractions,nearestInteraction,floorTheme,moveWithWalls,FINAL_HP,nextFinalPhase,document:{getElementById:element}};
  vm.runInNewContext(js.replaceAll('import.meta.env.DEV','false'),context);
  const entity=(x=0,y=0)=>{const o:any={x,y,alive:true,destroy(){this.alive=false}};for(const method of ['setStrokeStyle','setRotation','setOrigin','setDisplaySize','setDepth','setAlpha','setAngle','setFlipX','setTint','clearTint'])o[method]=()=>o;o.setPosition=(x:number,y:number)=>{o.x=x;o.y=y;return o};return o};
  const scene:any=Object.create(context.exports.LabScene.prototype),timers:(()=>void)[]=[],notes:string[]=[];
@@ -52,13 +53,13 @@ test('last enemy death clears the room on the next update and all existing retur
 test('reaching the boss allows entry while off-route combat stays optional',()=>{
  const {scene:s,notes}=harness();const boss=s.run.rooms.find((r:any)=>r.kind==='boss');const [back,parent]=Object.entries(boss.doors)[0] as [keyof typeof OPPOSITE,number];s.run.current=parent;s.run.clear();const dir=OPPOSITE[back];const p:any={up:[560,158,0,-1],down:[560,568,0,1],left:[96,364,-1,0],right:[1024,364,1,0]};const [x,y,dx,dy]=p[dir];s.player.setPosition(x,y);assert.equal(s.tryTravel({x:dx,y:dy}),true);assert.equal(s.run.room.kind,'boss');assert.ok(s.run.rooms.some((r:any)=>r.kind==='combat'&&!r.cleared));assert.equal(notes.length,0);
 });
-test('boss reward skip, all five lifts and all three final phases preserve a playable state',()=>{
+test('boss reward skip, all five stairs and all three final phases preserve a playable state',()=>{
  const {scene:s,timers}=harness();
- for(let floor=6;floor>=2;floor--){s.run.floor=floor;s.run.rooms=roomsForFloor(151,floor);for(const r of s.run.rooms)r.cleared=true;s.run.current=s.run.rooms.find((r:any)=>r.kind==='boss').id;s.run.room.visited=true;s.enterRoom();s.resume();s.interact();assert.equal(s.state,'reward');assert.ok(s.run.skipReward());s.resume();s.interact();assert.equal(s.state,'transition');assert.equal(timers.length,1);timers.shift()!();assert.equal(s.run.floor,floor-1);assert.equal(s.state,floor===2?'story':'playing')}
+ for(let floor=6;floor>=2;floor--){s.run.floor=floor;s.run.rooms=roomsForFloor(151,floor);for(const r of s.run.rooms)r.cleared=true;s.run.current=s.run.rooms.find((r:any)=>r.kind==='boss').id;s.run.room.visited=true;s.enterRoom();s.resume();s.interact();assert.equal(s.state,'reward');assert.ok(s.run.skipReward());s.resume();const landing=stairLanding(s.run.room);s.player.setPosition(landing.x,landing.y+12);s.controls.movement=()=>({x:0,y:-1});s.startDelay=0;s.update(0,16);assert.equal(s.state,'transition');assert.equal(timers.length,1);timers.shift()!();assert.equal(s.run.floor,floor-1);assert.equal(s.state,floor===2?'story':'playing')}
  for(let phase=1;phase<=3;phase++){assert.equal(s.finalPhase,phase);s.resume();s.startDelay=0;for(const e of s.enemies)s.hitEnemy(e,e.hp);s.update(0,16);assert.equal(s.state,phase===3?'won':'story')}
 });
 test('refused ascent restores visible play instead of trapping the game in transition',()=>{
- const {scene:s,timers,notes}=harness();s.interaction=()=>({kind:'lift'});s.run.ascend=()=>false;s.interact();assert.equal(s.state,'transition');timers.shift()!();assert.equal(s.state,'playing');assert.equal(s.fadedIn,true);assert.match(notes[0],/승강기/);
+ const {scene:s,timers,notes}=harness();s.interaction=()=>({kind:'lift'});s.run.ascend=()=>false;s.interact();assert.equal(s.state,'transition');timers.shift()!();assert.equal(s.state,'playing');assert.equal(s.fadedIn,true);assert.match(notes[0],/계단/);
 });
 
 test('arrival blocks movement, weapons, hazards and contact together, then releases in under a second',()=>{
