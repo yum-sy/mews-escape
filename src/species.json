@@ -142,17 +142,6 @@
       440
     ]
   },
-  "drowzee": {
-    "id": 96,
-    "heightDm": 10,
-    "weightHg": 324,
-    "bounds": [
-      76,
-      22,
-      399,
-      453
-    ]
-  },
   "magnemite": {
     "id": 81,
     "heightDm": 3,
@@ -511,6 +500,20 @@
     ],
     "types": [
       "dark",
+      "psychic"
+    ]
+  },
+  "elgyem": {
+    "id": 605,
+    "heightDm": 5,
+    "weightHg": 90,
+    "bounds": [
+      97,
+      22,
+      377,
+      453
+    ],
+    "types": [
       "psychic"
     ]
   }

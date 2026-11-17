@@ -22,7 +22,7 @@ export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|
  duskull:{name:'도깨비불',color:0xa1dbca,shape:'ember',sound:'shadow'},
  inkay:{name:'사이코웨이브',color:0xb8c9ed,shape:'psy',sound:'psybeam'},
  malamar:{name:'사이코커터',color:0xb3a7e1,shape:'needle',sound:'psybeam'},
- drowzee:{name:'염동력',color:0xf2d88b,shape:'psy',sound:'psybeam'},
+ elgyem:{name:'염동력',color:0x91c9c2,shape:'psy',sound:'psybeam'},
  magnemite:{name:'전기쇼크',color:0x9ee5f1,shape:'psy',sound:'psybeam'},
  cubone:{name:'뼈다귀치기',color:0xe8dfbe,shape:'needle',sound:'dragon'},
  misdreavus:{name:'원한',color:0x8ae4c7,shape:'hex',sound:'shadow'},

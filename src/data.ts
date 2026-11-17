@@ -24,7 +24,7 @@ export const ENEMIES={
  inkay:{name:'오케이징',hp:9,speed:58,radius:20,flying:true},
  malamar:{name:'칼라마네로',hp:12,speed:44,radius:20,flying:true},
 
- drowzee:{name:'슬리프',hp:10,speed:48,radius:22,flying:false},
+ elgyem:{name:'리그레',hp:10,speed:48,radius:22,flying:false},
  magnemite:{name:'코일',hp:7,speed:55,radius:18,flying:true},
  cubone:{name:'탕구리',hp:9,speed:65,radius:20,flying:false},
  misdreavus:{name:'무우마',hp:8,speed:76,radius:20,flying:true},
@@ -46,5 +46,5 @@ export const ENEMIES={
  gengar:{name:'팬텀',hp:220,speed:60,radius:32,flying:true},
 };
 export type Kind=keyof typeof ENEMIES;
-export const NORMAL_KINDS:Kind[]=['gastly','zubat','koffing','grimer','houndour','shuppet','drowzee','magnemite','cubone','misdreavus','ekans','arbok','skorupi','drapion','abra','kadabra','stunky','skuntank','spinarak','ariados','exeggcute','exeggutor','ditto','spiritomb','trubbish','garbodor','murkrow','sneasel','sableye','duskull','inkay','malamar'];
+export const NORMAL_KINDS:Kind[]=['gastly','zubat','koffing','grimer','houndour','shuppet','elgyem','magnemite','cubone','misdreavus','ekans','arbok','skorupi','drapion','abra','kadabra','stunky','skuntank','spinarak','ariados','exeggcute','exeggutor','ditto','spiritomb','trubbish','garbodor','murkrow','sneasel','sableye','duskull','inkay','malamar'];
 export const SPAWNS:{kind:Kind,x:number,y:number}[]=[{kind:'gastly',x:200,y:190},{kind:'gastly',x:920,y:190},{kind:'gastly',x:900,y:510},{kind:'zubat',x:240,y:480},{kind:'zubat',x:810,y:360},{kind:'zubat',x:560,y:190}];

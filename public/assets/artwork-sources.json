@@ -131,7 +131,8 @@
     "sha256": "a258c5bcd18bd37dd001038584199df450d40b8bc298a81cb4bd30d4f578cb4d",
     "runtimeFile": "drowzee-artwork.webp",
     "runtimeSha256": "e87cf682728e3196647b30e45a89711ddff84fbbf04cfef3c05ed9d41a989d88",
-    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG",
+    "retiredFromGameplay": true
   },
   {
     "id": 81,
@@ -662,6 +663,19 @@
     "sha256": "81cf08a03b9498a91fff50dff2593f5674d2f418ff3adb1c5b350914ed9e3278",
     "runtimeFile": "malamar-artwork.webp",
     "runtimeSha256": "4d3c14bd631089e2c5c492aaa663f7d05dab2ebed5370504ecd6b0cc374ea2cc",
+    "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
+  },
+  {
+    "id": 605,
+    "name": "elgyem",
+    "api": "https://pokeapi.co/api/v2/pokemon/605/",
+    "metadataMirror": "https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon/605/index.json",
+    "field": "sprites.other.official-artwork.front_default",
+    "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/605.png",
+    "file": "elgyem-artwork.png",
+    "sha256": "ef5989e4d13d6b4430b052ff1307274feb3a6c69b23e5ee9c8c53c5b04376f87",
+    "runtimeFile": "elgyem-artwork.webp",
+    "runtimeSha256": "806c5ef95ca44d66a9efaa61e2acc9a8e632b56e9be7fd5f33e87e2e2c5df656",
     "runtimeEncoding": "lossless WebP; decoded RGBA identical to original PNG"
   }
 ]

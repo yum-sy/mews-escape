@@ -116,15 +116,6 @@
       440
     ]
   },
-  "drowzee": {
-    "file": "drowzee-artwork.webp",
-    "bounds": [
-      76,
-      22,
-      399,
-      453
-    ]
-  },
   "magnemite": {
     "file": "magnemite-artwork.webp",
     "bounds": [
@@ -383,6 +374,15 @@
       54,
       22,
       420,
+      453
+    ]
+  },
+  "elgyem": {
+    "file": "elgyem-artwork.webp",
+    "bounds": [
+      97,
+      22,
+      377,
       453
     ]
   }

@@ -15,7 +15,7 @@ export function stepBrain(kind:Kind,e:Brain,player:Vec,dt:number,floor=2):{v:Vec
  if(kind!=='gengar'&&(e.recovery??0)>0){e.recovery=Math.max(0,e.recovery!-dt);return{v,actions}}
  const shot=(dir:Vec)=>actions.push({type:'shot',dir});
  const fan=(count:number,spread:number,angle=Math.atan2(n.y,n.x))=>{for(let i=0;i<count;i++){const a=angle+(i-(count-1)/2)*spread;shot({x:Math.cos(a),y:Math.sin(a)})}};
- if(['drowzee','magnemite','cubone','misdreavus'].includes(kind)){
+ if(['elgyem','magnemite','cubone','misdreavus'].includes(kind)){
   const hold=distance>260?1:distance<180?-1:0;v={x:n.x*ENEMIES[kind].speed*hold,y:n.y*ENEMIES[kind].speed*hold};
   if(e.cooldown<=0&&e.charge<=0){e.cycle=(e.cycle??0)+1;e.aim={...player};e.dir=n;e.charge=.8;e.cooldown=kind==='magnemite'?2.8:2.5;const directions=kind==='magnemite'?Array.from({length:4},(_,i)=>({x:Math.cos(i*Math.PI/2),y:Math.sin(i*Math.PI/2)})):[n];actions.push({type:'warn',x:e.x,y:e.y,r:28,cue:'aim',duration:.8,directions,tracking:kind==='misdreavus',returning:kind==='cubone'})}
   if(e.charge>0){v={x:0,y:0};e.charge-=dt;if(e.charge<=0){const directions=kind==='magnemite'?Array.from({length:4},(_,i)=>({x:Math.cos(i*Math.PI/2),y:Math.sin(i*Math.PI/2)})):[e.dir];for(const dir of directions)actions.push({type:'shot',dir,speed:kind==='cubone'?210:175,homing:kind==='misdreavus'?.6:0,returning:kind==='cubone'});e.recovery=.55}}

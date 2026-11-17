@@ -69,3 +69,7 @@ Species familiarity is counted once per distinct run/floor/branch/room encounter
 Learning persists in a separate browser-local archive across runs. Room ordinals survive reload and prevent Mewtwo phase changes from consuming encounters. Counts cap at three and room history at 128 entries. Unavailable storage falls back to in-session learning. Previously deployed versions have no encounter history, so learning begins on this update.
 
 Validation: 150 tests and production build pass. New tests cover duplicate species, per-room/per-branch learning, persistent new runs, reload/phase deduplication, storage failure, and the actual telegraph renderer: zero arrowhead triangles/teleport ghosts from encounter three, a retained faint line, and unchanged expiry. No new physical-phone or full campaign playtest was performed for this presentation-only update.
+
+## Drowzee replacement
+
+Drowzee (슬리프) is replaced by Elgyem (리그레, #605) in the ordinary roster. The official PokeAPI artwork and size metadata are acquired locally; the PNG source and pixel-identical lossless WebP are credited in the asset manifest. B5 unlock tier, weight, HP, speed and aimed psychic-shot role are preserved; attack color is now muted teal. Hypno remains a separate boss. Drowzee source artwork stays archived but is excluded from active manifests and offline precache. 150 tests and production build pass.

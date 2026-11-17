@@ -3,7 +3,7 @@ export const NORMAL_VARIANTS:Partial<Record<Kind,{family:Kind;pace:number;strafe
  ekans:{family:'gastly',pace:1.00,strafe:0},
  arbok:{family:'houndour',pace:1.12,strafe:0},
  abra:{family:'shuppet',pace:1.12,strafe:0},
- kadabra:{family:'drowzee',pace:1.24,strafe:0},
+ kadabra:{family:'elgyem',pace:1.24,strafe:0},
  exeggcute:{family:'houndour',pace:1.12,strafe:0},
  exeggutor:{family:'koffing',pace:1.24,strafe:0},
  ditto:{family:'gastly',pace:1.00,strafe:0},
