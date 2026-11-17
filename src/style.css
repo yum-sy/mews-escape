@@ -199,3 +199,8 @@ body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointe
 .map-door.left,.map-door.right{width:7px;height:4px}
 .map-door.up{top:-7px}.map-door.down{bottom:-7px}.map-door.left{left:-7px}.map-door.right{right:-7px}
 @media(orientation:landscape) and (max-height:480px){.map{left:max(calc(var(--arena-inset,0px) + 16px),env(safe-area-inset-left));right:auto;top:48px;transform-origin:top left}}
+/* Let the room remain visible through the map; keep the player room distinct. */
+.map-cell{background:#26344688;border-color:#8ca99caa;color:#d6e9e0cc}
+.map-cell.cleared{background:#2b494766;border-color:#75b7a899}
+.map-cell.current{background:#76516c99;border-color:#f9c4e2;color:#fff}
+.map-cell:not(.current)>.hud-symbol,.map-cell:not(.current)>.map-door{opacity:.75}
