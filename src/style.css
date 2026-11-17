@@ -190,3 +190,12 @@ body .health-group #hearts{width:auto;min-width:0;flex:1}
 body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointer-events:none}
 #attack-stick[data-aiming=true] .aim-label{opacity:0}
 @media(orientation:portrait){#active-items{right:38px;bottom:186px}}
+
+/* Readable rooms with a distinct ten-pixel corridor between neighboring cells. */
+.map{transform:scale(.85);transform-origin:top right}
+.map-cell{width:22px;height:22px;box-sizing:border-box}
+.map-cell>.hud-symbol{width:15px;height:15px;stroke-width:2}
+.map-door.up,.map-door.down{width:4px;height:7px}
+.map-door.left,.map-door.right{width:7px;height:4px}
+.map-door.up{top:-7px}.map-door.down{bottom:-7px}.map-door.left{left:-7px}.map-door.right{right:-7px}
+@media(orientation:landscape) and (max-height:480px){.map{right:max(calc(var(--arena-inset,0px) + 180px),env(safe-area-inset-right));top:58px}}
