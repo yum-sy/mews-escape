@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {Run} from '../src/run';
 import {objective,rewardComparison,formatDuration,attackLabel} from '../src/player-ui';
 test('objectives follow combat, key gates, claimed boss reward and final exit',()=>{
- const run=new Run(3);assert.match(objective(run),/남은 전투방/);
+ const run=new Run(3);assert.match(objective(run),/선택 탐험/);
  run.current=run.rooms.findIndex(r=>r.kind==='combat');assert.match(objective(run),/위협/);assert.match(objective(run,true),/함께 움직/);
  run.current=run.rooms.findIndex(r=>r.kind==='reward');run.room.cleared=true;run.keys=0;assert.match(objective(run),/열쇠가 필요/);
  run.keys=1;assert.match(objective(run),/열쇠 1개/);run.openReward();assert.match(objective(run),/기술 확인/);

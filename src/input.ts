@@ -1,9 +1,9 @@
 import {normalize,type Vec} from './combat';
 export class Controls{
  private resetSticks:(()=>void)[]=[];
- keys=new Set<string>();move:Vec={x:0,y:0};aim:Vec={x:0,y:0};onPause=()=>{};onInteract=()=>{};
+ keys=new Set<string>();move:Vec={x:0,y:0};aim:Vec={x:0,y:0};onPause=()=>{};onInteract=()=>{};onActive=()=>{};
  constructor(private active:()=>boolean=()=>true){
- window.addEventListener('keydown',e=>{if(e.code==='Escape'&&!e.repeat){this.onPause();return}if(!this.active())return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();this.keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)this.onInteract()});
+ window.addEventListener('keydown',e=>{if(e.code==='Escape'&&!e.repeat){this.onPause();return}if(!this.active())return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();this.keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)this.onInteract();if(e.code==='Space'&&!e.repeat)this.onActive()});
  window.addEventListener('keyup',e=>this.keys.delete(e.code));
  window.addEventListener('blur',()=>this.reset());
  window.addEventListener('resize',()=>this.reset());

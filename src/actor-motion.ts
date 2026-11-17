@@ -1,0 +1,2 @@
+/** Visual offsets only: collision positions never bob or recoil. */
+export function actorMotion(time:number,speed:number,flying:boolean,hit=false){const moving=Math.min(1,Math.max(0,speed/100)),step=Math.sin(time*(flying?4:10)),lift=flying?3+Math.sin(time*3)*1.5:Math.max(0,step)*moving*1.6;return{lift,scaleX:1+(flying?.012:.025*moving)*step,scaleY:1-(flying?.012:.025*moving)*step,tilt:hit?8:step*moving*(flying?2:1.5),shadowScale:1-lift*.018,shadowAlpha:.3-lift*.012}}

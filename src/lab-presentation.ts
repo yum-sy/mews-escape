@@ -1,3 +1,4 @@
+import {roomDesign} from './room-designs';
 import {lightProp,PROP_SIZE} from './prop-lighting';
 import {doorBlockReason} from './progression';
 import Phaser from 'phaser';
@@ -25,10 +26,10 @@ export class LabPresentation{
   // Broken overhead cable and its offset floor shadow.
   for(const offset of [5,0]){g.lineStyle(offset?5:2,offset?0x000000:t.accent,offset?.22:.55);g.strokePoints([{x:88+offset,y:245+offset},{x:140+offset,y:249+offset},{x:180+offset,y:232+offset},{x:205+offset,y:258+offset}],false)}
   if(floor<=3){g.lineStyle(3,0x080d15,.65);g.strokePoints([{x:820,y:560},{x:790,y:520},{x:815,y:492},{x:766,y:460},{x:784,y:425}],false);g.lineStyle(1,t.light,.15);g.lineBetween(815,492,850,475)}
-  this.base.add(s.add.text(560,151,`B${floor} / ${t.sign}`,{fontFamily:'monospace',fontSize:'10px',color:'#b5c6d0'}).setOrigin(.5).setAlpha(.65));
+  this.base.add(s.add.text(560,151,`B${floor} / ${room.kind==='combat'?roomDesign(room.seed).name:room.service==='medical'?'의무실':t.sign}`,{fontFamily:'monospace',fontSize:'10px',color:'#b5c6d0'}).setOrigin(.5).setAlpha(.65));
   if(room.kind==='boss'&&floor>1){g.fillStyle(0x060a12,.8);g.fillRoundedRect(490,306,140,118,12);g.lineStyle(2,t.light,.35);g.strokeRoundedRect(490,306,140,118,12);for(let i=0;i<4;i++){g.lineStyle(1,0x66778a,.3);g.lineBetween(503,325+i*25,617,325+i*25)}}
   if(room.kind==='combat'){g.fillStyle(0x040c12,.35);g.fillEllipse(884,229,65,13);this.consoleArt=lightProp(s.add.image(880,199,'lab-props','0').setDisplaySize(PROP_SIZE.console,PROP_SIZE.console));this.items.add(this.consoleArt)}
-  const reward=roomReward(room,floor);if(reward!=='none'){const size=reward==='heart'?PROP_SIZE.potion:reward==='key'?PROP_SIZE.key:PROP_SIZE.tm;this.rewardArt=lightProp(s.add.image(560,365,'lab-props',reward==='heart'?'5':reward==='key'?'6':'4').setDisplaySize(size,size).setVisible(false));this.items.add(this.rewardArt)}
+  const reward=roomReward(room,floor);if(reward!=='none'){const size=reward==='heart'?PROP_SIZE.potion:reward==='key'?PROP_SIZE.key:PROP_SIZE.tm;this.rewardArt=lightProp(s.add.image(560,365,'lab-props',reward==='heart'||room.service==='medical'?'5':reward==='key'?'6':'4').setDisplaySize(size,size).setVisible(false));this.items.add(this.rewardArt)}
   this.refreshProps();
  }
  setDoors(rooms:DungeonRoom[],moves:readonly string[]=[]){this.neighbors=rooms;this.moves=moves;this.doorStamp=''}
@@ -61,7 +62,7 @@ export class LabPresentation{
   // Dust drifts slowly; the array is fixed and independent of frame rate.
   if(!this.reducedMotion)for(let i=0;i<18;i++){const x=115+(i*137%870)+Math.sin(this.clock*.2+i)*9,y=180+(i*79+this.clock*4)%370;g.fillStyle(t.light,.16);g.fillCircle(x,y,1)}
   if(this.consoleArt)lightProp(this.consoleArt,state.powerOff);
-  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'회복약',key:'연구소 키',treasure:this.room.opened?'기술머신':'기술머신 · 열쇠 1',boss:'기술머신'}[reward]);
+  const reward=roomReward(this.room,this.floor);this.rewardLabel.setVisible(pending);if(pending)this.rewardLabel.setText({none:'',heart:'회복약',key:'연구소 키',treasure:this.room.service==='medical'?'의무실 · 열쇠 1':this.room.opened?'기술머신':'기술머신 · 열쇠 1',boss:'기술머신'}[reward]);
   this.rewardArt?.setVisible(pending);if(pending){g.fillStyle(0x020a10,.3);g.fillEllipse(563,388,reward==='heart'?31:48,10);if(active?.kind==='reward'){g.lineStyle(1,0xc6d3b5,.55);g.strokeEllipse(560,389,56,12)}}
   if(this.room.kind==='boss'&&cleared&&this.floor>1&&!pending){g.lineStyle(3,t.light,pulse);g.strokeRoundedRect(495,310,130,110,10);for(let i=0;i<3;i++){const y=333+((this.clock*24+i*25)%65);g.lineStyle(2,t.light,.55);g.strokePoints([{x:545,y:y+6},{x:560,y},{x:575,y:y+6}],false)}}
   if(active){g.lineStyle(2,0xf6ead3,.8);g.strokeEllipse(active.x,active.y+22,66,16)}

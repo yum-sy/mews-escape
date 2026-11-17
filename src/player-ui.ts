@@ -10,7 +10,7 @@ export function objective(run:Run,entryGrace=false):string{
  if(run.room.kind==='boss')return run.rewardPending?'중앙 보상 확인 → 승강기':'승강기를 타고 B'+(run.floor-1)+'로';
  if(run.rewardPending&&run.rewardKind==='treasure')return run.room.opened?'중앙 캡슐에서 기술 확인':run.keys?'열쇠 1개로 중앙 캡슐 열기':'열쇠가 필요합니다 · 다른 방 탐험';
  const remaining=run.rooms.filter(r=>r.kind==='combat'&&!r.cleared).length;
- return remaining?`열린 문으로 탐험 · 남은 전투방 ${remaining}`:'보스 구역의 봉인이 풀렸습니다';
+ return remaining?'보스 구역을 찾거나 선택 탐험으로 보강하세요':'탐험 완료 · 보스 구역으로';
 }
 export function attackTraits(a:Attack):string[]{
  const traits=[`${a.count}갈래`,a.pierce?`관통 ${a.pierce}`:''];

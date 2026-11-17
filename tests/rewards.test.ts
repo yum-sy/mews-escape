@@ -8,7 +8,7 @@ test('ordinary clears occasionally offer techniques, and rare items retain lower
  const counts={none:0,key:0,heart:0,treasure:0};let earlyRare=0,lateRare=0;
  for(let seed=0;seed<10000;seed++){const room={...roomsForFloor(seed,6).find(r=>r.kind==='combat')!,seed};counts[roomReward(room,6) as keyof typeof counts]++;
   for(const [floor,add] of [[6,()=>earlyRare++],[2,()=>lateRare++]] as const){const choices=itemOffers(seed,[],floor,'treasure');assert.ok(choices.length===2&&choices[0].id!==choices[1].id);if(rewardTier(choices[0].id)==='희귀 변형')add()}
-  assert.ok(itemOffers(seed,[],6,'boss').every(m=>['agility','focus','dragon','ricochet','ice'].includes(m.id)));
+  assert.ok(itemOffers(seed,[],6,'boss').every(m=>['agility','focus','dragon','ricochet','ice','shadow','psybeam','spark','poison','flame','water'].includes(m.id)));
  }
  assert.ok(Math.abs(counts.none/10000-.47)<.02);assert.ok(Math.abs(counts.key/10000-.25)<.02);assert.ok(Math.abs(counts.heart/10000-.2)<.02);assert.ok(Math.abs(counts.treasure/10000-.08)<.015);assert.ok(earlyRare<1800&&earlyRare>1000);assert.ok(lateRare>earlyRare*1.4);
 });

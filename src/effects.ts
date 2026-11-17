@@ -54,7 +54,7 @@ export class CombatEffects{
  bolt(a:Point,b:Point){this.links.push({a:{x:a.x,y:a.y},b:{x:b.x,y:b.y},age:0,life:.2,drain:false});if(this.links.length>32)this.links.shift()}
  siphon(a:Point,b:Point){this.links.push({a:{x:a.x,y:a.y},b:{x:b.x,y:b.y},age:0,life:.45,drain:true});if(this.links.length>32)this.links.shift()}
  private marks(marks:Mark[],x:number,y:number,angle:number,alpha=1,g=this.g){const co=Math.cos(angle),si=Math.sin(angle),point=(u:number,v:number)=>({x:x+u*co-v*si,y:y+u*si+v*co});for(const m of marks){if(m.kind==='circle'){const p=point(m.points[0],m.points[1]);if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillCircle(p.x,p.y,m.points[2])}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokeCircle(p.x,p.y,m.points[2])}}else{const points:Point[]=[];for(let i=0;i<m.points.length;i+=2)points.push(point(m.points[i],m.points[i+1]));if(m.fill){g.fillStyle(m.color,m.alpha*alpha);g.fillPoints(points,true)}else{g.lineStyle(m.width,m.color,m.alpha*alpha);g.strokePoints(points,false)}}}}
- render(dt:number,shots:VisualShot[],enemies:{sprite:Point;hp:number;burn:number;slow:number;poison:number;radius:number}[]){
+ render(dt:number,shots:VisualShot[],enemies:{sprite:Point;hp:number;burn:number;slow:number;poison:number;radius:number;wet?:number;thermal?:number}[]){
   this.clock+=dt;const g=this.g;g.clear();
   for(const s of shots){if(s.hostile)continue;const a=s.attack,p=s.sprite,r=a.size+Math.min(5,(a.damage-1)*1.2+a.burn*.5+a.poison*.4+a.slow*2),angle=Math.atan2(s.v.y,s.v.x);
    s.trail.push({x:p.x,y:p.y});if(s.trail.length>9)s.trail.shift();
@@ -68,6 +68,7 @@ export class CombatEffects{
    if(s.critical){g.lineStyle(2,0xffffff,.8);g.strokeCircle(p.x,p.y,r+6)}
   }
   for(const e of enemies){if(e.hp<=0)continue;const p=e.sprite;
+   if((e.wet??0)>0){g.lineStyle(2,0x83d7ff,.65);g.strokeEllipse(p.x,p.y+e.radius*.7,e.radius*2.1,8);for(let i=0;i<2;i++){const t=(this.clock+i*.5)%1;g.fillStyle(0xa7e8ff,1-t);g.fillEllipse(p.x+(i?1:-1)*e.radius*.7,p.y+t*e.radius,3,5)}}if((e.thermal??0)>.1){g.lineStyle(2,Math.sin(this.clock*10)>0?0xffaa6b:0xb7efff,Math.min(.7,.2+(e.thermal??0)*.1));g.strokeCircle(p.x,p.y,e.radius+5)}
    if(e.slow){g.lineStyle(2,0x9aeaff,.7);g.strokeEllipse(p.x,p.y+e.radius*.65,e.radius*2.5,10);for(let i=0;i<3;i++){const x=p.x+(i-1)*e.radius*.7;g.fillStyle(0xa3edff,.6);g.fillTriangle(x-4,p.y+e.radius,x+4,p.y+e.radius,x,p.y+e.radius-14)}}
    for(let i=0;i<3;i++){const t=(this.clock*1.7+i/3)%1,x=p.x+Math.sin(i*4+this.clock)*e.radius*.7,y=p.y+e.radius-t*e.radius*2;
     if(e.burn){g.fillStyle(i%2?0xffd66c:0xff7846,1-t);g.fillTriangle(x-4,y+5,x+4,y+5,x+Math.sin(this.clock*8)*3,y-8)}

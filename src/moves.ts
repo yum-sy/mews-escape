@@ -1,3 +1,4 @@
+import {fusionDamageScale} from './fusion-rules';
 import {presentation,fusionLook,type Presentation} from './techniques';
 export interface Attack{visual:Presentation;damage:number;interval:number;speed:number;range:number;size:number;count:number;pierce:number;homing:number;split:number;color:number;burn:number;slow:number;chain:number;poison:number;knockback:number;crit:number;lifesteal:number;bounce:number;blast:number}
 export type Modifier=Partial<Omit<Attack,'color'|'visual'>>;
@@ -33,7 +34,7 @@ export function composeAttack(ids:string[]):Attack{
  // Diminishing growth prevents old saves and stacked bonuses from bypassing the budget.
  const bonus=a.damage-1;a.damage=1+bonus/(1+bonus*.65);const rate=.19-a.interval;a.interval=.19-rate/(1+rate*12);
  const dot=a.burn+a.poison;if(dot>.9){a.burn*=.9/dot;a.poison*=.9/dot}
- a.count=Math.min(5,a.count);a.interval=Math.max(.155,a.interval);a.pierce=Math.min(2,a.pierce);a.homing=Math.min(4.4,a.homing);a.slow=Math.min(.45,a.slow);a.chain=Math.min(2,a.chain);a.size=Math.min(11,a.size);a.split=Math.min(2,a.split);a.speed=Math.min(960,a.speed);a.range=Math.min(1200,a.range);a.crit=Math.min(.18,a.crit);a.lifesteal=Math.min(1/220,a.lifesteal);a.knockback=Math.min(18,a.knockback);a.bounce=Math.min(2,a.bounce);a.blast=Math.min(100,a.blast);a.damage*=coverageDamageScale(ids)/a.count;a.color=fusionLook(a.visual).core;return a;
+ a.count=Math.min(5,a.count);a.interval=Math.max(.155,a.interval);a.pierce=Math.min(2,a.pierce);a.homing=Math.min(4.4,a.homing);a.slow=Math.min(.45,a.slow);a.chain=Math.min(2,a.chain);a.size=Math.min(11,a.size);a.split=Math.min(2,a.split);a.speed=Math.min(960,a.speed);a.range=Math.min(1200,a.range);a.crit=Math.min(.18,a.crit);a.lifesteal=Math.min(1/220,a.lifesteal);a.knockback=Math.min(18,a.knockback);a.bounce=Math.min(2,a.bounce);a.blast=Math.min(100,a.blast);a.damage*=coverageDamageScale(ids)/a.count;a.color=fusionLook(a.visual).core;a.damage*=fusionDamageScale(a);return a;
 }
 
 // Secondary hits cannot start another proc cascade; homing and status identity survive.

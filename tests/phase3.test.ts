@@ -1,3 +1,4 @@
+import {entryLayout} from '../src/encounter';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {ENEMIES,NORMAL_KINDS} from '../src/data';
@@ -19,8 +20,8 @@ test('every upward floor increases health, speed, bullets, room count and hazard
 test('boss gate is a leaf and never blocks required combat rooms across 1000 seeds',()=>{
  for(let seed=0;seed<1000;seed++)for(const count of [5,9]){const rooms=generateDungeon(seed,count),boss=rooms.find(r=>r.kind==='boss')!;assert.equal(Object.keys(boss.doors).length,1);assert.equal(rooms.filter(r=>r.kind==='combat').length,count);const seen=new Set([0]),q=[0];for(const id of q)for(const target of Object.values(rooms[id].doors))if(target!==boss.id&&!seen.has(target)){seen.add(target);q.push(target)}assert.equal(seen.size,rooms.length-1)}
 });
-test('boss cannot be entered early and cannot be bypassed for ascent',()=>{
- const r=new Run(151),boss=r.rooms.find(x=>x.kind==='boss')!;const [dir,parent]=Object.entries(boss.doors)[0];r.current=parent;r.room.cleared=true;const toBoss=({up:'down',down:'up',left:'right',right:'left'} as const)[dir as 'up'];assert.equal(r.travel(toBoss),false);for(const room of r.rooms)if(room.kind==='combat')room.cleared=true;assert.equal(r.travel(toBoss),true);assert.equal(r.canExit,false);assert.equal(r.ascend(),false);
+test('boss may be reached directly but must be defeated before ascent',()=>{
+ const r=new Run(151),boss=r.rooms.find(x=>x.kind==='boss')!;const [dir,parent]=Object.entries(boss.doors)[0];r.current=parent;r.room.cleared=true;const toBoss=({up:'down',down:'up',left:'right',right:'left'} as const)[dir as 'up'];assert.equal(r.travel(toBoss),true);assert.ok(r.rooms.some(room=>room.kind==='combat'&&!room.cleared));assert.equal(r.canExit,false);assert.equal(r.ascend(),false);
 });
 test('all normal species have executable attacks across different roles; boss intensifies below half HP',()=>{
  const brain=():Brain=>({x:400,y:300,hp:100,cooldown:0,charge:0,dir:{x:0,y:0},phase:1}),p={x:560,y:450};
@@ -31,7 +32,7 @@ test('all normal species have executable attacks across different roles; boss in
  const b=brain();b.hp=40;let actions=stepBrain('gengar',b,p,.016).actions;assert.equal(actions[0].type,'phase');for(let i=0;i<160;i++)actions.push(...stepBrain('gengar',b,p,.016).actions);assert.equal(actions.filter(a=>a.type==='shot').length,12);assert.ok(actions.some(a=>a.type==='pool'));assert.ok(actions.findIndex(a=>a.type==='warn')<actions.findIndex(a=>a.type==='blink'));
 });
 test('obstacles preserve entry corridors, center and spawn positions for all templates',()=>{
- for(let seed=0;seed<50;seed++)for(const room of generateDungeon(seed)){const blocks=obstacles(room);for(const p of [...enemyLayout(room),{x:560,y:184},{x:560,y:542},{x:126,y:364},{x:994,y:364},{x:560,y:365}])assert.ok(!blocks.some(b=>overlapsBlock(p,28,b)));}
+ for(let seed=0;seed<50;seed++)for(const room of generateDungeon(seed)){const blocks=obstacles(room);for(const p of [...entryLayout(enemyLayout(room),{x:560,y:365},obstacles(room),room.doors),{x:560,y:184},{x:560,y:542},{x:126,y:364},{x:994,y:364},{x:560,y:365}])assert.ok(!blocks.some(b=>overlapsBlock(p,'kind' in p?speciesSize(p.kind).radius:18,b)));}
  const b={x:100,y:100,w:40,h:40};assert.deepEqual(moveWithWalls({x:60,y:100},{x:20,y:5},[b],10),{x:60,y:105});
 });
 test('hazards warn before damage and have an idle window',()=>{assert.equal(hazardPhase(.5,5),'warning');assert.equal(hazardPhase(1.2,5),'active');assert.equal(hazardPhase(2.1,5),'idle');assert.equal(hazardPhase(5.2,5),'warning')});

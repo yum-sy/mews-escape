@@ -5,7 +5,6 @@ export function doorBlockReason(rooms:DungeonRoom[],room:DungeonRoom,direction:D
  const target=room.doors[direction];
  if(target===undefined||!rooms[target])return 'missing';
  if(!room.cleared)return 'combat';
- if(rooms[target].kind==='boss'&&rooms.some(r=>r.kind==='combat'&&!r.cleared))return 'floor';
  return null;
 }
 export function thresholdDirection(p:Vec,move:Vec):Direction|undefined{

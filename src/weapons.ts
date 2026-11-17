@@ -1,3 +1,4 @@
+import {fusionRules} from './fusion-rules';
 import type {Attack} from './moves';
 import type {Vec} from './combat';
 import type {Block} from './lab';
@@ -12,11 +13,11 @@ export function weaponProfile(a:Attack){
 export function tickAttack(a:Attack):Attack{const p=weaponProfile(a),scale=p.interval/a.interval;return {...a,damage:a.damage*scale,knockback:a.knockback*scale};}
 export interface Target extends Vec{id:number;radius:number}
 export interface PathPoint extends Vec{width:number}
-export interface WeaponPath{points:PathPoint[];hits:number[];kind:WeaponKind;color:number;attack:Attack;reflections:number;opacity?:number}
+export interface WeaponPath{reflectedHits?:number[];points:PathPoint[];hits:number[];kind:WeaponKind;color:number;attack:Attack;reflections:number;opacity?:number}
 export const distanceToSegment=(p:Vec,a:Vec,b:Vec)=>{const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)};
 // Short swept segments keep damage and the rendered path on the same geometry.
 export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],blocks:Block[],bounds:{left:number;right:number;top:number;bottom:number}):WeaponPath{
- const p=weaponProfile(a),points:PathPoint[]=[{...origin,width:a.size}],hits:number[]=[],seen=new Set<number>();let x=origin.x,y=origin.y,heading=angle,reflections=0;
+ const p=weaponProfile(a),points:PathPoint[]=[{...origin,width:a.size}],hits:number[]=[],reflectedHits:number[]=[],seen=new Set<number>();let x=origin.x,y=origin.y,heading=angle,reflections=0;
  const limit=1+a.pierce+(p.kind==='flame'?1:0),homing=a.homing+(p.kind==='tether'?1.4:0);
  for(let travelled=0;travelled<p.range;travelled+=8){
   if(homing){let nearest=Infinity,turn=0;for(const target of targets){if(seen.has(target.id))continue;const dx=target.x-x,dy=target.y-y,d=dx*dx+dy*dy;if(d>=nearest)continue;const delta=Math.atan2(dy,dx)-heading,t=Math.atan2(Math.sin(delta),Math.cos(delta));if(Math.abs(t)<.65){nearest=d;turn=t}}if(nearest<Infinity)heading+=Math.max(-.04,Math.min(.04,turn*homing*.025))}
@@ -25,10 +26,10 @@ export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],bl
   const width=p.kind==='flame'?a.size+travelled*.13:p.kind==='water'?a.size+3:a.size;
   if(blocks.some(b=>nx>=b.x-b.w/2-width&&nx<=b.x+b.w/2+width&&ny>=b.y-b.h/2-width&&ny<=b.y+b.h/2+width))break;
   const next={x:nx,y:ny,width};const candidates=targets.filter(t=>!seen.has(t.id)&&distanceToSegment(t,{x,y},next)<=t.radius+width).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y));
-  points.push(next);for(const t of candidates){seen.add(t.id);hits.push(t.id);if(hits.length>=limit)return{points,hits,kind:p.kind,color:a.color,attack:a,reflections}}
+  points.push(next);for(const t of candidates){seen.add(t.id);hits.push(t.id);if(reflections>0)reflectedHits.push(t.id);if(hits.length>=limit+(reflections>0&&fusionRules(a).bankShot?1:0))return{points,hits,reflectedHits,kind:p.kind,color:a.color,attack:a,reflections}}
   x=nx;y=ny;
  }
- return{points,hits,kind:p.kind,color:a.color,attack:a,reflections};
+ return{points,hits,reflectedHits,kind:p.kind,color:a.color,attack:a,reflections};
 }
 
 // A single resolved carrier owns targeting, damage and collision. Modifiers decorate it.
