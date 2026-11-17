@@ -31,7 +31,7 @@ const save=(r:Run):Checkpoint=>({version:1,seed:r.seed,floor:r.floor,current:r.c
 test('map save/reload retains only the current floor and migrates legacy permanent survey',()=>{
  const r=new Run(151);r.mapFound=true;const s=decodeSave(JSON.stringify(save(r)))!;assert.equal(restoreRun(s).mapFound,true);assert.equal(decodeSave(JSON.stringify({...s,mapFound:'yes'})),null);
  const old=save(new Run(151));delete old.mapFound;old.moves=['survey'];const migrated=restoreRun(decodeSave(JSON.stringify(old))!);assert.equal(migrated.mapFound,true);assert.ok(!migrated.moves.includes('survey'));migrated.rooms.forEach(room=>room.cleared=true);migrated.ascend();assert.equal(migrated.mapFound,false);
- const kinds=roomsForFloor(151,6);assert.equal(roomMapIcon(kinds.find(r=>r.kind==='combat')!),'monster');assert.equal(roomMapIcon(kinds.find(r=>r.kind==='reward')!),'reward');assert.equal(roomMapIcon(kinds[0]),'empty');
+ const kinds=roomsForFloor(151,6);assert.equal(roomMapIcon(kinds.find(r=>r.kind==='combat')!),'combat');assert.equal(roomMapIcon(kinds.find(r=>r.kind==='reward')!),'reward');assert.equal(roomMapIcon(kinds[0]),'empty');
 });
 test('first-pattern hints persist once per mechanic, including failed storage fallback',()=>{
  const data=new Map<string,string>(),storage={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v)},removeItem:(k:string)=>{data.delete(k)}};const hints=new PatternHints(storage);assert.ok(hints.needs('burst'));hints.acknowledge('burst');assert.equal(new PatternHints(storage).needs('burst'),false);assert.ok(new PatternHints(storage).needs('beam'));storage.setItem(HINT_KEY,'broken');assert.ok(new PatternHints(storage).needs('burst'));
