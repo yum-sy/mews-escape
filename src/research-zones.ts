@@ -11,7 +11,7 @@ export class ResearchZones{
  clear(){this.zones=[];this.g.clear()}
  update(dt:number,p:Vec){const g=this.g;g.clear();const hits:ResearchZone[]=[];
   for(const z of this.zones){z.age+=dt;const phase=researchZonePhase(z,z.age);if(phase==='expired')continue;
-   const active=phase==='active',fade=Math.min(1,(z.warning+z.life-z.age)/.45),progress=Math.min(1,z.age/z.warning),color=z.style==='web'?0xd6b1e1:z.style==='gas'?0xaf88c7:0xa4b66c,dx=z.b.x-z.a.x,dy=z.b.y-z.a.y,len=Math.hypot(dx,dy),nx=-dy/(len||1),ny=dx/(len||1);
+   const active=phase==='active',fade=Math.min(1,(z.warning+z.life-z.age)/.45)*(phase==='warning'?(z.guidance==='subtle'?.35:z.guidance==='soft'?.65:1):1),progress=Math.min(1,z.age/z.warning),color=z.style==='web'?0xd6b1e1:z.style==='gas'?0xaf88c7:0xa4b66c,dx=z.b.x-z.a.x,dy=z.b.y-z.a.y,len=Math.hypot(dx,dy),nx=-dy/(len||1),ny=dx/(len||1);
    g.lineStyle(z.r*2+4,0x15202a,.7*fade);g.lineBetween(z.a.x,z.a.y,z.b.x,z.b.y);g.fillStyle(0x15202a,.55*fade);g.fillCircle(z.a.x,z.a.y,z.r+2);g.fillCircle(z.b.x,z.b.y,z.r+2);
    g.lineStyle(z.r*2,color,(active?.2:.06)*fade);g.lineBetween(z.a.x,z.a.y,z.b.x,z.b.y);
    if(z.style==='web'){

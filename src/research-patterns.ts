@@ -3,7 +3,7 @@ import {ENEMIES,type Kind} from './data';
 import {normalize,type Vec} from './combat';
 export const RESEARCH_KINDS=['skorupi','drapion','stunky','skuntank','spinarak','ariados','trubbish','garbodor','spiritomb','inkay','malamar'] as const;
 export type ZoneStyle='gas'|'web'|'sludge';
-export interface ResearchZone{type:'zone';a:Vec;b:Vec;origin:Vec;r:number;warning:number;life:number;style:ZoneStyle}
+export interface ResearchZone{guidance?:import('./encounter-familiarity').Guidance;type:'zone';a:Vec;b:Vec;origin:Vec;r:number;warning:number;life:number;style:ZoneStyle}
 const clamp=(p:Vec):Vec=>({x:Math.max(165,Math.min(955,p.x)),y:Math.max(220,Math.min(510,p.y))});
 export function researchDirections(kind:Kind,dir:Vec,cycle:number){const angle=Math.atan2(dir.y,dir.x);const offsets=kind==='drapion'?(cycle%2?[-.38,.38]:[-.22,0,.22]):kind==='spiritomb'?[-.45,0,.45]:kind==='inkay'?[-.25,.25]:kind==='malamar'?[-.48,-.24,0,.24,.48]:[0];return offsets.map(a=>({x:Math.cos(angle+a),y:Math.sin(angle+a)}))}
 /** Snapshot aim at the start: moving sideways during the wind-up is always meaningful. */
