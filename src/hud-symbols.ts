@@ -11,6 +11,7 @@ const paths:Record<string,string>={
  combat:'m4 3 16 17m0-17L4 20M3 15l6 6m6 0 6-6',
  reward:'M4 8h16v13H4zM2 5h20v4H2zM12 5v16M12 5C2 5 5-2 12 5m0 0c10 0 7-7 0 0',
  up:'M12 21V3m-8 8 8-8 8 8',
+ decoy:'M3 18q0-5 4-5L8 5l4 5 4-5 1 8q4 0 4 5v3H3zM8 16h1m6 0h1M9 19h6',
  shield:'M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6z',
  read:'M4 3h16v18H4zM8 7h8m-8 5h8m-8 5h5',
  power:'M12 2v10M6 5a9 9 0 1 0 12 0',

@@ -1,5 +1,5 @@
 import type {WeaponPath} from './weapons';
-import Phaser from 'phaser';
+import type Phaser from 'phaser';
 import type {Attack} from './moves';
 import {techniqueMarks,fusionAccents,presentation,fusionLook,FORMS,type Mark,type Presentation} from './techniques';
 type Point={x:number;y:number};
@@ -7,10 +7,27 @@ export interface VisualShot{sprite:Point;v:Point;hostile:boolean;attack:Attack;t
 type Particle={x:number;y:number;vx:number;vy:number;age:number;life:number;color:number;size:number;ring:boolean;shape?:string};
 export function effectPalette(a:Attack){return [...new Set([a.color,...(a.burn?[0xff843e]:[]),...(a.slow?[0x8deaff]:[]),...(a.chain?[0xffe568]:[]),...(a.poison?[0xc780ff]:[]),...(a.lifesteal?[0x8cf5b1]:[])])]}
 export class CombatEffects{
+ private activeG:Phaser.GameObjects.Graphics;
  private stamps:{x:number;y:number;age:number;visual:Presentation}[]=[];
  private channelG:Phaser.GameObjects.Graphics;private channels:WeaponPath[]=[];private channelAge=0;private g:Phaser.GameObjects.Graphics;private particles:Particle[]=[];private clock=0;private links:{a:Point;b:Point;age:number;life:number;drain:boolean}[]=[];private awards:{x:number;y:number;age:number;visual:Presentation}[]=[];
- constructor(scene:Phaser.Scene){this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
- clear(){this.setChannels([]);this.particles=[];this.stamps=[];this.links=[];this.awards=[];this.g.clear()}
+ constructor(scene:Phaser.Scene){this.activeG=scene.add.graphics().setDepth(18);this.channelG=scene.add.graphics().setDepth(14);this.g=scene.add.graphics().setDepth(14)}
+ clear(){this.activeG.clear();this.setChannels([]);this.particles=[];this.stamps=[];this.links=[];this.awards=[];this.g.clear()}
+ active(kind:'reflector'|'decoy',p:Point,left:number){
+  const g=this.activeG;g.clear();if(left<=0)return;const ratio=Math.min(1,left/(kind==='reflector'?2:2.8)),alpha=Math.min(1,left*4);
+  if(kind==='reflector'){
+   // Shield facets stay inside the true 58-unit projectile interception boundary.
+   const vertices=Array.from({length:7},(_,i)=>({x:p.x+Math.cos(i*Math.PI/3)*58,y:p.y+Math.sin(i*Math.PI/3)*58}));
+   g.fillStyle(0x9ddfff,.055*alpha);g.fillPoints(vertices,true);g.lineStyle(2,0xaee6ff,.75*alpha);g.strokePoints(vertices,false);
+   for(let i=0;i<6;i++){const a=i*Math.PI/3;g.lineStyle(1,0xe4faff,.35*alpha);g.lineBetween(p.x+Math.cos(a)*46,p.y+Math.sin(a)*46,p.x+Math.cos(a)*58,p.y+Math.sin(a)*58)}
+  }else{
+   g.fillStyle(0x000000,.3*alpha);g.fillEllipse(p.x,p.y+22,42,12);
+   // Upward attention chevrons distinguish a lure from a damaging floor zone.
+   for(let i=0;i<2;i++){const y=p.y-34-i*9;g.lineStyle(2,0xb5f9dc,(.8-i*.2)*alpha);g.strokePoints([{x:p.x-7,y:y+4},{x:p.x,y:y},{x:p.x+7,y:y+4}],false)}
+  }
+  const radius=kind==='reflector'?58:29,points=Array.from({length:33},(_,i)=>{const a=-Math.PI/2+Math.PI*2*ratio*i/32;return{x:p.x+Math.cos(a)*radius,y:p.y+Math.sin(a)*radius}});
+  g.lineStyle(3,kind==='reflector'?0xe7fbff:0xa5f0c8,alpha);g.strokePoints(points,false);
+ }
+ activeBurst(p:Point,kind:'reflector'|'decoy',ending=false){for(let i=0;i<8;i++){const a=i*Math.PI/4;this.add({x:p.x+Math.cos(a)*20,y:p.y+Math.sin(a)*20,vx:Math.cos(a)*(ending?24:80),vy:Math.sin(a)*(ending?24:80),age:0,life:ending?.25:.4,color:kind==='reflector'?0xc0efff:0xb9f4d6,size:ending?2:4,ring:false,shape:kind==='reflector'?'snow':'orb'})}}
  setChannels(paths:WeaponPath[]){this.channels=paths;this.channelAge=0;this.drawChannels(1)}
  fadeChannels(dt:number){this.channelAge+=dt;this.drawChannels(Math.max(0,1-this.channelAge/.12))}
  private drawChannels(globalAlpha:number){let alpha=globalAlpha;
