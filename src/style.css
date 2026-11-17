@@ -198,4 +198,4 @@ body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointe
 .map-door.up,.map-door.down{width:4px;height:7px}
 .map-door.left,.map-door.right{width:7px;height:4px}
 .map-door.up{top:-7px}.map-door.down{bottom:-7px}.map-door.left{left:-7px}.map-door.right{right:-7px}
-@media(orientation:landscape) and (max-height:480px){.map{right:max(calc(var(--arena-inset,0px) + 180px),env(safe-area-inset-right));top:58px}}
+@media(orientation:landscape) and (max-height:480px){.map{left:max(calc(var(--arena-inset,0px) + 16px),env(safe-area-inset-left));right:auto;top:48px;transform-origin:top left}}
