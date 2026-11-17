@@ -4,7 +4,7 @@ const paths:Record<string,string>={
  monster:'M4 9 3 3l6 4h6l6-4-1 6v7l-5 5H9l-5-5zM7 11l3 2m7-2-3 2M9 17h6',
  map:'M2 5 8 2l8 3 6-3v17l-6 3-8-3-6 3zM8 2v17M16 5v17',
  crate:'M4 4h16v16H4zM4 4l16 16M20 4 4 20',
- boss:'m3 7 4 4 5-7 5 7 4-4-2 13H5z',
+ boss:'M7 17C1 15 2 3 12 3s11 12 5 14v4H7zM8 21v-4m4 4v-4m4 4v-4M7 10h3v3H7zM14 10h3v3h-3zM11 16l1-2 1 2',
  key:'M9 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8m4 4h9m-3 0v4m3-4v3',
  lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3',
  open:'M7 10V7a5 5 0 0 1 10 0M5 10h14v11H5z',
