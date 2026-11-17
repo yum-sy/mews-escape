@@ -17,7 +17,7 @@ export class LabPresentation{
   // Service lanes and inspection grates provide orientation without covering hazards.
   for(const x of [170,890]){g.fillStyle(0x060c13,.35);g.fillRect(x,148,60,432);g.lineStyle(1,t.light,.09);for(let y=150;y<580;y+=12)g.lineBetween(x,y,x+60,y)}
   g.lineStyle(2,t.accent,.18);g.strokeRect(260,175,600,380);g.lineBetween(560,175,560,555);
-  for(const x of [155,350,770,965]){
+  for(const x of [155,350,770,965]){if(room.kind==='boss'&&floor>1&&Math.abs(x-stairLanding(room).x)<85)continue;
    g.fillStyle(0x030710,.5);g.fillEllipse(x+9,192,88,28);g.fillStyle(0x111c29,.95);g.fillRoundedRect(x-28,146,56,43,5);g.lineStyle(2,t.accent,.5);g.strokeRoundedRect(x-28,146,56,43,5);
    if(t.feature==='pods'||t.feature==='tanks'){g.fillStyle(t.light,.17);g.fillRoundedRect(x-20,150,40,30,8);g.lineStyle(1,t.light,.65);g.strokeEllipse(x,151,40,9);g.lineBetween(x-14,156,x-14,174)}
    else if(t.feature==='shelves'){for(let y=152;y<182;y+=10){g.lineStyle(2,t.accent,.7);g.lineBetween(x-21,y,x+21,y);for(let j=0;j<4;j++){g.fillStyle(t.light,.28);g.fillRect(x-18+j*10,y-4,6,5)}}}
@@ -62,6 +62,8 @@ export class LabPresentation{
   const {x,y}=stairLanding(this.room),light=ready?0xa4e0cf:0xb8a57e;
   // Recessed metal flight rising away from the landing, matching the lab's door palette.
   g.fillStyle(0x02070c,.45);g.fillEllipse(x+10,y+8,146,40);
+  g.fillStyle(0x152630);g.fillRect(x-64,y-116,128,25);
+  g.lineStyle(3,0x81979e);g.strokeRect(x-61,y-115,122,21);
   g.fillStyle(0x111c26);g.fillPoints([{x:x-62,y:y+7},{x:x-62,y:y-100},{x:x+62,y:y-100},{x:x+62,y:y+7}],true);
   g.fillStyle(0x405761);g.fillRect(x-57,y-105,114,108);
   g.fillStyle(0x0a131c);g.fillRect(x-47,y-104,94,28);
@@ -82,12 +84,16 @@ export class LabPresentation{
    for(const dy of [-91,-51,-11]){g.lineStyle(3,0x71888f);g.lineBetween(sx,y+dy,sx,y+dy+12)}
    g.fillStyle(light,.9);g.fillRect(sx-2,y-103,4,8);
   }
-  g.lineStyle(3,light,.95);g.strokePoints([{x:x-10,y:y-90},{x,y:y-99},{x:x+10,y:y-90}],false);
+  // Painted floor chevrons lead from the room towards the first step.
+  for(const offset of [69,47,25]){
+   g.lineStyle(7,0x12242b,.7);g.strokePoints([{x:x-12,y:y+offset+6},{x,y:y+offset-2},{x:x+12,y:y+offset+6}],false);
+   g.lineStyle(3,light,ready?.85:.4);g.strokePoints([{x:x-12,y:y+offset+6},{x,y:y+offset-2},{x:x+12,y:y+offset+6}],false);
+  }
   if(ready){g.fillStyle(light,.08);g.fillEllipse(x,y+15,98,22);g.lineStyle(2,light,.65);g.lineBetween(x-32,y+12,x+32,y+12)}
  }
 
  update(dt:number,active:Interaction|undefined,pending:boolean,cleared:boolean,mainFloor=true){if(!this.room)return;this.clock+=dt;this.drawDoors(dt);const t=floorTheme(this.floor),state=roomEnvironment(this.room),g=this.live;g.clear();this.beams.clear();const pulse=.6+Math.sin(this.clock*2)*.15;
-  for(const x of [155,350,770,965]){g.fillStyle(t.light,state.powerOff?.025:.055);g.fillTriangle(x-27,145,x-75,245,x+75,245);g.fillStyle(t.light,state.powerOff?.18:pulse*.75);g.fillRect(x-20,142,40,3)}
+  for(const x of [155,350,770,965]){if(this.room.kind==='boss'&&this.floor>1&&Math.abs(x-stairLanding(this.room).x)<85)continue;g.fillStyle(t.light,state.powerOff?.025:.055);g.fillTriangle(x-27,145,x-75,245,x+75,245);g.fillStyle(t.light,state.powerOff?.18:pulse*.75);g.fillRect(x-20,142,40,3)}
   // Dust drifts slowly; the array is fixed and independent of frame rate.
   if(!this.reducedMotion)for(let i=0;i<18;i++){const x=115+(i*137%870)+Math.sin(this.clock*.2+i)*9,y=180+(i*79+this.clock*4)%370;g.fillStyle(t.light,.16);g.fillCircle(x,y,1)}
   if(this.consoleArt)lightProp(this.consoleArt,state.powerOff);
