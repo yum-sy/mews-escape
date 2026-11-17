@@ -185,3 +185,8 @@ body:has(#modal:not([hidden])) #active-items,body[data-screen=menu] #active-item
 .health-group{display:flex;align-items:center;gap:5px;width:156px;flex-shrink:0}.hp-label{font-size:12px;font-weight:800;line-height:18px;letter-spacing:.3px;color:#f4f1df;text-shadow:-1px 0 #101a26,1px 0 #101a26,0 -1px #101a26,0 1px #101a26,0 2px 3px #000c}
 body .health-group #hearts{width:auto;min-width:0;flex:1}
 @media(orientation:portrait){.health-group{width:110px}}
+/* Leave room for a thumb above the pad; counts stay outside item touch targets. */
+#active-items{right:max(calc(var(--arena-inset,0px) + 42px),env(safe-area-inset-right));bottom:calc(max(24px,env(safe-area-inset-bottom)) + 156px);width:120px;gap:16px}
+body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointer-events:none}
+#attack-stick[data-aiming=true] .aim-label{opacity:0}
+@media(orientation:portrait){#active-items{right:38px;bottom:186px}}

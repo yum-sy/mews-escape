@@ -20,3 +20,9 @@ Both item buttons now appear side by side above the aiming pad, each with a tran
 The aim instruction is inside the pad. HP is labelled to the left of the segmented health bar without increasing total top-row width. Critical HUD labels use pale text, four-direction 1px dark edging and a short shadow rather than extra panels.
 
 171 tests pass. Browser QA at 667×375 and 390×844 confirms alignment, no console errors, Reflector 4→3 while Substitute remains 2, and Substitute 2→1 while Reflector remains 4.
+
+### Mobile simultaneous input follow-up (2026-11-17)
+- Pad-to-item target gap increased to 24px; item target gap to 16px. Counts sit above the 52×56px targets; aiming hides the in-pad instruction.
+- Touch pointer-up activates each item independently, including secondary fingers. Compatibility clicks cannot spend twice; cancellation, dragging and long-press help do not spend stock.
+- Real Controls harness verifies movement + captured aim beyond the pad + third-finger activation, independent releases and cancellation. Browser review verified 667×375 and 390×844 layout, plus actual reflector 4→3 and substitute 2→1 in 844×390 combat. No browser errors.
+- 174 tests and production build passed. This is simulated input/browser-size verification, not a physical handset ergonomics test.

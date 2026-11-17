@@ -1,3 +1,4 @@
+import {bindTouchAction} from './touch-action';
 import {actorMotion} from './actor-motion';
 import {readUnlocks,grantUnlock,unlockSummary,ACTIVE_NAMES,type Unlock} from './progression-unlocks';
 import {fusionRules,reflectionAttack,thermalBank,FUSION_HELP} from './fusion-rules';
@@ -84,7 +85,7 @@ export class LabScene extends Phaser.Scene{
   document.getElementById('secondary')!.onclick=()=>{const button=document.getElementById('secondary')!;button.textContent='현재 진행을 지우고 시작';button.onclick=()=>this.restart()};
   document.getElementById('back-menu')!.onclick=()=>{this.stopStory();this.state='ready';this.controls.reset();this.clearActors();document.getElementById('modal')!.hidden=true;this.audioFX.mode='silent';this.menu()};
   document.getElementById('build-toggle')!.onclick=()=>this.showBuild();
-  document.getElementById('active-skill')!.onclick=()=>this.useActive('reflector');document.getElementById('active-decoy')!.onclick=()=>this.useActive('decoy');this.controls.onActive=()=>this.useActive();
+  bindTouchAction(document.getElementById('active-skill') as HTMLButtonElement,()=>this.useActive('reflector'));bindTouchAction(document.getElementById('active-decoy') as HTMLButtonElement,()=>this.useActive('decoy'));this.controls.onActive=()=>this.useActive();
   document.getElementById('interact')!.onclick=()=>this.interact();this.controls.onInteract=()=>this.interact();
   this.menu=setupShell(restore=>restore?this.continueRun():this.restart());
   if(import.meta.env.DEV&&new URLSearchParams(location.search).has('campaign'))void import('../tests/campaign-fixture').then(m=>m.installCampaign(this));
