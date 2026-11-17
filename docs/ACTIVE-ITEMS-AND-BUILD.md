@@ -13,3 +13,10 @@ Downloaded original: assets/sources/substitute-pokeapi.png (96×96, opaque bound
 Derived outline: src/hud-symbols.ts and public/assets/decoy-outline.svg. Sprite remains Pokémon artwork; availability through PokeAPI is not a claim of unrestricted commercial licensing. No new raster artwork generation. Small local SVGs are included in offline caching.
 
 Validation: 170 automated tests, including independent zero-start inventories, refill versus overflow growth, both hard caps, pickup persistence, malformed save rejection, prior checkpoints and existing combat regressions. Browser checks cover compact HUD, readable/scrollable build inspection and resume, actual prop destruction and pickup, outline buttons and counts.
+
+## Paired controls and readability follow-up
+Both item buttons now appear side by side above the aiming pad, each with a transparent 52×56 touch target; shield artwork is 36px and Substitute artwork 33px. Each button directly uses its own stock. A second item cannot replace an already-running effect or consume stock while blocked. Space retains the last-used/default selected item.
+
+The aim instruction is inside the pad. HP is labelled to the left of the segmented health bar without increasing total top-row width. Critical HUD labels use pale text, four-direction 1px dark edging and a short shadow rather than extra panels.
+
+171 tests pass. Browser QA at 667×375 and 390×844 confirms alignment, no console errors, Reflector 4→3 while Substitute remains 2, and Substitute 2→1 while Reflector remains 4.

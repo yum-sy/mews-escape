@@ -169,3 +169,19 @@ body #objective{left:66%;max-width:22%;background:transparent;padding:4px 0}
 #run-summary{touch-action:pan-y;overscroll-behavior:contain}
 @media(max-width:620px) and (orientation:landscape){body #objective{top:53px;left:20px;transform:none;max-width:45%}}
 @media(orientation:portrait){body .loadout,body.touch-ui .loadout{top:16px;left:172px;max-width:100px}body .loadout .move-icon,body.touch-ui .loadout .move-icon{width:100px;padding:0;gap:3px}body .loadout .move-icon .painted-tech{width:24px;height:24px}body #hearts{width:110px}body #objective{top:60px;left:20px;transform:none;max-width:65%}}
+/* Paired active items, centered above the aiming pad. */
+#active-items{position:absolute;right:max(calc(var(--arena-inset,0px) + 46px),env(safe-area-inset-right));bottom:calc(max(24px,env(safe-area-inset-bottom)) + 140px);display:flex;gap:8px;width:112px;height:56px;pointer-events:none;z-index:4}
+body #active-items .active-item,body #active-items .active-item:hover,body #active-items .active-item:active{position:relative;inset:auto;transform:none;display:flex;align-items:flex-start;justify-content:center;width:52px;min-width:52px;height:56px;padding:3px 4px 15px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#e1f0ed;pointer-events:auto;touch-action:none}
+body #active-items .active-item[hidden]{display:none!important}
+body #active-items .hud-symbol{width:36px;height:36px;stroke-width:1.35;filter:drop-shadow(0 1px 2px #06121c)}body #active-decoy .hud-symbol{width:33px;height:33px;margin-top:2px}
+body #active-items .active-item small{position:absolute;inset:auto 0 0;text-align:center;font-size:13px;line-height:16px;font-weight:700}
+body #active-items .active-item:disabled{opacity:.65}body #active-items .active-item:focus-visible{outline:2px dashed #e8f4ff;outline-offset:1px;border-radius:50%}
+body:has(#modal:not([hidden])) #active-items,body[data-screen=menu] #active-items,body[data-screen=intro] #active-items{display:none}
+.stick.attack .aim-label{top:12px;left:0;width:100%;font-size:12px;line-height:16px;z-index:2}.aim-compass{opacity:.45}.aim-demo{top:30%;font-size:20px}
+/* Thin dark edging retains small Korean counters on bright/dark scenery. */
+#hud .move-name,#hud .build-action,#hud .hud-caption,#objective,#supplies,#boss-name,.map>span,#active-items small,.stick .aim-label,#interact span{color:#f4f1df!important;text-shadow:-1px 0 #101a26,1px 0 #101a26,0 -1px #101a26,0 1px #101a26,0 2px 3px #000c}
+#hud .build-action,#hud .hud-caption{color:#dbe4e3!important}#room-note{color:#fff7e7;text-shadow:-1px 0 #101a26,1px 0 #101a26,0 -1px #101a26,0 1px #101a26,0 2px 3px #000a}
+@media(orientation:portrait){#active-items{right:42px;bottom:170px}}
+.health-group{display:flex;align-items:center;gap:5px;width:156px;flex-shrink:0}.hp-label{font-size:12px;font-weight:800;line-height:18px;letter-spacing:.3px;color:#f4f1df;text-shadow:-1px 0 #101a26,1px 0 #101a26,0 -1px #101a26,0 1px #101a26,0 2px 3px #000c}
+body .health-group #hearts{width:auto;min-width:0;flex:1}
+@media(orientation:portrait){.health-group{width:110px}}
