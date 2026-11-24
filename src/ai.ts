@@ -39,7 +39,7 @@ export function stepBrain(kind:Kind,e:Brain,player:Vec,dt:number,floor=2):{v:Vec
   const next=bossPhase(e.hp);
   if(next>e.phase){e.phase=next;e.charge=0;e.recovery=1.2;e.cooldown=1.25;actions.push({type:'phase',x:e.x,y:e.y});return{v:{x:0,y:0},actions}}
   if((e.recovery??0)>0){e.recovery=Math.max(0,e.recovery!-dt);return{v:{x:0,y:0},actions}}
-  v={x:n.x*(floor===6?25:35),y:n.y*(floor===6?25:35)};
+  v={x:n.x*(floor===6?52:72),y:n.y*(floor===6?52:72)};
   const pattern=gengarPattern(floor,e.phase),count=pattern.count,charge=pattern.warning;
   const shadowDirections=()=>{if(e.cycle!%2)return radialDirections(count,e.dir,e.aim??player,e.cycle!);const a=Math.atan2((e.aim??player).y-e.dir.y,(e.aim??player).x-e.dir.x);return Array.from({length:e.phase===1?3:5},(_,i)=>({x:Math.cos(a+(i-(e.phase===1?1:2))*.2),y:Math.sin(a+(i-(e.phase===1?1:2))*.2)}))};
   if(e.cooldown<=0&&e.charge<=0){e.cycle=(e.cycle??0)+1;e.dir=gengarDestination(e,player,e.cycle);e.aim={...player};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:52,cue:'burst',duration:charge,kind:'gengar',directions:shadowDirections()});e.charge=charge;e.cooldown=pattern.interval}

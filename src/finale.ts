@@ -1,3 +1,4 @@
+import {gengarDestination} from './boss-position';
 import {normalize,type Vec} from './combat';
 import type {Action,Brain} from './ai';
 export const FINAL_HP=[420,520,640] as const;
@@ -14,13 +15,13 @@ export function mewtwoVolley(phase:FinalPhase,cycle:number,origin:Vec,target:Vec
 }
 export function stepMewtwo(e:Brain&{cycle:number},player:Vec,phase:FinalPhase,dt:number):{v:Vec;actions:FinalAction[]}{
  const actions:FinalAction[]=[];e.cooldown-=dt;const n=normalize(player.x-e.x,player.y-e.y);
- if(e.cooldown<=0&&e.charge<=0){e.cooldown=phase===1?2.4:phase===2?2.1:1.85;e.charge=1.05;e.dir={x:player.x<560?820:300,y:player.y<360?460:250};e.aim={...player};const origin=phase===1?e:e.dir;actions.push({type:'warn',x:origin.x,y:origin.y,r:55,tracking:phase===2,cue:phase===1?'aim':'teleport',duration:e.charge,kind:phase===1?undefined:'mewtwo',directions:mewtwoVolley(phase,e.cycle+1,origin,e.aim).map(s=>s.dir)})}
+ if(e.cooldown<=0&&e.charge<=0){e.cooldown=phase===1?2.1:phase===2?1.85:1.65;e.charge=1.05;e.dir=gengarDestination(e,player,e.cycle+1);e.aim={...player};const origin=phase===1?e:e.dir;actions.push({type:'warn',x:origin.x,y:origin.y,r:55,tracking:phase===2,cue:phase===1?'aim':'teleport',duration:e.charge,kind:phase===1?undefined:'mewtwo',directions:mewtwoVolley(phase,e.cycle+1,origin,e.aim).map(s=>s.dir)})}
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){e.cycle++;
   if(phase>1)actions.push({type:'blink',x:e.dir.x,y:e.dir.y});
   actions.push(...mewtwoVolley(phase,e.cycle,phase>1?e.dir:e,e.aim??player));
   if(phase===3){actions.push({type:'beam',axis:e.cycle%2?'x':'y',position:e.cycle%2?player.x:player.y});if(e.cycle%3===0)actions.push({type:'beam',axis:e.cycle%2?'y':'x',position:e.cycle%2?player.y:player.x})}
  }}
- return{v:e.charge>0?{x:0,y:0}:{x:n.x*(phase===1?36:48),y:n.y*(phase===1?36:48)},actions};
+ return{v:e.charge>0?{x:0,y:0}:{x:n.x*(phase===1?72:phase===2?90:108),y:n.y*(phase===1?72:phase===2?90:108)},actions};
 }
 export function beamPhase(age:number){return age<1?'warning':age<1.5?'active':'expired'}
 export function beamHits(axis:'x'|'y',position:number,p:Vec){return Math.abs((axis==='x'?p.x:p.y)-position)<23}

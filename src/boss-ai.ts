@@ -11,14 +11,14 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
  e.cooldown-=dt;
  if(phase>e.phase){e.phase=phase;e.charge=0;e.dash=0;e.recovery=1.2;e.cooldown=1.3;return{v:still,actions:[{type:'phase',x:e.x,y:e.y}]}}
  if((e.recovery??0)>0){e.recovery=Math.max(0,e.recovery!-dt);return{v:still,actions}}
- if((e.dash??0)>0){e.dash=Math.max(0,e.dash!-dt);return{v:{x:e.dir.x*(phase===1?300:340),y:e.dir.y*(phase===1?300:340)},actions}}
+ if((e.dash??0)>0){e.dash=Math.max(0,e.dash!-dt);return{v:{x:e.dir.x*(phase===1?330:380),y:e.dir.y*(phase===1?330:380)},actions}}
  const volleyCount=phase===1?3:5,speed=p.speed;
  const gasDirections=()=>e.cycle!%2?radialDirections(p.count,e,e.aim!,e.cycle!):[...fan(e,e.aim!,3,.18),...fan(e,{x:e.x*2-e.aim!.x,y:e.y*2-e.aim!.y},3,.18)];
  const curseDirections=()=>kind==='mismagius'?[...fan(e.dir,e.aim!,2,.35),...fan(e.dir,{x:e.dir.x*2-e.aim!.x,y:e.dir.y*2-e.aim!.y},2,.35)]:e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
  const extraDirections=()=>kind==='magneton'?radialDirections(floor===6?4:8,e,e.aim!,e.cycle!):fan(e,e.aim!,kind==='hypno'?3:volleyCount,kind==='marowak'?.38:.24);
  const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed,homing:tracking,returning:kind==='marowak'})};
  if(e.cooldown<=0&&e.charge<=0){
-  e.cycle=(e.cycle??0)+1;e.aim={...player};e.charge=1.05;e.cooldown=p.interval+(kind==='muk'?.5:kind==='houndoom'?.2:0);
+  e.cycle=(e.cycle??0)+1;e.aim={...player};e.charge=1.05;e.cooldown=p.interval+(kind==='muk'?.18:kind==='houndoom'?.05:0);
   if(['hypno','magneton','marowak'].includes(kind)){actions.push({type:'warn',x:e.x,y:e.y,r:46,cue:kind==='magneton'?'burst':'aim',duration:1.05,directions:extraDirections(),tracking:kind==='hypno'&&phase===2,returning:kind==='marowak'})}
   else if(kind==='banette'||kind==='mismagius'){
    e.dir=kind==='mismagius'||e.cycle%2?gengarDestination(e,player,e.cycle):{x:e.x,y:e.y};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:curseDirections()});
@@ -35,11 +35,12 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){
   if(['hypno','magneton','marowak'].includes(kind))volley(extraDirections(),kind==='hypno'&&phase===2?.5:0);
   else if(kind==='banette'||kind==='mismagius'){actions.push({type:'blink',x:e.dir.x,y:e.dir.y});volley(curseDirections(),phase===2?.65:0)}
-  else if(kind==='houndoom'&&e.cycle!%2===0)e.dash=.48;
+  else if(kind==='houndoom'&&e.cycle!%2===0)e.dash=.56;
   else if(kind==='weezing'){volley(gasDirections());if(phase===2&&floor<6)actions.push({type:'pool',x:e.x,y:e.y,r:42})}
   else if(!(kind==='muk'&&e.cycle!%2===0))volley(fan(e,e.aim!,volleyCount));
  }return{v:still,actions}}
- const distance=Math.hypot(player.x-e.x,player.y-e.y),advance=distance>230?1:distance<160?-1:0;
- const v=kind==='muk'?{x:n.x*(30+level*2),y:n.y*(30+level*2)}:kind==='weezing'?{x:(n.x*advance-n.y*.6)*35,y:(n.y*advance+n.x*.6)*35}:{x:n.x*advance*48,y:n.y*advance*48};
+ const distance=Math.hypot(player.x-e.x,player.y-e.y),advance=distance>190?1:distance<115?-.35:.25,side=(e.cycle??0)%2?1:-1,speedMove=(floor===6?62:76+level*3)*(phase===2?1.12:1),orbit=kind==='weezing'?.85:.65;
+ // Reposition between tells: pressure the player and alternate flanks instead of parking in a dead zone.
+ const v=kind==='muk'?{x:n.x*(floor===6?48:62+level*3),y:n.y*(floor===6?48:62+level*3)}:{x:(n.x*advance-n.y*orbit*side)*speedMove,y:(n.y*advance+n.x*orbit*side)*speedMove};
  return{v,actions};
 }
