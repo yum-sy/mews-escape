@@ -222,3 +222,10 @@ body #active-items .hud-symbol{opacity:.78}
 @media(orientation:portrait) and (max-width:360px){body .loadout,body.touch-ui .loadout{top:68px;left:20px;max-width:128px}}
 
 #room-note{white-space:pre-line;line-height:1.5}
+
+/* Pickup toast hugs the item row instead of covering the center of the arena. */
+#item-notice{position:absolute;bottom:calc(100% + 24px);right:0;pointer-events:none;width:max-content;max-width:230px;z-index:5;text-align:right}
+#item-notice span{display:block;padding:4px 7px;border-radius:5px;background:#101d2966;color:#f4f1df;font-size:12px;line-height:17px;font-weight:600;white-space:pre-line;text-shadow:0 1px 2px #000,1px 0 #10202b,-1px 0 #10202b;animation:item-notice-fade 3s ease-out both}
+@keyframes item-notice-fade{0%{opacity:0;transform:translateY(4px)}10%,80%{opacity:1;transform:translateY(0)}100%{opacity:0;visibility:hidden;transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){#item-notice span{animation-name:item-notice-still}@keyframes item-notice-still{0%,80%{opacity:1}100%{opacity:0;visibility:hidden}}}
+@media(orientation:landscape) and (max-height:340px){#item-notice{right:calc(100% + 12px);bottom:8px}}
