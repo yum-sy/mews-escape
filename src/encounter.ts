@@ -7,7 +7,7 @@ import {speciesSize} from './scaling';
 export const ENTRY_SECONDS=.65;
 export const ENTRY_DISTANCE=190;
 /** Keep the landing and every real doorway clear without placing actors inside furniture. */
-export function entryLayout(layout:{kind:Kind;x:number;y:number}[],player:Vec,blocks:Block[],doors:DungeonRoom['doors']){
+export function entryLayout<T extends {kind:Kind;x:number;y:number}>(layout:T[],player:Vec,blocks:Block[],doors:DungeonRoom['doors']){
  const thresholds={up:{x:560,y:ROOM.top},down:{x:560,y:ROOM.bottom},left:{x:ROOM.left,y:364},right:{x:ROOM.right,y:364}};
  const result:typeof layout=[];
  const candidates:Vec[]=[];for(let y=220;y<=510;y+=45)for(let x=220;x<=900;x+=55)candidates.push({x,y});

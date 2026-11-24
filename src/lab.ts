@@ -1,3 +1,4 @@
+import {perimeterWalls,cageBlocks} from './exploration-events';
 import {designedBlocks} from './room-designs';
 import {ROOM} from './data';
 import {rng,type DungeonRoom} from './dungeon';
@@ -5,7 +6,7 @@ import type {Vec} from './combat';
 export interface Block{x:number;y:number;w:number;h:number}
 export function obstacles(room:DungeonRoom):Block[]{
  if(room.kind!=='combat')return[];
- return designedBlocks(room.seed);
+ return [...designedBlocks(room.seed),...perimeterWalls(room),...cageBlocks(room)];
 }
 export function overlapsBlock(p:Vec,r:number,b:Block){const x=Math.max(b.x-b.w/2,Math.min(p.x,b.x+b.w/2)),y=Math.max(b.y-b.h/2,Math.min(p.y,b.y+b.h/2));return Math.hypot(p.x-x,p.y-y)<r}
 export function moveWithWalls(p:Vec,v:Vec,blocks:Block[],radius:number):Vec{const n={...p};const x={x:p.x+v.x,y:p.y};if(!blocks.some(b=>overlapsBlock(x,radius,b)))n.x=x.x;const y={x:n.x,y:p.y+v.y};if(!blocks.some(b=>overlapsBlock(y,radius,b)))n.y=y.y;return n}

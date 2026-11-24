@@ -1,7 +1,8 @@
+import {annexEvidence,pendingAmbush,ambushKind,annexSpecimen} from './exploration-events';
 import {emptyActiveStock,collectActive} from './active-items';
 import {entryLayout} from './encounter';
 import {obstacles} from './lab';
-import {roomEnvironment,sceneryBlocks} from './environment';
+import {roomEnvironment,sceneryBlocks,breakableProps} from './environment';
 import type {Unlock,ActiveSkill} from './progression-unlocks';
 import {encounterTeam,encounterKind} from './encounter-pool';
 import {secretRooms,type SecretMode,type Origin} from './secret-route';
@@ -21,7 +22,8 @@ export class Run{
  get alert(){return{hp:1+this.threat*.06,boss:1+this.threat*.05,speed:1+this.threat*.01,shot:1+this.threat*.015}}
  secretUsed=false;branch:SecretMode|null=null;origin:Origin|null=null;
  get secretAvailable(){return !this.branch&&!this.secretUsed&&this.floor>1&&this.rooms.filter(r=>r.environment?.recordRead).length>=2}
- enterSecret(){if(!this.secretAvailable||!this.room.cleared)return false;this.origin={rooms:this.rooms,current:this.current,mapFound:this.mapFound};this.secretUsed=true;this.branch='cache';this.rooms=secretRooms(this.seed,this.floor,'cache');this.current=0;this.mapFound=false;return true}
+ get annexAvailable(){return !this.branch&&!this.secretUsed&&this.floor>1&&annexEvidence([this.room])}
+ enterSecret(mode:'cache'|'annex'='cache'){if(!(mode==='annex'?this.annexAvailable:this.secretAvailable)||!this.room.cleared)return false;this.origin={rooms:this.rooms,current:this.current,mapFound:this.mapFound};this.secretUsed=true;this.branch=mode;if(mode==='annex')this.threat=Math.min(12,this.threat+1);this.rooms=secretRooms(this.seed,this.floor,mode);this.current=0;this.mapFound=false;return true}
  enterDepth(){if(this.branch!=='cache'||!this.room.rewardTaken||this.floor>4||this.keys<2)return false;this.keys-=2;this.threat=Math.min(12,this.threat+2);this.branch='depth';this.rooms=secretRooms(this.seed,this.floor,'depth');this.current=0;this.mapFound=false;return true}
  leaveSecret(){if(!this.origin||!this.room.cleared)return false;this.rooms=this.origin.rooms;this.current=this.origin.current;this.mapFound=this.origin.mapFound;this.origin=null;this.branch=null;return true}
  keys=1;mapFound=false;rooms;current=0;moves:string[]=[];floor=6;
@@ -50,10 +52,12 @@ export function roomsForFloor(seed:number,floor:number):DungeonRoom[]{
  const rooms=generateDungeon((seed+Math.imul(6-floor,0x9e3779b1))>>>0,difficulty(floor).combatCount);rooms.find(r=>r.kind==='boss')!.boss=bossForFloor(seed,floor);rooms.filter(r=>r.kind==='reward').forEach((r,i)=>r.service=i===0?'archive':'medical');return rooms;
 }
 
-export function roomEnemies(room:DungeonRoom,floor:number):ReturnType<typeof enemyLayout>{
- if(room.cleared)return[];if(floor===1)return[{kind:'mewtwo',x:560,y:260}];const layout=enemyLayout(room),level=6-floor;
+export type EncounterSpawn=ReturnType<typeof enemyLayout>[number]&{propId?:number};
+export function ambushEnemies(room:DungeonRoom,floor:number):EncounterSpawn[]{const id=pendingAmbush(room),prop=breakableProps(room).find(p=>p.id===id);return prop?[{kind:ambushKind(room,floor),x:prop.x,y:prop.y,propId:prop.id}]:[]}
+export function roomEnemies(room:DungeonRoom,floor:number):EncounterSpawn[]{
+ if(room.cleared)return ambushEnemies(room,floor);if(floor===1)return[{kind:'mewtwo',x:560,y:260}];const layout=enemyLayout(room),level=6-floor;
  if(room.kind==='combat'){
  const count=floor===6?2+room.seed%2:floor===5?3+room.seed%2:floor===4?4:floor===3?4+room.seed%2:4+room.seed%3;
- const points=[...layout,{kind:'gastly' as const,x:560,y:365}];while(points.length<count)points.push({kind:'gastly',x:560,y:365});const team=encounterTeam(room.seed,count,floor,!!room.secret);return entryLayout(points.slice(0,count).map((e,i)=>({...e,kind:team[i]})),{x:560,y:365},[...obstacles(room),...sceneryBlocks(room)],room.doors);
+ const points=[...layout,{kind:'gastly' as const,x:560,y:365}];while(points.length<count)points.push({kind:'gastly',x:560,y:365});const team=encounterTeam(room.seed,count,floor,!!room.secret);if(room.secret&&room.kind==='combat'&&!room.elite)team[0]=annexSpecimen(floor,room.seed);return entryLayout([...points.slice(0,count).map((e,i)=>({...e,kind:team[i]})),...ambushEnemies(room,floor)],{x:560,y:365},[...obstacles(room),...sceneryBlocks(room)],room.doors);
  }return layout;
 }

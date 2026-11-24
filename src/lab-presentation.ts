@@ -1,3 +1,4 @@
+import {cageSegments,ambushProp} from './exploration-events';
 import {stairLanding} from './stairs';
 import {roomDesign} from './room-designs';
 import {lightProp,PROP_SIZE} from './prop-lighting';
@@ -53,8 +54,16 @@ export class LabPresentation{
   }
  }
  refreshProps(){const g=this.cracks;g.clear();this.props.removeAll(true);if(!this.room)return;const state=roomEnvironment(this.room);
+  for(const bar of cageSegments(this.room)){
+   const broken=!!((state.gatesBroken??0)&(1<<bar.id)),x=bar.x,y=bar.y;
+   g.fillStyle(0x02070b,.4);g.fillRect(x-7,y-35,36,75);
+   if(broken){g.lineStyle(3,0x71848c,.7);g.lineBetween(x-11,y-32,x-6,y-22);g.lineBetween(x+10,y+31,x+5,y+20);continue}
+   g.fillStyle(0x172a35,.8);g.fillRect(x-13,y-37,26,74);g.lineStyle(4,0x657b86,1);g.lineBetween(x-11,y-37,x-11,y+37);g.lineBetween(x+11,y-37,x+11,y+37);
+   for(let j=-30;j<30;j+=18){g.lineStyle(2,0x91a5ad,.85);g.lineBetween(x-10,y+j,x+10,y+j+15);g.lineBetween(x+10,y+j,x-10,y+j+15)}g.lineStyle(4,0x9baab0,.8);g.lineBetween(x-12,y-35,x+12,y-35);g.fillStyle(0x172833,1);g.fillCircle(x-10,y-33,2);g.fillCircle(x+10,y-33,2);
+   g.lineStyle(2,0xc7ad73,.9);g.lineBetween(x-13,y-7,x-4,y+3);g.lineBetween(x+4,y-3,x+13,y+7);g.fillStyle(0xd8d8b8,.8);g.fillCircle(x,y,2);
+  }
   for(const p of breakableProps(this.room)){if(state.broken&(1<<p.id)){g.fillStyle(0x04090f,.4);g.fillEllipse(p.x+5,p.y+20,68,25);for(let i=0;i<9;i++){const x=p.x+Math.sin(i*9+p.id)*30,y=p.y+Math.cos(i*7)*18;g.fillStyle(i%2?0x96b5b4:0x526373,.8);g.fillTriangle(x,y,x+10,y+4,x+3,y-7)}continue}
-   const size=p.kind==='crate'?PROP_SIZE.crate:PROP_SIZE.canister;g.fillStyle(0x020a10,.22);g.fillEllipse(p.x+4,p.y+24,51,12);this.props.add(lightProp(this.scene.add.image(p.x,p.y,'lab-props',p.kind==='crate'?'7':'8').setDisplaySize(size,size)));
+   const size=p.kind==='crate'?PROP_SIZE.crate:PROP_SIZE.canister;g.fillStyle(0x020a10,.22);g.fillEllipse(p.x+4,p.y+24,51,12);this.props.add(lightProp(this.scene.add.image(p.x,p.y,'lab-props',p.kind==='crate'?'7':'8').setDisplaySize(size,size)));if(p.id===ambushProp(this.room)){const mark=this.scene.add.graphics();mark.lineStyle(2,0xc4a3cf,.85);mark.strokePoints([{x:p.x-10,y:p.y-8},{x:p.x-3,y:p.y-3},{x:p.x+3,y:p.y-8},{x:p.x+10,y:p.y-3}],false);mark.fillStyle(0xe0c3e7,.9);mark.fillCircle(p.x-5,p.y-5,2);mark.fillCircle(p.x+5,p.y-5,2);this.props.add(mark)}
   }
  }
 
