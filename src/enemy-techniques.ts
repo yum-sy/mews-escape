@@ -45,4 +45,4 @@ export const ENEMY_TECHNIQUES:Record<Kind,{name:string;color:number;shape:'orb'|
 };
 
 export const gasShellClosed=(e:{kind:string;charge:number;cooldown:number})=>e.kind==='koffing'&&e.charge<=0&&e.cooldown<1.1;
-export function enemyWarning(kind:Kind,cue?:string,tracking=false){const base=ENEMY_TECHNIQUES[kind].name.split(' · ')[0];return (kind==='cubone'||kind==='marowak')?'뼈다귀 · 왕복':cue==='rush'?(kind==='houndoom'?'니트로차지':base+' · 돌진'):cue==='pool'?(kind==='muk'?'독 늪':'오물 · 바닥 주의'):tracking?base+' · 추적':base+(cue==='teleport'?' · 출현':'')}
+export function enemyWarning(kind:Kind,cue?:string,tracking=false){const base=ENEMY_TECHNIQUES[kind].name.split(' · ')[0];return (kind==='cubone'||kind==='marowak')?'뼈다귀 · 왕복':cue==='rush'?(kind==='houndoom'?'니트로차지':base+' · 돌진'):cue==='pool'?(kind==='houndoom'?'잔불 · 바닥 주의':kind==='banette'||kind==='gengar'?'저주 · 바닥 주의':kind==='muk'?'독 늪':'오물 · 바닥 주의'):tracking?base+' · 추적':base+(cue==='teleport'?' · 출현':'')}

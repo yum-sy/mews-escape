@@ -14,11 +14,21 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
  if((e.dash??0)>0){e.dash=Math.max(0,e.dash!-dt);return{v:{x:e.dir.x*(phase===1?330:380),y:e.dir.y*(phase===1?330:380)},actions}}
  const volleyCount=phase===1?3:5,speed=p.speed;
  const gasDirections=()=>e.cycle!%2?radialDirections(p.count,e,e.aim!,e.cycle!):[...fan(e,e.aim!,3,.18),...fan(e,{x:e.x*2-e.aim!.x,y:e.y*2-e.aim!.y},3,.18)];
- const curseDirections=()=>kind==='mismagius'?[...fan(e.dir,e.aim!,2,.35),...fan(e.dir,{x:e.dir.x*2-e.aim!.x,y:e.dir.y*2-e.aim!.y},2,.35)]:e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
- const extraDirections=()=>kind==='magneton'?radialDirections(floor===6?4:8,e,e.aim!,e.cycle!):fan(e,e.aim!,kind==='hypno'?3:volleyCount,kind==='marowak'?.38:.24);
- const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed,homing:tracking,returning:kind==='marowak'})};
+ const curseDirections=()=>kind==='mismagius'?(phase===2?radialDirections(4,e.dir,e.aim!,e.cycle!):[...fan(e.dir,e.aim!,2,.35),...fan(e.dir,{x:e.dir.x*2-e.aim!.x,y:e.dir.y*2-e.aim!.y},2,.35)]):e.cycle!%2?fan(e.dir,e.aim!,volleyCount,.3):radialDirections(floor===6?4:6,e.dir,e.aim!,e.cycle!);
+ const extraDirections=()=>{
+  if(kind==='magneton'){const offset=phase===2&&(e.cycle??0)%2===0?Math.PI/4:0;return Array.from({length:4},(_,i)=>({x:Math.cos(i*Math.PI/2+offset),y:Math.sin(i*Math.PI/2+offset)}))}
+  if(kind==='hypno')return phase===2&&e.cycle!%2===0?fan(e,e.aim!,2,.72):fan(e,e.aim!,3,.24);
+  return fan(e,e.aim!,phase===1?2:4,phase===1?.46:.34);
+ };
+ const volley=(directions:Vec[],tracking=0)=>{for(const dir of directions)actions.push({type:'shot',dir,speed:kind==='hypno'?Math.min(speed,170):kind==='marowak'?speed+25:speed,homing:tracking,returning:kind==='marowak'})};
  if(e.cooldown<=0&&e.charge<=0){
   e.cycle=(e.cycle??0)+1;e.aim={...player};e.charge=1.05;e.cooldown=p.interval+(kind==='muk'?.18:kind==='houndoom'?.05:0);
+  if(phase===2){
+   // New territory attacks are locked and independently warned; never spawn live damage.
+   if(kind==='houndoom'&&e.cycle%2===0)for(const sign of [-1,1])actions.push({type:'pool',x:e.x-n.y*sign*65,y:e.y+n.x*sign*65,r:floor===6?24:30});
+   if(kind==='banette'&&e.cycle%2===0)actions.push({type:'pool',x:e.aim.x,y:e.aim.y,r:floor===6?30:40});
+   if(kind==='weezing'&&e.cycle%2===0)for(const sign of [-1,1])actions.push({type:'zone',origin:{x:e.x,y:e.y},a:{x:e.x-n.y*sign*60,y:e.y+n.x*sign*60},b:{x:e.x-n.y*sign*140,y:e.y+n.x*sign*140},r:floor===6?24:32,warning:1.05,life:1.5,style:'gas'});
+  }
   if(['hypno','magneton','marowak'].includes(kind)){actions.push({type:'warn',x:e.x,y:e.y,r:46,cue:kind==='magneton'?'burst':'aim',duration:1.05,directions:extraDirections(),tracking:kind==='hypno'&&phase===2,returning:kind==='marowak'})}
   else if(kind==='banette'||kind==='mismagius'){
    e.dir=kind==='mismagius'||e.cycle%2?gengarDestination(e,player,e.cycle):{x:e.x,y:e.y};actions.push({type:'warn',x:e.dir.x,y:e.dir.y,r:48,cue:'teleport',kind,tracking:phase===2,duration:1.05,directions:curseDirections()});
@@ -29,7 +39,7 @@ export function stepBoss(kind:BossKind,e:BossBrain,player:Vec,dt:number,floor:nu
    const length=Math.min(330,Math.hypot(player.x-e.x,player.y-e.y));for(let i=1;i<=3;i++)actions.push({type:'pool',x:e.x+n.x*length*i/3,y:e.y+n.y*length*i/3,r:floor===6?28:34});
   }else{
    actions.push({type:'warn',x:e.x,y:e.y,r:42,cue:'aim',duration:1.05,directions:fan(e,e.aim,volleyCount)});
-   if(kind==='muk'){actions.push({type:'pool',x:e.aim.x,y:e.aim.y,r:floor===6?36:42});if(phase===2&&floor<6){const side={x:Math.max(150,Math.min(970,player.x-n.y*110)),y:Math.max(190,Math.min(525,player.y+n.x*110))};actions.push({type:'pool',...side,r:38})}}
+   if(kind==='muk'){actions.push({type:'pool',x:e.aim.x,y:e.aim.y,r:floor===6?36:42});if(phase===2){const side={x:Math.max(150,Math.min(970,player.x-n.y*110)),y:Math.max(190,Math.min(525,player.y+n.x*110))};actions.push({type:'pool',...side,r:floor===6?28:38})}}
   }
  }
  if(e.charge>0){e.charge-=dt;if(e.charge<=0){

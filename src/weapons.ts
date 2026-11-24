@@ -1,7 +1,7 @@
 import {fusionRules} from './fusion-rules';
 import type {Attack} from './moves';
 import type {Vec} from './combat';
-import type {Block} from './lab';
+import {segmentBlockEntry,type Block} from './lab';
 export type WeaponKind='projectile'|'flame'|'beam'|'water'|'tether'|'pulse'|'arc';
 export function weaponProfile(a:Attack){
  const f=a.visual.form;
@@ -24,7 +24,8 @@ export function traceWeapon(origin:Vec,angle:number,a:Attack,targets:Target[],bl
   const step=Math.min(8,p.range-travelled);let nx=x+Math.cos(heading)*step,ny=y+Math.sin(heading)*step;
   if(nx<bounds.left||nx>bounds.right||ny<bounds.top||ny>bounds.bottom){if(reflections>=a.bounce)break;if(nx<bounds.left||nx>bounds.right)heading=Math.PI-heading;if(ny<bounds.top||ny>bounds.bottom)heading=-heading;reflections++;nx=Math.max(bounds.left,Math.min(bounds.right,nx));ny=Math.max(bounds.top,Math.min(bounds.bottom,ny))}
   const width=p.kind==='flame'?a.size+travelled*.13:p.kind==='water'?a.size+3:a.size;
-  if(blocks.some(b=>nx>=b.x-b.w/2-width&&nx<=b.x+b.w/2+width&&ny>=b.y-b.h/2-width&&ny<=b.y+b.h/2+width))break;
+  const contacts=blocks.map(b=>segmentBlockEntry({x,y},{x:nx,y:ny},b,width)).filter((t):t is number=>t!==null);
+  if(contacts.length){const t=Math.min(...contacts);points.push({x:x+(nx-x)*t,y:y+(ny-y)*t,width});break;}
   const next={x:nx,y:ny,width};const candidates=targets.filter(t=>!seen.has(t.id)&&distanceToSegment(t,{x,y},next)<=t.radius+width).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y));
   points.push(next);for(const t of candidates){seen.add(t.id);hits.push(t.id);if(reflections>0)reflectedHits.push(t.id);if(hits.length>=limit+(reflections>0&&fusionRules(a).bankShot?1:0))return{points,hits,reflectedHits,kind:p.kind,color:a.color,attack:a,reflections}}
   x=nx;y=ny;

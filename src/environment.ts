@@ -1,3 +1,4 @@
+import {segmentBlockEntry,type Block} from './lab';
 import {stairLanding} from './stairs';
 import {roomReward} from './rewards';
 import type {DungeonRoom} from './dungeon';
@@ -26,4 +27,7 @@ export function roomInteractions(room:DungeonRoom,floor:number,canExit:boolean):
 export function nearestInteraction(player:Vec,items:Interaction[]){return items.filter(i=>Math.hypot(i.x-player.x,i.y-player.y)<=72).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]}
 export function breakProp(state:EnvironmentState,id:number){if(id<0||id>3||!Number.isInteger(id)||state.broken&(1<<id))return false;state.broken|=1<<id;return true}
 
-export function sceneryBlocks(room:DungeonRoom){const state=room.environment??freshEnvironment();return breakableProps(room).filter(p=>!(state.broken&(1<<p.id))).map(p=>({x:p.x,y:p.y,w:50,h:48}))}
+export function sceneryBlocks(room:DungeonRoom){const state=room.environment??freshEnvironment();return breakableProps(room).filter(p=>!(state.broken&(1<<p.id))).map(propBlock)}
+
+export const propBlock=(p:Vec):Block=>({x:p.x,y:p.y,w:50,h:48});
+export function pathHitsProp(prop:Vec,points:(Vec&{width:number})[]){return points.some((p,i)=>segmentBlockEntry(points[Math.max(0,i-1)],p,propBlock(prop),p.width+.001)!==null)}

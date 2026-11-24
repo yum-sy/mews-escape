@@ -16,3 +16,13 @@ export function knockbackPosition(p:Vec,dir:Vec,blocks:Block[],radius:number):Ve
  const next=moveWithWalls(p,{x:dir.x*22,y:dir.y*22},blocks,radius);
  return {x:Math.max(ROOM.left+18,Math.min(ROOM.right-18,next.x)),y:Math.max(ROOM.top+22,Math.min(ROOM.bottom-22,next.y))};
 }
+
+// Swept contact against the same expanded rectangle used by weapon paths.
+export function segmentBlockEntry(a:Vec,b:Vec,block:Block,padding=0):number|null{
+ let lo=0,hi=1;
+ for(const [start,delta,min,max] of [[a.x,b.x-a.x,block.x-block.w/2-padding,block.x+block.w/2+padding],[a.y,b.y-a.y,block.y-block.h/2-padding,block.y+block.h/2+padding]]){
+  if(Math.abs(delta)<1e-9){if(start<min||start>max)return null;continue}
+  const t1=(min-start)/delta,t2=(max-start)/delta;lo=Math.max(lo,Math.min(t1,t2));hi=Math.min(hi,Math.max(t1,t2));if(lo>hi)return null;
+ }
+ return lo;
+}
