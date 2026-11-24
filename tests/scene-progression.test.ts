@@ -116,3 +116,10 @@ test('real scenery interaction releases a warned crate creature once and persist
 });
 
 test('reflector remains usable against a crate ambush in an already cleared room',()=>{const {scene:s}=harness();s.run.room.cleared=true;s.run.collectActive('reflector');s.enemies=[{hp:4}];s.startDelay=0;s.activeLeft=0;s.useActive();assert.equal(s.activeLeft,2);assert.equal(s.run.activeStock.reflector.count,0)});
+
+test('nearby open action is hidden and rejected until the room and all ambush enemies are cleared',()=>{
+ const {scene:s}=harness();const p=breakableProps(s.run.room)[0];s.player.setPosition(p.x-60,p.y);s.startDelay=0;s.enemies=[{hp:2}];assert.notEqual(s.interaction()?.kind,'crate');assert.equal(s.resolveProp(p.id,'open'),false);assert.equal(roomEnvironment(s.run.room).broken,0);s.enemies=[];s.run.room.cleared=false;assert.equal(s.resolveProp(p.id,'open'),false);s.run.clear();assert.equal(s.interaction()?.kind,'crate');s.interact();assert.ok(roomEnvironment(s.run.room).openedProps!&(1<<p.id));assert.equal(s.resolveProp(p.id,'break'),false);
+});
+test('weapon destruction during combat remains available and never becomes an opening reward',()=>{
+ const {scene:s}=harness();const p=breakableProps(s.run.room)[0];s.run.room.cleared=false;s.enemies=[{hp:2}];s.startDelay=0;s.hitScenery([{x:p.x,y:p.y,width:2}]);const state=roomEnvironment(s.run.room);assert.ok(state.broken&(1<<p.id));assert.equal((state.openedProps??0)&(1<<p.id),0);assert.ok(state.rewardRules!&(1<<p.id));
+});

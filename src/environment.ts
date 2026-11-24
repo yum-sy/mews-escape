@@ -4,7 +4,7 @@ import {stairLanding} from './stairs';
 import {roomReward} from './rewards';
 import type {DungeonRoom} from './dungeon';
 import type {Vec} from './combat';
-export interface EnvironmentState{eventsVersion?:1;stabilized?:boolean;gatesBroken?:number;ambushCleared?:number;broken:number;lootTaken?:number;powerOff:boolean;recordRead:boolean}
+export interface EnvironmentState{eventsVersion?:1;openedProps?:number;rewardRules?:number;stabilized?:boolean;gatesBroken?:number;ambushCleared?:number;broken:number;lootTaken?:number;powerOff:boolean;recordRead:boolean}
 export const freshEnvironment=():EnvironmentState=>({eventsVersion:1,broken:0,powerOff:false,recordRead:false});
 export function roomEnvironment(room:DungeonRoom){const state=room.environment??(room.environment=freshEnvironment());state.eventsVersion=1;return state}
 export const FLOOR_THEMES=[

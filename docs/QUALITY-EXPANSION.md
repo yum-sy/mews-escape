@@ -41,3 +41,16 @@ Targeted browser QA at 844×390 and 667×375: medical recovery, key consumption,
 - Saves retain cages, ambush defeat and claimed loot. Legacy saves with already-broken trap candidates suppress retroactive ambushes and duplicate new drops.
 
 Validation: 193 tests plus production build. Includes seeded combined-geometry reachability after breaching a cage, actor spawning, actual scene crate release/defeat, active-item availability during cleared-room ambushes, annex return/reload/alert, and legacy migration. Browser QA at 844×390 used real directional fire to cut a section and walk through, the nearby Open button to release and defeat a crate creature, and the new terminal to enter the annex and encounter Spiritomb. Browser console had no errors. Physical-device multitouch was not retested in this pass; existing pointer regression tests pass.
+
+## 2026-11-24 — Opening versus breaking props
+
+Nearby Open actions only appear after the room is cleared and no live enemy remains (including a released crate ambush). The action handler independently rechecks these conditions. Combat weapon destruction stays available. Opening resolves only the selected prop and cannot accidentally break adjacent cages/props.
+
+| Prop | Open | Weapon destruction |
+| --- | --- | --- |
+| Storage crate | 28% ordinary supply chance | 8% |
+| Fragile canister | 6% ordinary supply chance | 20% |
+
+The nearby action's help names the favorable method. Opened props leave an open lid/container; weapon destruction leaves shards and plays breaking feedback. Both consume a prop once. A seed-stable roll and saved method masks prevent retry/revisit rerolls. Old resolved props keep their former 13% roll; floor map guarantees and the defeated trap creature's guaranteed reflector remain independent of ordinary supply odds.
+
+Validation: 197 tests pass, including both UI eligibility and actual scene action guards, combat destruction, 10,000-seed probability checks for each method/type, persistence and one-time pickup. Browser review at mobile viewport confirmed the Open button disappears as an ambush begins and an ordinary opened crate leaves its open-container visual. Production build passes.
