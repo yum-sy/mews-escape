@@ -220,3 +220,5 @@ body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointe
 body #active-items .hud-symbol{opacity:.78}
 @media(orientation:portrait){:root{--thumb-inset:clamp(20px,calc((100vw - 280px)/2),52px)}#move-stick{left:var(--thumb-inset)}#attack-stick{right:var(--thumb-inset)}}
 @media(orientation:portrait) and (max-width:360px){body .loadout,body.touch-ui .loadout{top:68px;left:20px;max-width:128px}}
+
+#room-note{white-space:pre-line;line-height:1.5}
