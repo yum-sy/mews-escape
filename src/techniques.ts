@@ -34,7 +34,7 @@ export function fusionLook(v:Presentation){
  if(l.shadow&&(fire||cold))return{name:fire?'암흑 화염':'암흑 냉기',core:fire?0xffa272:0x9feaff,edge:0xa787e2,recipe:'shadow'};
  if(l.drain&&(toxic||electric))return{name:toxic?'독성 흡수':'전기 흡수',core:0xa6edb0,edge:toxic?0xcd8ee8:0xffe875,recipe:'siphon'};
  const other=Object.keys(l).sort().find(id=>id in FORMS&&id!==v.form) as Form|undefined;
- if(!other&&(l.split||l.ricochet||l.focus))return{name:base.name+' 융합',core:base.core,edge:l.ricochet?0xade6df:l.focus?0xffdebd:0xd8c3ff,recipe:'fused'};
+ if(!other&&(l.split||l.ricochet||l.focus||l.agility))return{name:base.name+' 융합',core:base.core,edge:l.ricochet?0xade6df:l.focus?0xffdebd:0xd8c3ff,recipe:'fused'};
  return other?{name:FORMS[v.form].name+' 융합',core:base.core,edge:FORMS[other].color,recipe:'fused'}:base;
 }
 export const modifierGlyph:Record<string,string>={split:'⑂',agility:'»',focus:'⊕',ricochet:'◇',recover:'+'};
@@ -92,11 +92,40 @@ export function fusionAccents(v:Presentation,time:number,r:number):Mark[]{
  }else{
   for(const side of [-1,1])poly([r,0,-r,side*r*1.35,-r*3.4,side*r*.7,-r*1.7,0],look.edge,.7);
  }
+ out.push(...supplementaryAccents(v,time,r));
  // Later ingredients remain visible even when the primary recipe wins precedence.
  const l=v.levels;
  if((l.spark||l.thunderbolt)&&look.recipe!=='conductive')line([-r*3,0,-r*2.1,-r*.7,-r*1.5,r*.5,r*.7,0],0xffe86b,2);
  if((l.poison||l.sludge)&&look.recipe!=='corrosive'&&look.recipe!=='siphon')for(const side of [-1,1])circle(-r*2.3,side*r*.65,r*.35,0xd18bfa);
  if(l.split)for(const side of [-1,1])line([-r*2.5,0,-r*3.8,side*r],look.edge,2);
+ if(l.agility)for(const side of [-1,1])line([-r*3.2,side*r*.6,-r*4.8,side*r*.6],0xccecff,1.5);
+ if(l.focus){line([r*.8,-r,r*1.2,-r,r*1.2,-r*.6],0xffdebd,2);line([r*.8,r,r*1.2,r,r*1.2,r*.6],0xffdebd,2)}
  if(l.ricochet)line([r*.3,-r*1.6,r*1.6,0,r*.3,r*1.6],0xade6df,2);
+ return out;
+}
+
+/** Independent ingredients use sparse ornaments along the SAME attack, not extra damaging shots. */
+export function supplementaryAccents(v:Presentation,time:number,r:number):Mark[]{
+ r=Math.min(14,r*1.4);
+ const l=v.levels,recipe=fusionLook(v).recipe,forms:Form[]=[];
+ const represented:Record<string,string[]>={thermal:['flame','flamethrower','ice','icebeam'],conductive:['water','spark','thunderbolt'],corrosive:['flame','flamethrower','poison','sludge'],shadow:['shadow','flame','flamethrower','ice','icebeam'],siphon:['drain','poison','sludge','spark','thunderbolt']};
+ for(const family of [['flamethrower','flame'],['icebeam','ice'],['shadow'],['swift'],['tri'],['drain'],['water'],['dragon'],['psybeam']] as Form[][]){const id=family.find(f=>l[f]&&f!==v.form&&!represented[recipe]?.includes(f));if(id)forms.push(id)}
+ const out:Mark[]=[];if(!forms.length)return out;
+ // At most three secondary ornaments at a time; long builds cycle through every ingredient.
+ const start=Math.floor(time*2)%forms.length;
+ for(let k=0;k<Math.min(3,forms.length);k++){
+  const id=forms[(start+k)%forms.length],x=-r*(1.8+k*1.25),y=(k%2?-1:1)*r*(1.1+Math.sin(time*6+k)*.2),c=FORMS[id].color;
+  const line=(points:number[],width=2)=>out.push({kind:'line',points,color:c,alpha:.85,width,fill:false});
+  const poly=(points:number[])=>out.push({kind:'polygon',points,color:c,alpha:.8,width:1,fill:true});
+  if(id==='flame'||id==='flamethrower')poly([x+r,y,x-r*.7,y-r*.7,x-r*.2,y,x-r*.7,y+r*.7]);
+  else if(id==='ice'||id==='icebeam'){poly([x+r*.7,y,x,y-r*.8,x-r*.7,y,x,y+r*.8]);}
+  else if(id==='swift'){const p:number[]=[];for(let i=0;i<10;i++){const a=i*Math.PI/5,rr=r*(i%2?.25:.65);p.push(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}poly(p)}
+  else if(id==='tri')for(let i=0;i<3;i++)out.push({kind:'circle',points:[x+i*r*.6,y,r*.22],color:[0xffad61,0x9cecff,0xffe66b][i],alpha:.9,width:1,fill:true});
+  else if(id==='water')poly([x+r*.6,y,x-r*.3,y-r*.4,x-r*1.3,y,x-r*.3,y+r*.4]);
+  else if(id==='drain'){poly([x+r*.7,y,x,y-r*.5,x-r*.8,y,x,y+r*.5]);line([x-r*.7,y,x+r*.5,y],1)}
+  else if(id==='shadow')line([x+r*.7,y-r*.7,x-r*.6,y-r*.4,x-r,y+r*.4,x+r*.4,y+r*.7],3);
+  else if(id==='dragon')line([x-r*.5,y-r,x+r*.3,y-r*.5,x+r*.6,y,x+r*.3,y+r*.5,x-r*.5,y+r],2.5);
+  else line([x-r,y-r*.4,x-r*.5,y+r*.4,x,y-r*.4,x+r*.5,y+r*.4,x+r,y-r*.4]);
+ }
  return out;
 }

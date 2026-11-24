@@ -18,10 +18,10 @@ export class AudioFX{
  private stop(group?:'music'|'fx'){if(!this.ctx)return;const now=this.ctx.currentTime;for(const [source,record] of this.voices){if(group&&record.group!==group)continue;const envelope=record.nodes[0] as GainNode;envelope.gain.cancelScheduledValues(now);envelope.gain.setTargetAtTime(.0001,now,.012);try{source.stop(now+.06)}catch{}this.voices.delete(source)}}
  private resetMusic(){this.stop('music');this.step=0;this.next=(this.ctx?.currentTime??0)+.04}
  private pump(){if(!this.enabled||!this.ctx||this.ctx.state!=='running'||document.hidden||this.mode==='silent')return;const now=this.ctx.currentTime;if(this.next<now-.15){this.next=now+.02;this.step=0}while(this.next<now+.1){this.renderMusicStep(this.step++,this.next);this.next+=musicProfile(this.scene).subdivision}}
- renderMusicStep(step:number,at:number){for(const v of musicStep(this.scene,step)){const common={from:v.frequency,to:v.frequency,duration:v.duration,gain:v.volume,pan:v.pan,delay:0};let spec:SoundVoice;
+ renderMusicStep(step:number,at:number){for(const v of musicStep(this.scene,step)){const common={from:v.frequency,to:v.frequency,duration:v.duration,gain:v.volume*(v.instrument==='pluck'?.55:1),pan:v.pan,delay:0};let spec:SoundVoice;
   if(v.instrument==='hat'||v.instrument==='snare')spec={...common,wave:'noise',from:v.instrument==='hat'?6500:1800,to:v.instrument==='hat'?4500:750,filter:v.instrument==='hat'?'highpass':'bandpass'};
   else if(v.instrument==='kick')spec={...common,wave:'sine',from:110,to:35};
-  else spec={...common,wave:v.instrument==='lead'?'triangle':v.instrument==='bass'?'triangle':'sine',attack:v.instrument==='pad'?.2:.012};
+  else spec={...common,wave:v.instrument==='pluck'?'square':v.instrument==='lead'||v.instrument==='bass'?'triangle':'sine',attack:v.instrument==='pad'?.2:.012};
   this.voice(spec,at,'music');
  }}
  private voice(v:SoundVoice,at:number,group:'music'|'fx'){

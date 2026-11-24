@@ -46,7 +46,7 @@ export class CombatEffects{
     if(path.kind==='pulse'&&i%3===0){g.fillStyle(0xf8aaff,alpha*.7);g.fillCircle(to.x+pulse*5,to.y-pulse*5,3)}
     if(path.kind==='tether'&&i%6===Math.floor(this.clock*25)%6){g.fillStyle(0xccffa9,alpha);g.fillEllipse(to.x,to.y,8,4)}
     if(look.recipe!=='single'){
-     if(i%9===0)this.marks(fusionAccents(path.attack.visual,this.clock,Math.min(9,Math.max(5,to.width*.7))),to.x,to.y,Math.atan2(to.y-from.y,to.x-from.x),alpha*.85,g);
+     if(i%7===0)this.marks(fusionAccents(path.attack.visual,this.clock+i*.07,Math.min(9,Math.max(5,to.width*.7))),to.x,to.y,Math.atan2(to.y-from.y,to.x-from.x),alpha*.85,g);
      const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy)||1,co=dx/length,si=dy/length,radius=Math.min(12,to.width+4);
      const wave=(index:number)=>look.recipe==='conductive'?(index%3===0?1:index%3===1?.15:.75):look.recipe==='thermal'?.7+Math.sin(index*.4-this.clock*8)*.15:look.recipe==='corrosive'?.65+Math.sin(index*.7-this.clock*5)*.25:look.recipe==='shadow'?Math.sin(index*.22-this.clock*5)*.55:look.recipe==='siphon'?Math.sin(index*.36-this.clock*4)*.55:Math.sin(this.clock*12-index*.45);
      for(const sign of [-1,1]){const side=wave(i)*radius*sign,previous=wave(i-1)*radius*sign,x=to.x-si*side,y=to.y+co*side;

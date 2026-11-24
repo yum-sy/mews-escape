@@ -208,3 +208,15 @@ body #active-items .active-item small{inset:-18px 0 auto;line-height:16px;pointe
 /* Room backing stays translucent, but recognition-critical symbols retain contrast. */
 .map-cell>.hud-symbol.solid-marker{width:18px;height:18px;opacity:1;filter:drop-shadow(0 1px 1px #071016);color:#eef5e9}
 .map-cell[data-kind=boss]>.solid-marker{color:#ffd3df}
+/* Inset thumb rests for a relaxed two-handed grip; keep counters independent of pad alpha. */
+:root{--thumb-inset:clamp(52px,8vw,88px);--thumb-bottom:max(36px,env(safe-area-inset-bottom))}
+#move-stick{left:max(calc(var(--arena-inset,0px) + var(--thumb-inset)),env(safe-area-inset-left));bottom:var(--thumb-bottom)}
+#attack-stick{right:max(calc(var(--arena-inset,0px) + var(--thumb-inset)),env(safe-area-inset-right));bottom:var(--thumb-bottom)}
+#touch-controls .stick{background:#10233318;border-color:#b6d8e533}
+#touch-controls .stick i{background:#bed8e31c;border-color:#cbe2ec44}
+#touch-controls .stick.attack{border-color:#ecb2db44}
+#attack-stick[data-aiming=true]{background:#b173a51a!important;border-color:#f4d4ee99!important}
+#active-items{right:max(calc(var(--thumb-inset) + 6px),env(safe-area-inset-right));bottom:calc(var(--thumb-bottom) + 156px)}
+body #active-items .hud-symbol{opacity:.78}
+@media(orientation:portrait){:root{--thumb-inset:clamp(20px,calc((100vw - 280px)/2),52px)}#move-stick{left:var(--thumb-inset)}#attack-stick{right:var(--thumb-inset)}}
+@media(orientation:portrait) and (max-width:360px){body .loadout,body.touch-ui .loadout{top:68px;left:20px;max-width:128px}}
